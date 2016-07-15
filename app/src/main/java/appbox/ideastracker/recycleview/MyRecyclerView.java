@@ -1,22 +1,16 @@
-package appbox.gameideas.recycleview;
+package appbox.ideastracker.recycleview;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.PointF;
-import android.os.Debug;
 import android.os.Handler;
-import android.renderscript.Double2;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 
-import appbox.gameideas.database.DataEntry;
-import appbox.gameideas.database.DatabaseHelper;
+import appbox.ideastracker.database.DataEntry;
+import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 13/07/2016.

@@ -1,4 +1,4 @@
-package appbox.gameideas;
+package appbox.ideastracker;
 
 import org.junit.Test;
 

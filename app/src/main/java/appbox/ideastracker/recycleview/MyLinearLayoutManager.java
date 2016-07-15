@@ -1,4 +1,4 @@
-package appbox.gameideas.recycleview;
+package appbox.ideastracker.recycleview;
 
 import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;

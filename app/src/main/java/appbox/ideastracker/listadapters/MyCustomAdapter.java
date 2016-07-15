@@ -1,11 +1,10 @@
-package appbox.gameideas.listadapters;
+package appbox.ideastracker.listadapters;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.LinearLayoutManager;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +14,11 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import appbox.gameideas.recycleview.HorizontalAdapter;
-import appbox.gameideas.recycleview.MyRecyclerView;
-import appbox.gameideas.R;
-import appbox.gameideas.database.DataEntry;
-import appbox.gameideas.database.DatabaseHelper;
+import appbox.ideastracker.recycleview.HorizontalAdapter;
+import appbox.ideastracker.recycleview.MyRecyclerView;
+import appbox.ideastracker.R;
+import appbox.ideastracker.database.DataEntry;
+import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 30/06/2016.

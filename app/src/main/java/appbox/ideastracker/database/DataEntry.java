@@ -1,4 +1,4 @@
-package appbox.gameideas.database;
+package appbox.ideastracker.database;
 
 import android.provider.BaseColumns;
 

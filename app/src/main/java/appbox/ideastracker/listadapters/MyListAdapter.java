@@ -1,4 +1,4 @@
-package appbox.gameideas.listadapters;
+package appbox.ideastracker.listadapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -12,11 +12,11 @@ import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
 
-import appbox.gameideas.recycleview.HorizontalAdapter;
-import appbox.gameideas.recycleview.MyRecyclerView;
-import appbox.gameideas.R;
-import appbox.gameideas.database.DataEntry;
-import appbox.gameideas.database.DatabaseHelper;
+import appbox.ideastracker.recycleview.HorizontalAdapter;
+import appbox.ideastracker.recycleview.MyRecyclerView;
+import appbox.ideastracker.R;
+import appbox.ideastracker.database.DataEntry;
+import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 13/07/2016.

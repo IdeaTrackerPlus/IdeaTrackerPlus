@@ -1,4 +1,4 @@
-package appbox.gameideas;
+package appbox.ideastracker;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -6,6 +6,6 @@
         android:id="@+id/expandableList"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        tools:context="appbox.gameideas.MainActivity$ListFragment"
+        tools:context="appbox.ideastracker.MainActivity$ListFragment"
         />
 

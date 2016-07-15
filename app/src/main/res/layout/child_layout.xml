@@ -3,7 +3,7 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <appbox.gameideas.recycleview.MyRecyclerView
+    <appbox.ideastracker.recycleview.MyRecyclerView
         android:id="@+id/horizontal_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

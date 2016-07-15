@@ -1,4 +1,4 @@
-package appbox.gameideas;
+package appbox.ideastracker;
 
 import android.app.Dialog;
 import android.content.ContentValues;
@@ -36,10 +36,10 @@ import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 
-import appbox.gameideas.database.DataEntry;
-import appbox.gameideas.database.DatabaseHelper;
-import appbox.gameideas.listadapters.MyCustomAdapter;
-import appbox.gameideas.listadapters.MyListAdapter;
+import appbox.ideastracker.database.DataEntry;
+import appbox.ideastracker.database.DatabaseHelper;
+import appbox.ideastracker.listadapters.MyCustomAdapter;
+import appbox.ideastracker.listadapters.MyListAdapter;
 
 public class MainActivity extends AppCompatActivity{
 

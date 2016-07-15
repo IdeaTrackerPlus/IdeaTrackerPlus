@@ -1,11 +1,9 @@
-package appbox.gameideas.database;
+package appbox.ideastracker.database;
 
 import android.content.Context;
 import android.database.sqlite.*;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
-
-import java.util.ArrayList;
 
 /**
  * Created by Nicklos on 12/07/2016.
