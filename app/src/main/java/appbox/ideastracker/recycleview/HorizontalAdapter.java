@@ -16,6 +16,7 @@ import appbox.ideastracker.R;
 public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.MyViewHolder> {
 
     private String mIdea;
+    private int mTabNumber;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView txtView;
@@ -27,8 +28,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     }
 
 
-    public HorizontalAdapter(String text) {
+    public HorizontalAdapter(String text,int tabNumber) {
         mIdea = text;
+        mTabNumber = tabNumber;
     }
 
     public void editText(String newText){
@@ -45,25 +47,76 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        switch (position){
-            case 0: //LATER
-                holder.txtView.setText("LATER");
-                holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
-                holder.txtView.setBackgroundResource(R.color.red);
-                holder.txtView.setTextColor(Color.WHITE);
+
+        switch(mTabNumber){
+            case 1: //TAB#1 IDEA
+                switch (position){
+                    case 0: //LATER
+                        holder.txtView.setText("LATER");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setBackgroundResource(R.color.pink);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+
+                    case 1: //IDEA
+                        holder.txtView.setText(mIdea);
+                        break;
+
+                    case 2: //DONE
+                        holder.txtView.setText("DONE");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setBackgroundResource(R.color.orange);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+                }
                 break;
 
-            case 1: //IDEA
-                holder.txtView.setText(mIdea);
+            case 2: //TAB#2 LATER
+                switch (position){
+                    case 0: //DELETE
+                        holder.txtView.setText("DELETE");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setBackgroundResource(R.color.red);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+
+                    case 1: //IDEA
+                        holder.txtView.setText(mIdea);
+                        break;
+
+                    case 2: //NOW
+                        holder.txtView.setText("NOW");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setBackgroundResource(R.color.green);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+                }
                 break;
 
-            case 2: //DONE
-                holder.txtView.setText("DONE");
-                holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-                holder.txtView.setBackgroundResource(R.color.orange);
-                holder.txtView.setTextColor(Color.WHITE);
+            case 3: //TAB#3 DONE
+                switch (position){
+                    case 0: //DELETE
+                        holder.txtView.setText("DELETE");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setBackgroundResource(R.color.red);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+
+                    case 1: //IDEA
+                        holder.txtView.setText(mIdea);
+                        break;
+
+                    case 2: //RECOVER
+                        holder.txtView.setText("RECOVER");
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setBackgroundResource(R.color.purple);
+                        holder.txtView.setTextColor(Color.WHITE);
+                        break;
+                }
                 break;
+
         }
+
     }
 
     @Override

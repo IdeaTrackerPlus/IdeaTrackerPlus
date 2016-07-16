@@ -97,7 +97,7 @@ public class MyRecyclerView extends RecyclerView {
 
         //notify on first tab to delete element
         Handler handler = new Handler();
-        handler.postDelayed(myRunnable,500);
+        handler.postDelayed(myRunnable,300);
     }
 
     private Runnable myRunnable = new Runnable() {

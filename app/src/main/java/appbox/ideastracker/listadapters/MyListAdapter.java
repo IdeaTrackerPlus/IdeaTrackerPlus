@@ -48,7 +48,9 @@ public class MyListAdapter extends BaseAdapter {
             horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
             ArrayList<Pair<Integer ,String >> ideas = readIdeas();
             Pair<Integer ,String > pair = ideas.get(position);
-            HorizontalAdapter horizontalAdapter=new HorizontalAdapter(pair.second); //TODO: Create a different adapter or attr for the LATER and DONE cases
+            HorizontalAdapter horizontalAdapter;
+            if(mLater) horizontalAdapter = new HorizontalAdapter(pair.second,2);
+            else horizontalAdapter = new HorizontalAdapter(pair.second,3);
             horizontal_recycler_view.setTag(pair.first);
             LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.HORIZONTAL,false);
             horizontalLayoutManager.scrollToPositionWithOffset(1, 0);

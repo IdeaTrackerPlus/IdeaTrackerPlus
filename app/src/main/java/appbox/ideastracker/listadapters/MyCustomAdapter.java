@@ -106,7 +106,7 @@ public class MyCustomAdapter extends BaseExpandableListAdapter {
             horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
             ArrayList<Pair<Integer ,String >> ideas = readIdeas(groupPosition); //get all ideas from priority
             Pair<Integer ,String > pair = ideas.get(childPosition);
-            HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second);
+            HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second,1);
             horizontal_recycler_view.setTag(pair.first);
             LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.HORIZONTAL,false);
             horizontalLayoutManager.scrollToPositionWithOffset(1, 0);
