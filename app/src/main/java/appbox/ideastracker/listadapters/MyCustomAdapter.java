@@ -10,10 +10,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import appbox.ideastracker.AnimatedExpandableListView;
 import appbox.ideastracker.recycleview.HorizontalAdapter;
 import appbox.ideastracker.recycleview.MyRecyclerView;
 import appbox.ideastracker.R;
@@ -24,7 +27,7 @@ import appbox.ideastracker.database.DatabaseHelper;
  * Created by Nicklos on 30/06/2016.
  * Adapter for the expandable list of the "Ideas" tab
  */
-public class MyCustomAdapter extends BaseExpandableListAdapter {
+public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandableListAdapter {
 
 
     private LayoutInflater inflater;
@@ -45,7 +48,7 @@ public class MyCustomAdapter extends BaseExpandableListAdapter {
 
     @Override
     //counts the number of children items so the list knows how many times calls getChildView() method
-    public int getChildrenCount(int i){
+    public int getRealChildrenCount(int i){
         return readIdeas(i).size();
     }
 
@@ -86,7 +89,15 @@ public class MyCustomAdapter extends BaseExpandableListAdapter {
 
         TextView textView = (TextView) view.findViewById(R.id.textViewParent);
         textView.setText("Priority : " + Integer.toString(groupPosition+1));
-
+        LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
+        switch (groupPosition){
+            case 0: parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority1));
+                break;
+            case 1: parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority2));
+                break;
+            case 2: parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority3));
+                break;
+        }
 
         //return the entire view
         return view;
@@ -94,7 +105,7 @@ public class MyCustomAdapter extends BaseExpandableListAdapter {
 
     @Override
     //in this method you must set the text to see the children on the list
-    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View view, ViewGroup viewGroup) {
+    public View getRealChildView(int groupPosition, int childPosition, boolean isLastChild, View view, ViewGroup viewGroup) {
 
         view = inflater.inflate(R.layout.child_layout, viewGroup,false);
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);

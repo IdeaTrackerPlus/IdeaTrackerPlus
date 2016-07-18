@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 android:layout_width="match_parent"
+    android:id="@+id/parentPriority"
 android:layout_height="match_parent"
 android:orientation="vertical"
-android:padding="10dp" >
+    android:padding="10dp"
+    android:background="@color/colorAccent">
 
 <TextView
     android:id="@+id/textViewParent"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:paddingLeft="25dp"
     android:textStyle="bold"
+    android:textColor="@color/white"
     android:textAppearance="?android:attr/textAppearanceLarge"/>
 </LinearLayout>

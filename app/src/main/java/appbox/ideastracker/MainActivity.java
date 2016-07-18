@@ -261,12 +261,14 @@ public class MainActivity extends AppCompatActivity{
             switch(this.getIndex()){
                 case 0: //IDEAS
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                    ExpandableListView list = (ExpandableListView) rootView.findViewById(R.id.expandableList);
+                    AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
                     //sets the adapter that provides data to the list
                     MyCustomAdapter adapter = new MyCustomAdapter(getContext());
                     mExpandleAdapter = adapter;
                     DatabaseHelper.setAdapterIdea(adapter);
                     list.setAdapter(adapter);
+                    list.expandGroup(0);list.expandGroup(1);list.expandGroup(2);
+                    setExpandAnimation(list);
 
                     break;
 
@@ -292,6 +294,26 @@ public class MainActivity extends AppCompatActivity{
 
 
             return rootView;
+        }
+
+        void setExpandAnimation(final AnimatedExpandableListView listView){
+            listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+
+                @Override
+                public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                    // We call collapseGroupWithAnimation(int) and
+                    // expandGroupWithAnimation(int) to animate group
+                    // expansion/collapse.
+                    if (listView.isGroupExpanded(groupPosition)) {
+                        listView.collapseGroupWithAnimation(groupPosition);
+                    } else {
+                        listView.expandGroupWithAnimation(groupPosition);
+                    }
+                    return true;
+                }
+
+            });
+
         }
 
     }

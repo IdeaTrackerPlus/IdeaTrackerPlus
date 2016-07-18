@@ -11,4 +11,7 @@
     <color name="green">#2ECC71</color>
     <color name="white">#FFFFFF</color>
     <color name="orange">#FFA539</color>
+    <color name="priority1">#BEF83636</color>
+    <color name="priority2">#BEF8A836</color>
+    <color name="priority3">#BE54C649</color>
 </resources>
