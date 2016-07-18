@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity{
         // Set up the ViewPager with the sections adapter.
         mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        scrollTillEnd();
 
         // Set up the tab layout
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
@@ -171,35 +170,6 @@ public class MainActivity extends AppCompatActivity{
                 DataEntry.TABLE_NAME,
                 DataEntry.COLUMN_NAME_NULLABLE,
                 values);
-    }
-
-    private void readDatabase() {
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        Cursor  cursor = db.rawQuery("select * from "+ DataEntry.TABLE_NAME,null);
-        if (cursor .moveToFirst()) {
-
-            while (cursor.isAfterLast() == false) {
-                String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                Log.d("NICKLOS",text);
-                cursor.moveToNext();
-            }
-        }
-        cursor.close();
-    }
-
-    private void scrollTillEnd(){
-        //help the scrolling until the bottom
-        // Calculate ActionBar height
-        int actionBarHeight = 0;
-        TypedValue tv = new TypedValue();
-        if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
-        {
-            actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data,getResources().getDisplayMetrics());
-        }
-        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mViewPager.getLayoutParams();
-        params.bottomMargin = actionBarHeight*2;
-        mViewPager.setLayoutParams(params);
     }
 
     @Override
