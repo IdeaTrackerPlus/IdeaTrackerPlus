@@ -4,4 +4,6 @@
     <string name="radio_1">1</string>
     <string name="radio_2">2</string>
     <string name="radio_3">3</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
 </resources>
