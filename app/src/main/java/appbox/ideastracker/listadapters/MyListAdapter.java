@@ -41,31 +41,19 @@ public class MyListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
 
-        MyRecyclerView horizontal_recycler_view;
-
-        if (view == null) {
-            view = inflater.inflate(R.layout.child_layout, parent,false);
-            horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
-            ArrayList<Pair<Integer ,String >> ideas = readIdeas();
-            Pair<Integer ,String > pair = ideas.get(position);
-            HorizontalAdapter horizontalAdapter;
-            if(mLater) horizontalAdapter = new HorizontalAdapter(pair.second,2);
-            else horizontalAdapter = new HorizontalAdapter(pair.second,3);
-            horizontal_recycler_view.setTag(pair.first);
-            LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.HORIZONTAL,false);
-            horizontalLayoutManager.scrollToPositionWithOffset(1, 0);
-            horizontal_recycler_view.setLayoutManager(horizontalLayoutManager);
-            horizontal_recycler_view.setAdapter(horizontalAdapter);
-        }
-
-        //Edit text of adapter and notify changes
-        horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
-        ArrayList<Pair<Integer ,String >> ideas = readIdeas(); //get all ideas from priority
+        view = inflater.inflate(R.layout.child_layout, parent,false);
+        MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
+        ArrayList<Pair<Integer ,String >> ideas = readIdeas();
         Pair<Integer ,String > pair = ideas.get(position);
-        HorizontalAdapter horizontalAdapter = (HorizontalAdapter) horizontal_recycler_view.getAdapter();
-        horizontalAdapter.editText(pair.second);
-        horizontalAdapter.notifyDataSetChanged();
+        HorizontalAdapter horizontalAdapter;
+        if(mLater) horizontalAdapter = new HorizontalAdapter(pair.second,2);
+        else horizontalAdapter = new HorizontalAdapter(pair.second,3);
         horizontal_recycler_view.setTag(pair.first);
+        LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.HORIZONTAL,false);
+        horizontalLayoutManager.scrollToPositionWithOffset(1, 0);
+        horizontal_recycler_view.setLayoutManager(horizontalLayoutManager);
+        horizontal_recycler_view.setAdapter(horizontalAdapter);
+        horizontal_recycler_view.setUp();
 
         //return the entire view
         return view;

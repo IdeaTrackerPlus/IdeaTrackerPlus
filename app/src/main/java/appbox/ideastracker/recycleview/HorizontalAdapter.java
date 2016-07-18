@@ -60,6 +60,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                     case 1: //IDEA
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setBackgroundResource(R.color.white);
+                        holder.txtView.setTextColor(Color.BLACK);
                         break;
 
                     case 2: //DONE
@@ -122,5 +124,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     @Override
     public int getItemCount() {
         return 3;
+    }
+
+    public int getTabNumber(){
+        return mTabNumber;
     }
 }
