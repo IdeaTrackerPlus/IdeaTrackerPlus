@@ -20,6 +20,7 @@ public class MyRecyclerView extends RecyclerView {
     private boolean isActivated;
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
+    private DatabaseHelper mDbHelper;
 
 
     public MyRecyclerView(Context context) {
@@ -68,55 +69,19 @@ public class MyRecyclerView extends RecyclerView {
 
     }
 
-    //Move an idea to LATER or DONE
-    private void editEntry(boolean later, int id){
-        DatabaseHelper helper = DatabaseHelper.getInstance(this.getContext());
-        SQLiteDatabase db = helper.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        if(later) values.put(DataEntry.COLUMN_NAME_LATER, true);
-        else values.put(DataEntry.COLUMN_NAME_DONE, true);
-
-        db.update(DataEntry.TABLE_NAME,values,"_id="+id,null);
-
-        //notify on first tab to delete element
-        Handler handler = new Handler();
-        handler.postDelayed(myRunnable,300);
-    }
-
-    private void moveToNow(int id){
-        DatabaseHelper helper = DatabaseHelper.getInstance(this.getContext());
-        SQLiteDatabase db = helper.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(DataEntry.COLUMN_NAME_DONE, false);
-        values.put(DataEntry.COLUMN_NAME_LATER, false);
-
-        db.update(DataEntry.TABLE_NAME,values,"_id="+id,null);
-
-        //notify on first tab to delete element
-        Handler handler = new Handler();
-        handler.postDelayed(myRunnable,300);
-    }
-
-    private void deleteEntry(int id){
-        DatabaseHelper helper = DatabaseHelper.getInstance(this.getContext());
-        SQLiteDatabase db = helper.getWritableDatabase();
-
-        db.delete(DataEntry.TABLE_NAME,"_id="+id,null);
-
-        //notify
-        Handler handler = new Handler();
-        handler.postDelayed(myRunnable,300);
-    }
-
     private Runnable myRunnable = new Runnable() {
         public void run() {
             DatabaseHelper.notifyAllLists();
         }
     };
 
+    private void notifyChange(){
+        Handler handler = new Handler();
+        handler.postDelayed(myRunnable,300);
+    }
+
     private void stateChangedIdea(int state){
+        mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
         double limLeft =  0.4d*width;
         double limRight = 0.6d*width;
@@ -146,17 +111,20 @@ public class MyRecyclerView extends RecyclerView {
             }
         }else if(isActivated && state == RecyclerView.SCROLL_STATE_IDLE){
             int first = mManager.findFirstVisibleItemPosition();
-            if((mManager.getChildAt(0)) != null && first == 0){
+            if((mManager.getChildAt(0)) != null && first == 0){ //move to LATER
                 int tagId = (int) this.getTag();
-                editEntry(true,tagId);
-            }else{
+                mDbHelper.moveToTab(2,tagId);
+                notifyChange();
+            }else{ //move to DONE
                 int tagId = (int) this.getTag();
-                editEntry(false,tagId);
+                mDbHelper.moveToTab(3,tagId);
+                notifyChange();
             }
         }
     }
 
     private void stateChangeOther(int state){
+        mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
         double limLeft =  0.4d*width;
         double limRight = 0.6d*width;
@@ -188,10 +156,12 @@ public class MyRecyclerView extends RecyclerView {
             int first = mManager.findFirstVisibleItemPosition();
             if((mManager.getChildAt(0)) != null && first == 0){ //DELETE
                 int tagId = (int) this.getTag();
-                deleteEntry(tagId);
+                mDbHelper.deleteEntry(tagId);
+                notifyChange();
             }else{ //NOW
                 int tagId = (int) this.getTag();
-                moveToNow(tagId);
+                mDbHelper.moveToTab(1,tagId);
+                notifyChange();
             }
         }
     }

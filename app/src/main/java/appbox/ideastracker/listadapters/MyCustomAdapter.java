@@ -49,7 +49,7 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
     @Override
     //counts the number of children items so the list knows how many times calls getChildView() method
     public int getRealChildrenCount(int i){
-        return readIdeas(i).size();
+        return mDbHelper.readIdeas(i).size();
     }
 
     @Override
@@ -109,7 +109,7 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
 
         view = inflater.inflate(R.layout.child_layout, viewGroup,false);
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
-        ArrayList<Pair<Integer ,String >> ideas = readIdeas(groupPosition); //get all ideas from priority
+        ArrayList<Pair<Integer ,String >> ideas = mDbHelper.readIdeas(groupPosition); //get all ideas from priority
         Pair<Integer ,String > pair = ideas.get(childPosition);
         HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second,1);
         horizontal_recycler_view.setTag(pair.first);
@@ -132,49 +132,6 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
     public void registerDataSetObserver(DataSetObserver observer) {
         /* used to make the notifyDataSetChanged() method work */
         super.registerDataSetObserver(observer);
-    }
-
-    /**
-     * Read all ideas of the "Ideas" tab in the database
-     */
-    private ArrayList<Pair<Integer ,String >> readIdeas(int priority) {
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Only the text and priority will be read
-        String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
-
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder = DataEntry._ID + " ASC";
-
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                "later=? and done=?",                    // The columns for the WHERE clause
-                new String[] {"0", "0"},                  // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
-
-        ArrayList<Pair<Integer ,String >> ideas = new ArrayList<>();
-        Pair<Integer ,String > pair;
-
-        //Scan the ideas and return only the one with the expected priority
-        if (cursor.moveToFirst()) {
-
-            while (cursor.isAfterLast() == false) {
-                String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
-                if(prio == priority + 1){
-                    pair = new Pair<>(id,text);
-                    ideas.add(pair);
-                }
-                cursor.moveToNext();
-            }
-        }
-        cursor.close();
-        return ideas;
     }
 
 

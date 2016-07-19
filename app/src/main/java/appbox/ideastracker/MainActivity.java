@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.ColorInt;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -19,6 +20,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -38,7 +40,11 @@ import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.thebluealliance.spectrum.SpectrumDialog;
 
 import java.util.ArrayList;
 
@@ -54,6 +60,7 @@ public class MainActivity extends AppCompatActivity{
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
+    private FragmentManager mFragmentManager;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -135,6 +142,36 @@ public class MainActivity extends AppCompatActivity{
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        //RIGHT DRAWER BUTTONS
+        mFragmentManager =  getSupportFragmentManager();
+        Button mainColor_button = (Button) findViewById(R.id.mainColor_button);
+        mainColor_button.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                new SpectrumDialog.Builder(getApplicationContext())
+                        .setColors(R.array.colors)
+                        .setSelectedColorRes(R.color.blue)
+                        .setDismissOnColorSelected(true)
+                        .setOutlineWidth(2)
+                        .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                            @Override public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                if (positiveResult) {
+                                    Toast.makeText(getApplicationContext(), "Color selected: #" + Integer.toHexString(color).toUpperCase(), Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Dialog cancelled", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }).build().show(mFragmentManager, "dialog_spectrum");
+            }
+        });
+
+        FloatingActionButton fab_go = (FloatingActionButton) findViewById(R.id.move_go);
+        fab_go.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                newMoveDialog();
+            }
+        });
 
     }
 
@@ -201,6 +238,48 @@ public class MainActivity extends AppCompatActivity{
         });
 
 
+    }
+
+    private void newMoveDialog(){
+
+        Spinner spinnerFrom =(Spinner) findViewById(R.id.spinner_from);
+        Spinner spinnerTo =(Spinner) findViewById(R.id.spinner_to);
+        String from = spinnerFrom.getSelectedItem().toString();
+        String to = spinnerTo.getSelectedItem().toString();
+        if(from == to) return; //exit the method, do nothing
+
+        ArrayList<Pair<Integer ,String >> ideas = new ArrayList<>();
+        switch (from){
+            case "Ideas" : //get all the ideas from NOW tab
+                ideas = mDbHelper.readIdeas(-1);
+                break;
+
+            case "Later" : //get all the ideas from LATER tab
+                ideas = mDbHelper.readIdeas(true);
+                break;
+
+            case "Done" : //get all the ideas from LATER tab
+                ideas = mDbHelper.readIdeas(false);
+                break;
+        }
+
+        switch(to){
+            case "Ideas" :
+                mDbHelper.moveAllToTab(1,ideas);
+                break;
+
+            case "Later" :
+                mDbHelper.moveAllToTab(2,ideas);
+                break;
+
+            case "Done" :
+                mDbHelper.moveAllToTab(3,ideas);
+                break;
+
+            case "Delete" :
+                mDbHelper.deleteIdeas(ideas);
+                break;
+        }
     }
 
     private void newEntry(String text, int priority, boolean later){

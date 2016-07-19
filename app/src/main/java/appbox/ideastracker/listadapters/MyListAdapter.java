@@ -35,7 +35,7 @@ public class MyListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return readIdeas().size();
+        return mDbHelper.readIdeas(mLater).size();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class MyListAdapter extends BaseAdapter {
 
         view = inflater.inflate(R.layout.child_layout, parent,false);
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
-        ArrayList<Pair<Integer ,String >> ideas = readIdeas();
+        ArrayList<Pair<Integer ,String >> ideas = mDbHelper.readIdeas(mLater);
         Pair<Integer ,String > pair = ideas.get(position);
         HorizontalAdapter horizontalAdapter;
         if(mLater) horizontalAdapter = new HorizontalAdapter(pair.second,2);
@@ -69,47 +69,4 @@ public class MyListAdapter extends BaseAdapter {
         return position;
     }
 
-    private ArrayList<Pair<Integer ,String >> readIdeas() {
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Only the text and priority will be read
-        String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT};
-
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder = DataEntry._ID + " ASC";
-        //Either get the "later" or the "done"
-        String where = "";
-        if(mLater){
-            where = "later=?";
-        }else{
-            where = "done=?";
-        }
-
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                where,                                   // The columns for the WHERE clause
-                new String[] {"1"},                      // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
-
-        ArrayList<Pair<Integer ,String >> ideas = new ArrayList<>();
-        Pair<Integer ,String > pair;
-
-        //Scan the ideas and return everything
-        if (cursor.moveToFirst()) {
-
-            while (cursor.isAfterLast() == false) {
-                String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                pair = new Pair<>(id,text);
-                ideas.add(pair);
-                cursor.moveToNext();
-            }
-        }
-        cursor.close();
-        return ideas;
-    }
 }

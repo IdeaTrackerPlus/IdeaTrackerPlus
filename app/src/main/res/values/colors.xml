@@ -14,4 +14,16 @@
     <color name="priority1">#BEF83636</color>
     <color name="priority2">#BEF8A836</color>
     <color name="priority3">#BE54C649</color>
+    <color name="options">#808F57FF</color>
+
+    <array name="colors">
+        <item>@color/blue</item>
+        <item>@color/purple</item>
+        <item>@color/purple2</item>
+        <item>@color/green</item>
+        <item>@color/orange</item>
+        <item>@color/red</item>
+        <item>@color/pink</item>
+    </array>
+
 </resources>

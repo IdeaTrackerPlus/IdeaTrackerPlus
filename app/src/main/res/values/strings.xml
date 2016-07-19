@@ -6,4 +6,24 @@
     <string name="radio_3">3</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    <string name="move_all">Move All Ideas</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="go">GO</string>
+    <string name="functions_label">Functions</string>
+    <string name="options_label">Options</string>
+    <string name="mainColor_label">Change main color</string>
+
+    <string-array name="array_from">
+        <item>Ideas</item>
+        <item>Later</item>
+        <item>Done</item>
+    </string-array>
+
+    <string-array name="array_to">
+        <item>Ideas</item>
+        <item>Later</item>
+        <item>Done</item>
+        <item>Delete</item>
+    </string-array>
 </resources>
