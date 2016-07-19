@@ -28,17 +28,17 @@ public class MyRecyclerView extends RecyclerView {
         isActivated = false;
     }
 
-    public MyRecyclerView(Context context,AttributeSet attrs) {
-        super(context,attrs);
+    public MyRecyclerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         isActivated = false;
     }
 
-    public MyRecyclerView(Context context,AttributeSet attrs, int defStyle) {
-        super(context,attrs,defStyle);
+    public MyRecyclerView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
         isActivated = false;
     }
 
-    public void setUp(){
+    public void setUp() {
         mManager = (LinearLayoutManager) this.getLayoutManager();
         mAdapter = (HorizontalAdapter) this.getAdapter();
     }
@@ -53,16 +53,16 @@ public class MyRecyclerView extends RecyclerView {
     public void onScrollStateChanged(int state) {
         int tab = mAdapter.getTabNumber();
 
-        switch (tab){
-            case 1:
+        switch (tab) {
+            case 1: //Tab NOW
                 stateChangedIdea(state);
                 break;
 
-            case 2:
+            case 2: //Tab LATER
                 stateChangeOther(state);
                 break;
 
-            case 3:
+            case 3: //Tab DONE
                 stateChangeOther(state);
                 break;
         }
@@ -75,92 +75,90 @@ public class MyRecyclerView extends RecyclerView {
         }
     };
 
-    private void notifyChange(){
+    private void notifyChange() {
         Handler handler = new Handler();
-        handler.postDelayed(myRunnable,300);
+        handler.postDelayed(myRunnable, 300);
     }
 
-    private void stateChangedIdea(int state){
+    private void stateChangedIdea(int state) {
+
         mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
-        double limLeft =  0.4d*width;
-        double limRight = 0.6d*width;
+        double limLeft = 0.4d * width;
+        double limRight = 0.6d * width;
 
-        if(state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated){
+        if (state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated) {
 
             View child;
             int first = mManager.findFirstVisibleItemPosition();
             int last = mManager.findLastVisibleItemPosition();
             int left, right;
 
-            if((child = mManager.getChildAt(0)) != null && first == 0){//We are going towards LATER
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards LATER
                 right = child.getRight();
-                if(right > limLeft){
+                if (right > limLeft) {
                     isActivated = true;
                     smoothScrollToPosition(0);
-                }
-                else smoothScrollToPosition(1);
+                } else smoothScrollToPosition(1);
 
-            }else if((child = mManager.getChildAt(1)) != null && last == 2){//We are going towards DONE
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards DONE
                 left = child.getLeft();
-                if(left < limRight){
+                if (left < limRight) {
                     isActivated = true;
                     smoothScrollToPosition(2);
-                }
-                else smoothScrollToPosition(1);
+                } else smoothScrollToPosition(1);
             }
-        }else if(isActivated && state == RecyclerView.SCROLL_STATE_IDLE){
+        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) {
             int first = mManager.findFirstVisibleItemPosition();
-            if((mManager.getChildAt(0)) != null && first == 0){ //move to LATER
+            if ((mManager.getChildAt(0)) != null && first == 0) { //move to LATER
                 int tagId = (int) this.getTag();
-                mDbHelper.moveToTab(2,tagId);
+                mDbHelper.moveToTab(2, tagId);
                 notifyChange();
-            }else{ //move to DONE
+            } else { //move to DONE
                 int tagId = (int) this.getTag();
-                mDbHelper.moveToTab(3,tagId);
+                mDbHelper.moveToTab(3, tagId);
                 notifyChange();
             }
         }
     }
 
-    private void stateChangeOther(int state){
+    private void stateChangeOther(int state) {
+
         mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
-        double limLeft =  0.4d*width;
-        double limRight = 0.6d*width;
+        double limLeft = 0.4d * width;
+        double limRight = 0.6d * width;
 
-        if(state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated){
+        if (state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated) {
 
             View child;
             int first = mManager.findFirstVisibleItemPosition();
             int last = mManager.findLastVisibleItemPosition();
             int left, right;
 
-            if((child = mManager.getChildAt(0)) != null && first == 0){//We are going towards DELETE
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards DELETE
                 right = child.getRight();
-                if(right > limLeft){
+                if (right > limLeft) {
                     isActivated = true;
                     smoothScrollToPosition(0);
-                }
-                else smoothScrollToPosition(1);
+                } else smoothScrollToPosition(1);
 
-            }else if((child = mManager.getChildAt(1)) != null && last == 2){//We are going towards NOW
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards NOW
                 left = child.getLeft();
-                if(left < limRight){
+                if (left < limRight) {
                     isActivated = true;
                     smoothScrollToPosition(2);
-                }
-                else smoothScrollToPosition(1);
+                } else smoothScrollToPosition(1);
             }
-        }else if(isActivated && state == RecyclerView.SCROLL_STATE_IDLE){ //Wait for animation to finish
+        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Wait for animation to finish
             int first = mManager.findFirstVisibleItemPosition();
-            if((mManager.getChildAt(0)) != null && first == 0){ //DELETE
+            if ((mManager.getChildAt(0)) != null && first == 0) { //DELETE
                 int tagId = (int) this.getTag();
-                mDbHelper.deleteEntry(tagId);
+                mDbHelper.deleteEntryWithSnack(this,tagId);
                 notifyChange();
-            }else{ //NOW
+            } else { //NOW
                 int tagId = (int) this.getTag();
-                mDbHelper.moveToTab(1,tagId);
+                mDbHelper.moveToTab(1, tagId);
                 notifyChange();
             }
         }

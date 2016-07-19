@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
                     boolean later = doLater.isChecked();
                     int priority = Integer.parseInt(selection.toString());
 
-                    newEntry(text, priority, later); //add the idea to the actual database
+                    mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
 
                     DatabaseHelper.notifyAllLists();
                 }
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         String snackText = "Nothing to move from " + from;
         boolean success = false;
         if (from == to) snackText = "Locations must be different";
-        else if (moveAll(from, to)) {
+        else if (mDbHelper.moveAllFromTo(from, to)) {
             snackText = "All ideas from " + from + " moved to " + to;
             success = true;
         }
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                     if (to.equals("Trash")) {//undo temp deleting
                         mDbHelper.recoverAllFromTemp();
                     } else {
-                        moveAll(to, from);
+                        mDbHelper.moveAllFromTo(to, from);
                     }
                 }
             }).setCallback(new Snackbar.Callback() {
@@ -276,69 +276,6 @@ public class MainActivity extends AppCompatActivity {
 
         snackbar.show();
     }
-
-    /**
-     * Move all ideas from a tab to another
-     *
-     * @param from
-     * @param to
-     */
-    private boolean moveAll(String from, String to) {
-
-        ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-        switch (from) {
-            case "Ideas": //get all the ideas from NOW tab
-                ideas = mDbHelper.readIdeas(-1);
-                break;
-
-            case "Later": //get all the ideas from LATER tab
-                ideas = mDbHelper.readIdeas(true);
-                break;
-
-            case "Done": //get all the ideas from LATER tab
-                ideas = mDbHelper.readIdeas(false);
-                break;
-        }
-        if(ideas.size() == 0) return false; //nothing to move
-
-        switch (to) {
-            case "Ideas":
-                mDbHelper.moveAllToTab(1, ideas);
-                break;
-
-            case "Later":
-                mDbHelper.moveAllToTab(2, ideas);
-                break;
-
-            case "Done":
-                mDbHelper.moveAllToTab(3, ideas);
-                break;
-
-            case "Trash":
-                mDbHelper.moveAllToTemp(ideas);
-                break;
-        }
-        return true;
-    }
-
-    private void newEntry(String text, int priority, boolean later) {
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        values.put(DataEntry.COLUMN_NAME_ENTRY_ID, 0);
-        values.put(DataEntry.COLUMN_NAME_TEXT, text);
-        values.put(DataEntry.COLUMN_NAME_PRIORITY, priority);
-        values.put(DataEntry.COLUMN_NAME_LATER, later);
-        values.put(DataEntry.COLUMN_NAME_DONE, false);
-        values.put(DataEntry.COLUMN_NAME_TEMP, false);
-
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId;
-        newRowId = mDatabase.insert(
-                DataEntry.TABLE_NAME,
-                DataEntry.COLUMN_NAME_NULLABLE,
-                values);
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

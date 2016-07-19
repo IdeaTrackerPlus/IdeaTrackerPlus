@@ -5,8 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.*;
 import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.util.Pair;
+import android.view.View;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
 
@@ -90,6 +92,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static void setAdapterDone(BaseAdapter adapter) {
         mAdapterDone = adapter;
+    }
+
+    public void newEntry(String text, int priority, boolean later) {
+
+        ContentValues values = new ContentValues();
+        values.put(DataEntry.COLUMN_NAME_ENTRY_ID, 0);
+        values.put(DataEntry.COLUMN_NAME_TEXT, text);
+        values.put(DataEntry.COLUMN_NAME_PRIORITY, priority);
+        values.put(DataEntry.COLUMN_NAME_LATER, later);
+        values.put(DataEntry.COLUMN_NAME_DONE, false);
+        values.put(DataEntry.COLUMN_NAME_TEMP, false);
+
+        getWritableDatabase().insert(
+                DataEntry.TABLE_NAME,
+                DataEntry.COLUMN_NAME_NULLABLE,
+                values);
     }
 
     /**
@@ -217,6 +235,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(DataEntry.TABLE_NAME, "_id=" + id, null);
     }
 
+    public void deleteEntryWithSnack(View view, final int id) {
+
+        moveToTemp(id);
+
+        Snackbar snackbar = Snackbar.make(view, "Idea deleted", Snackbar.LENGTH_LONG)
+                .setAction("UNDO", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        recoverFromTemp(id);
+                        notifyAllLists();
+                    }
+                }).setCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                            //delete for real ideas in temp
+                            deleteEntry(id);
+                        }
+                    }
+                });
+        snackbar.show();
+    }
+
     public void moveToTemp(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -240,7 +281,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void recoverAllFromTemp() {
         ArrayList<Integer> temp = readTempIdeas();
-        Log.d("NICKLOS",Integer.toString(temp.size()));
+        Log.d("NICKLOS", Integer.toString(temp.size()));
         for (int id : temp) {
             recoverFromTemp(id);
         }
@@ -305,6 +346,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         notifyAllLists();
     }
+
+    /**
+     * Move all ideas from a tab to another
+     *
+     * @param from
+     * @param to
+     */
+    public boolean moveAllFromTo(String from, String to) {
+
+        ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+        switch (from) {
+            case "Ideas": //get all the ideas from NOW tab
+                ideas = readIdeas(-1);
+                break;
+
+            case "Later": //get all the ideas from LATER tab
+                ideas = readIdeas(true);
+                break;
+
+            case "Done": //get all the ideas from LATER tab
+                ideas = readIdeas(false);
+                break;
+        }
+        if (ideas.size() == 0) return false; //nothing to move
+
+        switch (to) {
+            case "Ideas":
+                moveAllToTab(1, ideas);
+                break;
+
+            case "Later":
+                moveAllToTab(2, ideas);
+                break;
+
+            case "Done":
+                moveAllToTab(3, ideas);
+                break;
+
+            case "Trash":
+                moveAllToTemp(ideas);
+                break;
+        }
+        return true;
+    }
+
 
 
 }
