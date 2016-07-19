@@ -54,67 +54,87 @@
 
     </android.support.design.widget.CoordinatorLayout>
 
-    <LinearLayout android:id="@+id/left_drawer"
+    <LinearLayout
+        android:id="@+id/left_drawer"
         android:layout_width="240dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_gravity="start"
-        android:background="@color/white"/>
+        android:background="@color/white"
+        android:orientation="vertical" />
 
-    <LinearLayout android:id="@+id/right_drawer"
+    <LinearLayout
+        android:id="@+id/right_drawer"
         android:layout_width="240dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_gravity="end"
-        android:background="@color/colorPrimary">
+        android:background="@color/colorPrimary"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/move_all"
+            android:layout_marginTop="50dp"
             android:gravity="center"
+            android:text="@string/options_label"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textStyle="bold"
             android:textColor="@color/white"
-            android:layout_marginTop="30dp"/>
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/mainColor_button"
+            style="@style/spaced"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/mainColor_label" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:text="@string/move_all"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_gravity="center"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
 
             <TextView
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/from"
                 android:layout_marginRight="10dp"
-                style="@style/text"/>
+                android:text="@string/from" />
 
             <Spinner
                 android:id="@+id/spinner_from"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawSelectorOnTop="true"
-                android:entries="@array/array_from"
+                android:layout_marginRight="10dp"
                 android:background="@color/white"
-                android:layout_marginRight="10dp"/>
+                android:drawSelectorOnTop="true"
+                android:entries="@array/array_from" />
 
             <TextView
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/to"
-                style="@style/text"
-                android:layout_marginRight="10dp"/>
+                android:layout_marginRight="10dp"
+                android:text="@string/to" />
 
             <Spinner
                 android:id="@+id/spinner_to"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@color/white"
                 android:drawSelectorOnTop="true"
-                android:entries="@array/array_to"
-                android:background="@color/white"/>
+                android:entries="@array/array_to" />
 
         </LinearLayout>
 
@@ -122,8 +142,8 @@
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_gravity="center">
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/move_go"
@@ -135,30 +155,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/go"
                 android:elevation="16dp"
-                android:textColor="@android:color/white"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:text="@string/go"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@android:color/white" />
         </FrameLayout>
 
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/options_label"
-            android:gravity="center"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:layout_marginTop="30dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"/>
-
-        <Button
-            android:id="@+id/mainColor_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/mainColor_label"
-            android:padding="10dp"
-            style="@style/spaced"/>
 
     </LinearLayout>
 

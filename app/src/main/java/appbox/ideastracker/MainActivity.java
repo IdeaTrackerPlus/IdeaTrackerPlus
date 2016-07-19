@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -53,7 +54,7 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
 
     private SQLiteDatabase mDatabase;
     private DatabaseHelper mDbHelper;
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity{
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-                toolbar,R.string.drawer_open,R.string.drawer_close) {
+                toolbar, R.string.drawer_open, R.string.drawer_close) {
 
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
@@ -143,9 +144,9 @@ public class MainActivity extends AppCompatActivity{
         getSupportActionBar().setHomeButtonEnabled(true);
 
         //RIGHT DRAWER BUTTONS
-        mFragmentManager =  getSupportFragmentManager();
+        mFragmentManager = getSupportFragmentManager();
         Button mainColor_button = (Button) findViewById(R.id.mainColor_button);
-        mainColor_button.setOnClickListener(new View.OnClickListener(){
+        mainColor_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new SpectrumDialog.Builder(getApplicationContext())
@@ -154,7 +155,8 @@ public class MainActivity extends AppCompatActivity{
                         .setDismissOnColorSelected(true)
                         .setOutlineWidth(2)
                         .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
-                            @Override public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                            @Override
+                            public void onColorSelected(boolean positiveResult, @ColorInt int color) {
                                 if (positiveResult) {
                                     Toast.makeText(getApplicationContext(), "Color selected: #" + Integer.toHexString(color).toUpperCase(), Toast.LENGTH_SHORT).show();
                                 } else {
@@ -169,7 +171,7 @@ public class MainActivity extends AppCompatActivity{
         fab_go.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                newMoveDialog();
+                newMoveDialog(view);
             }
         });
 
@@ -188,8 +190,7 @@ public class MainActivity extends AppCompatActivity{
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
-    private void newIdeaDialog()
-    {
+    private void newIdeaDialog() {
         final Dialog myDialog = new Dialog(this);
         myDialog.setContentView(R.layout.new_idea_form);
         myDialog.setCancelable(false);
@@ -203,13 +204,11 @@ public class MainActivity extends AppCompatActivity{
         Window window = myDialog.getWindow();
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        done.setOnClickListener(new View.OnClickListener()
-        {
+        done.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View v)
-            {
-                if(radioGroup.getCheckedRadioButtonId()!=-1) {
+            public void onClick(View v) {
+                if (radioGroup.getCheckedRadioButtonId() != -1) {
                     View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
                     RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
                     String selection = (String) btn.getText();
@@ -218,7 +217,7 @@ public class MainActivity extends AppCompatActivity{
                     boolean later = doLater.isChecked();
                     int priority = Integer.parseInt(selection.toString());
 
-                    newEntry(text,priority,later); //add the idea to the actual database
+                    newEntry(text, priority, later); //add the idea to the actual database
 
                     DatabaseHelper.notifyAllLists();
                 }
@@ -227,12 +226,10 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-        cancel.setOnClickListener(new View.OnClickListener()
-        {
+        cancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 myDialog.dismiss();
             }
         });
@@ -240,49 +237,91 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
-    private void newMoveDialog(){
+    private void newMoveDialog(View view) {
 
-        Spinner spinnerFrom =(Spinner) findViewById(R.id.spinner_from);
-        Spinner spinnerTo =(Spinner) findViewById(R.id.spinner_to);
-        String from = spinnerFrom.getSelectedItem().toString();
-        String to = spinnerTo.getSelectedItem().toString();
-        if(from == to) return; //exit the method, do nothing
+        Spinner spinnerFrom = (Spinner) findViewById(R.id.spinner_from);
+        Spinner spinnerTo = (Spinner) findViewById(R.id.spinner_to);
+        final String from = spinnerFrom.getSelectedItem().toString();
+        final String to = spinnerTo.getSelectedItem().toString();
 
-        ArrayList<Pair<Integer ,String >> ideas = new ArrayList<>();
-        switch (from){
-            case "Ideas" : //get all the ideas from NOW tab
+        String snackText = "Nothing to move from " + from;
+        boolean success = false;
+        if (from == to) snackText = "Locations must be different";
+        else if (moveAll(from, to)) {
+            snackText = "All ideas from " + from + " moved to " + to;
+            success = true;
+        }
+
+        Snackbar snackbar = Snackbar.make(view, snackText, Snackbar.LENGTH_LONG);
+        if (success) {
+            snackbar.setAction("UNDO", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (to.equals("Trash")) {//undo temp deleting
+                        mDbHelper.recoverAllFromTemp();
+                    } else {
+                        moveAll(to, from);
+                    }
+                }
+            }).setCallback(new Snackbar.Callback() {
+                @Override
+                public void onDismissed(Snackbar snackbar, int event) {
+                    if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT && to.equals("Trash")) {
+                        //delete for real ideas in temp
+                        mDbHelper.deleteAllFromTemp();
+                    }
+                }
+            });
+        }
+
+        snackbar.show();
+    }
+
+    /**
+     * Move all ideas from a tab to another
+     *
+     * @param from
+     * @param to
+     */
+    private boolean moveAll(String from, String to) {
+
+        ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+        switch (from) {
+            case "Ideas": //get all the ideas from NOW tab
                 ideas = mDbHelper.readIdeas(-1);
                 break;
 
-            case "Later" : //get all the ideas from LATER tab
+            case "Later": //get all the ideas from LATER tab
                 ideas = mDbHelper.readIdeas(true);
                 break;
 
-            case "Done" : //get all the ideas from LATER tab
+            case "Done": //get all the ideas from LATER tab
                 ideas = mDbHelper.readIdeas(false);
                 break;
         }
+        if(ideas.size() == 0) return false; //nothing to move
 
-        switch(to){
-            case "Ideas" :
-                mDbHelper.moveAllToTab(1,ideas);
+        switch (to) {
+            case "Ideas":
+                mDbHelper.moveAllToTab(1, ideas);
                 break;
 
-            case "Later" :
-                mDbHelper.moveAllToTab(2,ideas);
+            case "Later":
+                mDbHelper.moveAllToTab(2, ideas);
                 break;
 
-            case "Done" :
-                mDbHelper.moveAllToTab(3,ideas);
+            case "Done":
+                mDbHelper.moveAllToTab(3, ideas);
                 break;
 
-            case "Delete" :
-                mDbHelper.deleteIdeas(ideas);
+            case "Trash":
+                mDbHelper.moveAllToTemp(ideas);
                 break;
         }
+        return true;
     }
 
-    private void newEntry(String text, int priority, boolean later){
+    private void newEntry(String text, int priority, boolean later) {
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
         values.put(DataEntry.COLUMN_NAME_ENTRY_ID, 0);
@@ -290,6 +329,7 @@ public class MainActivity extends AppCompatActivity{
         values.put(DataEntry.COLUMN_NAME_PRIORITY, priority);
         values.put(DataEntry.COLUMN_NAME_LATER, later);
         values.put(DataEntry.COLUMN_NAME_DONE, false);
+        values.put(DataEntry.COLUMN_NAME_TEMP, false);
 
         // Insert the new row, returning the primary key value of the new row
         long newRowId;
@@ -359,7 +399,7 @@ public class MainActivity extends AppCompatActivity{
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = null;
-            switch(this.getIndex()){
+            switch (this.getIndex()) {
                 case 0: //IDEAS
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
@@ -368,24 +408,26 @@ public class MainActivity extends AppCompatActivity{
                     mExpandleAdapter = adapter;
                     DatabaseHelper.setAdapterIdea(adapter);
                     list.setAdapter(adapter);
-                    list.expandGroup(0);list.expandGroup(1);list.expandGroup(2);
+                    list.expandGroup(0);
+                    list.expandGroup(1);
+                    list.expandGroup(2);
                     setExpandAnimation(list);
 
                     break;
 
                 case 1: //LATER
-                    rootView = inflater.inflate(R.layout.fragment_secondary, container,false);
+                    rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list2 = (ListView) rootView.findViewById(R.id.list);
-                    MyListAdapter adapter2 = new MyListAdapter(getContext(),true);
+                    MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
                     mAdapters.add(adapter2);
                     DatabaseHelper.setAdapterLater(adapter2);
                     list2.setAdapter(adapter2);
                     break;
 
                 case 2: //DONE
-                    rootView = inflater.inflate(R.layout.fragment_secondary, container,false);
+                    rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list3 = (ListView) rootView.findViewById(R.id.list);
-                    MyListAdapter adapter3 = new MyListAdapter(getContext(),false);
+                    MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
                     mAdapters.add(adapter3);
                     DatabaseHelper.setAdapterDone(adapter3);
                     list3.setAdapter(adapter3);
@@ -397,7 +439,7 @@ public class MainActivity extends AppCompatActivity{
             return rootView;
         }
 
-        void setExpandAnimation(final AnimatedExpandableListView listView){
+        void setExpandAnimation(final AnimatedExpandableListView listView) {
             listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 
                 @Override

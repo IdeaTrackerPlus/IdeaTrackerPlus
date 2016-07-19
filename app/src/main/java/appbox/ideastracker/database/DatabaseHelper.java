@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.*;
 import android.os.Handler;
+import android.util.Log;
 import android.util.Pair;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
@@ -21,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static BaseAdapter mAdapterLater, mAdapterDone;
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "MyIdeas.db";
 
     //SQL COMMANDS
@@ -36,7 +37,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
                     DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
                     DataEntry.COLUMN_NAME_DONE + BOOL_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_LATER + BOOL_TYPE +
+                    DataEntry.COLUMN_NAME_LATER + BOOL_TYPE + COMMA_SEP +
+                    DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE +
                     " )";
 
     private static final String SQL_DELETE_ENTRIES =
@@ -108,8 +110,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 DataEntry.TABLE_NAME,  // The table to query
                 projection,                               // The columns to return
-                "later=? and done=?",                    // The columns for the WHERE clause
-                new String[]{"0", "0"},                  // The values for the WHERE clause
+                "later=? and done=? and temp=?",                    // The columns for the WHERE clause
+                new String[]{"0", "0", "0"},                  // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
                 sortOrder                                 // The sort order
@@ -150,16 +152,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         //Either get the "later" or the "done"
         String where = "";
         if (later) {
-            where = "later=?";
+            where = "later=? and temp=?";
         } else {
-            where = "done=?";
+            where = "done=? and temp=?";
         }
 
         Cursor cursor = db.query(
                 DataEntry.TABLE_NAME,  // The table to query
                 projection,                               // The columns to return
                 where,                                   // The columns for the WHERE clause
-                new String[]{"1"},                      // The values for the WHERE clause
+                new String[]{"1", "0"},                      // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
                 sortOrder                                 // The sort order
@@ -183,47 +185,81 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return ideas;
     }
 
+    public ArrayList<Integer> readTempIdeas() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {DataEntry._ID};
+        Cursor cursor = db.query(
+                DataEntry.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                "temp=?",                                   // The columns for the WHERE clause
+                new String[]{"1"},                      // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        ArrayList<Integer> temps = new ArrayList<>();
+        //Scan the ideas and return everything
+        if (cursor.moveToFirst()) {
+
+            while (cursor.isAfterLast() == false) {
+                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                temps.add(id);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return temps;
+    }
+
     public void deleteEntry(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(DataEntry.TABLE_NAME, "_id=" + id, null);
     }
 
-    public void deleteIdeas(ArrayList<Pair<Integer, String>> ideas) {
+    public void moveToTemp(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataEntry.COLUMN_NAME_TEMP, true);
+        db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+    }
+
+    public void recoverFromTemp(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataEntry.COLUMN_NAME_TEMP, false);
+        db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+    }
+
+    public void moveAllToTemp(ArrayList<Pair<Integer, String>> ideas) {
         for (Pair<Integer, String> idea : ideas) {
-            deleteEntry(idea.first);
+            moveToTemp(idea.first);
         }
         notifyAllLists();
     }
 
-    public void moveToTab(int tabNumber, int id){
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-
-        switch (tabNumber){
-            case 1: //NOW
-                values.put(DataEntry.COLUMN_NAME_DONE, false);
-                values.put(DataEntry.COLUMN_NAME_LATER, false);
-                break;
-
-            case 2: //LATER
-                values.put(DataEntry.COLUMN_NAME_DONE, false);
-                values.put(DataEntry.COLUMN_NAME_LATER, true);
-                break;
-
-            case 3: //DONE
-                values.put(DataEntry.COLUMN_NAME_LATER, false);
-                values.put(DataEntry.COLUMN_NAME_DONE, true);
-                break;
+    public void recoverAllFromTemp() {
+        ArrayList<Integer> temp = readTempIdeas();
+        Log.d("NICKLOS",Integer.toString(temp.size()));
+        for (int id : temp) {
+            recoverFromTemp(id);
         }
-
-        db.update(DataEntry.TABLE_NAME,values,"_id="+id,null);
+        notifyAllLists();
     }
 
-    public void moveAllToTab(int tabNumber, ArrayList<Pair<Integer, String>> ideas){
+    public void deleteAllFromTemp() {
+        ArrayList<Integer> temp = readTempIdeas();
+        for (int id : temp) {
+            deleteEntry(id);
+        }
+        notifyAllLists();
+    }
+
+    public void moveToTab(int tabNumber, int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        switch (tabNumber){
+        switch (tabNumber) {
             case 1: //NOW
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
@@ -240,8 +276,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 break;
         }
 
-        for(Pair<Integer, String> idea : ideas){
-            db.update(DataEntry.TABLE_NAME,values,"_id="+idea.first,null);
+        db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+    }
+
+    public void moveAllToTab(int tabNumber, ArrayList<Pair<Integer, String>> ideas) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        switch (tabNumber) {
+            case 1: //NOW
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                break;
+
+            case 2: //LATER
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                values.put(DataEntry.COLUMN_NAME_LATER, true);
+                break;
+
+            case 3: //DONE
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                values.put(DataEntry.COLUMN_NAME_DONE, true);
+                break;
+        }
+
+        for (Pair<Integer, String> idea : ideas) {
+            db.update(DataEntry.TABLE_NAME, values, "_id=" + idea.first, null);
         }
         notifyAllLists();
     }
