@@ -1,46 +1,31 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
-import android.util.Log;
-import android.util.Pair;
-import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.KeyEvent;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.view.Window;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -49,21 +34,16 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.thebluealliance.spectrum.SpectrumDialog;
 
-import java.util.ArrayList;
-
-import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SQLiteDatabase mDatabase;
     private DatabaseHelper mDbHelper;
 
     private DrawerLayout mDrawerLayout;
@@ -72,21 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     private int mPrimaryColor = R.color.md_blue_500;
 
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private NonSwipeableViewPager mViewPager;
-
+    @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,15 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Get the database helper
         mDbHelper = DatabaseHelper.getInstance(this);
-        // Gets the data repository in write mode
-        mDatabase = mDbHelper.getWritableDatabase();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
+        NonSwipeableViewPager mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         // Set up the tab layout
@@ -186,9 +151,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         /** Change navigation bar color
-        if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
-        }*/
+         if (Build.VERSION.SDK_INT >= 21) {
+         getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+         }*/
 
     }
 
@@ -230,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String text = ideaField.getText().toString();
                     boolean later = doLater.isChecked();
-                    int priority = Integer.parseInt(selection.toString());
+                    int priority = Integer.parseInt(selection);
 
                     mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
 
@@ -251,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void newMoveDialog(View view) {
 
         Spinner spinnerFrom = (Spinner) findViewById(R.id.spinner_from);
@@ -260,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
         String snackText = "Nothing to move from " + from;
         boolean success = false;
-        if (from == to) snackText = "Locations must be different";
+        if (from.equals(to)) snackText = "Locations must be different";
         else if (mDbHelper.moveAllFromTo(from, to)) {
             snackText = "All ideas from " + from + " moved to " + to;
             success = true;
@@ -291,7 +257,8 @@ public class MainActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    private void changePrimaryColor(int color){
+    @SuppressWarnings("ConstantConditions")
+    private void changePrimaryColor(int color) {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
@@ -333,10 +300,10 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            if (mDrawerLayout.isDrawerOpen(Gravity.RIGHT)) {
-                mDrawerLayout.closeDrawer(Gravity.RIGHT);
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
+                mDrawerLayout.closeDrawer(GravityCompat.END);
             } else {
-                mDrawerLayout.openDrawer(Gravity.RIGHT);
+                mDrawerLayout.openDrawer(GravityCompat.END);
             }
             return true;
         }
@@ -352,12 +319,6 @@ public class MainActivity extends AppCompatActivity {
          * The fragment argument representing the section number for this
          * fragment.
          */
-        private static BaseExpandableListAdapter mExpandleAdapter;
-        private static ArrayList<BaseAdapter> mAdapters;
-
-        static {
-            mAdapters = new ArrayList<>();
-        }
 
         public static ListFragment newInstance(int index) {
             ListFragment f = new ListFragment();
@@ -385,7 +346,6 @@ public class MainActivity extends AppCompatActivity {
                     AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
                     //sets the adapter that provides data to the list
                     MyCustomAdapter adapter = new MyCustomAdapter(getContext());
-                    mExpandleAdapter = adapter;
                     DatabaseHelper.setAdapterIdea(adapter);
                     list.setAdapter(adapter);
                     list.expandGroup(0);
@@ -399,7 +359,6 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list2 = (ListView) rootView.findViewById(R.id.list);
                     MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
-                    mAdapters.add(adapter2);
                     DatabaseHelper.setAdapterLater(adapter2);
                     list2.setAdapter(adapter2);
                     break;
@@ -408,7 +367,6 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list3 = (ListView) rootView.findViewById(R.id.list);
                     MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
-                    mAdapters.add(adapter3);
                     DatabaseHelper.setAdapterDone(adapter3);
                     list3.setAdapter(adapter3);
                     break;
@@ -424,9 +382,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                    // We call collapseGroupWithAnimation(int) and
-                    // expandGroupWithAnimation(int) to animate group
-                    // expansion/collapse.
+
                     if (listView.isGroupExpanded(groupPosition)) {
                         listView.collapseGroupWithAnimation(groupPosition);
                     } else {
