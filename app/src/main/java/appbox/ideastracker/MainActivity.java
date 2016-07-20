@@ -20,6 +20,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +37,10 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.ToggleButton;
 
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.*;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.thebluealliance.spectrum.SpectrumDialog;
 
 import appbox.ideastracker.database.DatabaseHelper;
@@ -45,9 +50,6 @@ import appbox.ideastracker.listadapters.MyListAdapter;
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper mDbHelper;
-
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
     private FragmentManager mFragmentManager;
 
     private int mPrimaryColor = R.color.md_blue_500;
@@ -93,62 +95,102 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //DRAWERS LEFT AND RIGHT
+        //NEW DRAWERS
+        //if you want to update the items at a later time it is recommended to keep it in a variable
+        PrimaryDrawerItem item1 = new PrimaryDrawerItem().withIdentifier(1).withName("Primary");
+        SecondaryDrawerItem item2 = (SecondaryDrawerItem) new SecondaryDrawerItem().withIdentifier(2).withName("Secondary");
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-                toolbar, R.string.drawer_open, R.string.drawer_close) {
+        //create the drawer and remember the `Drawer` result object
+        Drawer result = new DrawerBuilder()
+                .withActivity(this)
+                .withToolbar(toolbar)
+                .withTranslucentStatusBar(true)
+                .withActionBarDrawerToggle(true)
+                .withSelectedItem(-1)
+                .addDrawerItems(
+                        item1,
+                        new DividerDrawerItem(),
+                        item2,
+                        new SecondaryDrawerItem().withName("Secondary 2")
+                )
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        // do something with the clicked item :D
+                        return true;
+                    }
+                })
+                .build();
 
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
+        new DrawerBuilder()
+                .withActivity(this)
+                .addDrawerItems(
+                        item1,
+                        new DividerDrawerItem(),
+                        item2,
+                        new SecondaryDrawerItem().withName("Secondary 2")
+                )
+                .withDrawerGravity(Gravity.END)
+                .append(result);
 
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-        };
 
-        // Set the drawer toggle as the DrawerListener
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+//        //DRAWERS LEFT AND RIGHT
+//
+//        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+//                toolbar, R.string.drawer_open, R.string.drawer_close) {
+//
+//            /** Called when a drawer has settled in a completely closed state. */
+//            public void onDrawerClosed(View view) {
+//                super.onDrawerClosed(view);
+//                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+//            }
+//
+//            /** Called when a drawer has settled in a completely open state. */
+//            public void onDrawerOpened(View drawerView) {
+//                super.onDrawerOpened(drawerView);
+//                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+//            }
+//        };
+//
+//        // Set the drawer toggle as the DrawerListener
+//        mDrawerLayout.setDrawerListener(mDrawerToggle);
+//
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setHomeButtonEnabled(true);
+//
+//        //RIGHT DRAWER BUTTONS
+//        mFragmentManager = getSupportFragmentManager();
+//        Button mainColor_button = (Button) findViewById(R.id.mainColor_button);
+//        mainColor_button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                new SpectrumDialog.Builder(getApplicationContext())
+//                        .setColors(R.array.colors)
+//                        .setSelectedColor(mPrimaryColor)
+//                        .setDismissOnColorSelected(false)
+//                        .setFixedColumnCount(4)
+//                        .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+//                            @Override
+//                            public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+//                                if (positiveResult) {
+//                                    //update selected color
+//                                    changePrimaryColor(color);
+//                                    mPrimaryColor = color;
+//                                }
+//                            }
+//                        }).build().show(mFragmentManager, "dialog_spectrum");
+//            }
+//        });
+//
+//        FloatingActionButton fab_go = (FloatingActionButton) findViewById(R.id.move_go);
+//        fab_go.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                newMoveDialog(view);
+//            }
+//        });
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
-        //RIGHT DRAWER BUTTONS
-        mFragmentManager = getSupportFragmentManager();
-        Button mainColor_button = (Button) findViewById(R.id.mainColor_button);
-        mainColor_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new SpectrumDialog.Builder(getApplicationContext())
-                        .setColors(R.array.colors)
-                        .setSelectedColor(mPrimaryColor)
-                        .setDismissOnColorSelected(false)
-                        .setFixedColumnCount(4)
-                        .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
-                            @Override
-                            public void onColorSelected(boolean positiveResult, @ColorInt int color) {
-                                if (positiveResult) {
-                                    //update selected color
-                                    changePrimaryColor(color);
-                                    mPrimaryColor = color;
-                                }
-                            }
-                        }).build().show(mFragmentManager, "dialog_spectrum");
-            }
-        });
-
-        FloatingActionButton fab_go = (FloatingActionButton) findViewById(R.id.move_go);
-        fab_go.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                newMoveDialog(view);
-            }
-        });
 
         /** Change navigation bar color
          if (Build.VERSION.SDK_INT >= 21) {
@@ -161,13 +203,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     private void newIdeaDialog() {
@@ -216,68 +256,130 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private void newMoveDialog(View view) {
+//    @SuppressWarnings("ConstantConditions")
+//    private void newMoveDialog(View view) {
+//
+//        Spinner spinnerFrom = (Spinner) findViewById(R.id.spinner_from);
+//        Spinner spinnerTo = (Spinner) findViewById(R.id.spinner_to);
+//        final String from = spinnerFrom.getSelectedItem().toString();
+//        final String to = spinnerTo.getSelectedItem().toString();
+//
+//        String snackText = "Nothing to move from " + from;
+//        boolean success = false;
+//        if (from.equals(to)) snackText = "Locations must be different";
+//        else if (mDbHelper.moveAllFromTo(from, to)) {
+//            snackText = "All ideas from " + from + " moved to " + to;
+//            success = true;
+//        }
+//
+//        Snackbar snackbar = Snackbar.make(view, snackText, Snackbar.LENGTH_LONG);
+//        if (success) {
+//            snackbar.setAction("UNDO", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    if (to.equals("Trash")) {//undo temp deleting
+//                        mDbHelper.recoverAllFromTemp();
+//                    } else {
+//                        mDbHelper.moveAllFromTo(to, from);
+//                    }
+//                }
+//            }).setCallback(new Snackbar.Callback() {
+//                @Override
+//                public void onDismissed(Snackbar snackbar, int event) {
+//                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
+//                        //delete for real ideas in temp
+//                        mDbHelper.deleteAllFromTemp();
+//                    }
+//                }
+//            });
+//        }
+//
+//        snackbar.show();
+//    }
 
-        Spinner spinnerFrom = (Spinner) findViewById(R.id.spinner_from);
-        Spinner spinnerTo = (Spinner) findViewById(R.id.spinner_to);
-        final String from = spinnerFrom.getSelectedItem().toString();
-        final String to = spinnerTo.getSelectedItem().toString();
+//    @SuppressWarnings("ConstantConditions")
+//    private void changePrimaryColor(int color) {
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+//        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+//        LinearLayout rightDrawer = (LinearLayout) findViewById(R.id.right_drawer);
+//        LinearLayout leftDrawer = (LinearLayout) findViewById(R.id.left_drawer);
+//
+//        fab.setBackgroundTintList(ColorStateList.valueOf(color));
+//        toolbar.setBackgroundColor(color);
+//        tabLayout.setBackgroundColor(color);
+//        rightDrawer.setBackgroundColor(color);
+//        leftDrawer.setBackgroundColor(color);
+//        appbar.setBackgroundColor(color);
+//
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+//            getWindow().setStatusBarColor(darken(color));
+//        }
+//    }
+//    @SuppressWarnings("ConstantConditions")
+//    private void newMoveDialog(View view) {
+//
+//        Spinner spinnerFrom = (Spinner) findViewById(R.id.spinner_from);
+//        Spinner spinnerTo = (Spinner) findViewById(R.id.spinner_to);
+//        final String from = spinnerFrom.getSelectedItem().toString();
+//        final String to = spinnerTo.getSelectedItem().toString();
+//
+//        String snackText = "Nothing to move from " + from;
+//        boolean success = false;
+//        if (from.equals(to)) snackText = "Locations must be different";
+//        else if (mDbHelper.moveAllFromTo(from, to)) {
+//            snackText = "All ideas from " + from + " moved to " + to;
+//            success = true;
+//        }
+//
+//        Snackbar snackbar = Snackbar.make(view, snackText, Snackbar.LENGTH_LONG);
+//        if (success) {
+//            snackbar.setAction("UNDO", new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    if (to.equals("Trash")) {//undo temp deleting
+//                        mDbHelper.recoverAllFromTemp();
+//                    } else {
+//                        mDbHelper.moveAllFromTo(to, from);
+//                    }
+//                }
+//            }).setCallback(new Snackbar.Callback() {
+//                @Override
+//                public void onDismissed(Snackbar snackbar, int event) {
+//                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
+//                        //delete for real ideas in temp
+//                        mDbHelper.deleteAllFromTemp();
+//                    }
+//                }
+//            });
+//        }
+//
+//        snackbar.show();
+//    }
 
-        String snackText = "Nothing to move from " + from;
-        boolean success = false;
-        if (from.equals(to)) snackText = "Locations must be different";
-        else if (mDbHelper.moveAllFromTo(from, to)) {
-            snackText = "All ideas from " + from + " moved to " + to;
-            success = true;
-        }
-
-        Snackbar snackbar = Snackbar.make(view, snackText, Snackbar.LENGTH_LONG);
-        if (success) {
-            snackbar.setAction("UNDO", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (to.equals("Trash")) {//undo temp deleting
-                        mDbHelper.recoverAllFromTemp();
-                    } else {
-                        mDbHelper.moveAllFromTo(to, from);
-                    }
-                }
-            }).setCallback(new Snackbar.Callback() {
-                @Override
-                public void onDismissed(Snackbar snackbar, int event) {
-                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
-                        //delete for real ideas in temp
-                        mDbHelper.deleteAllFromTemp();
-                    }
-                }
-            });
-        }
-
-        snackbar.show();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private void changePrimaryColor(int color) {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
-        LinearLayout rightDrawer = (LinearLayout) findViewById(R.id.right_drawer);
-        LinearLayout leftDrawer = (LinearLayout) findViewById(R.id.left_drawer);
-
-        fab.setBackgroundTintList(ColorStateList.valueOf(color));
-        toolbar.setBackgroundColor(color);
-        tabLayout.setBackgroundColor(color);
-        rightDrawer.setBackgroundColor(color);
-        leftDrawer.setBackgroundColor(color);
-        appbar.setBackgroundColor(color);
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
-            getWindow().setStatusBarColor(darken(color));
-        }
-    }
+//    @SuppressWarnings("ConstantConditions")
+//    private void changePrimaryColor(int color) {
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+//        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+//        LinearLayout rightDrawer = (LinearLayout) findViewById(R.id.right_drawer);
+//        LinearLayout leftDrawer = (LinearLayout) findViewById(R.id.left_drawer);
+//
+//        fab.setBackgroundTintList(ColorStateList.valueOf(color));
+//        toolbar.setBackgroundColor(color);
+//        tabLayout.setBackgroundColor(color);
+//        rightDrawer.setBackgroundColor(color);
+//        leftDrawer.setBackgroundColor(color);
+//        appbar.setBackgroundColor(color);
+//
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+//            getWindow().setStatusBarColor(darken(color));
+//        }
+//    }
 
     public int darken(int color) {
         float[] hsv = new float[3];
@@ -296,18 +398,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            if (mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
-                mDrawerLayout.closeDrawer(GravityCompat.END);
-            } else {
-                mDrawerLayout.openDrawer(GravityCompat.END);
-            }
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
