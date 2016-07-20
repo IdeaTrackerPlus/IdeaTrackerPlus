@@ -110,6 +110,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values);
     }
 
+    public Cursor getEntryById(int id){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
+        return  db.query(
+                DataEntry.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                "_id=?",                    // The columns for the WHERE clause
+                new String[]{Integer.toString(id)},                  // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+    }
+
+    public String getTextById(int id){
+        Cursor cursor = getEntryById(id);
+        if (cursor.moveToFirst()) {
+            while (cursor.isAfterLast() == false) {
+                return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+            }
+        }
+        cursor.close();
+        return "nothing";
+    }
+
+    public int getPriorityById(int id){
+        Cursor cursor = getEntryById(id);
+        if (cursor.moveToFirst()) {
+            while (cursor.isAfterLast() == false) {
+                return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+            }
+        }
+        cursor.close();
+        return 0;
+    }
+
+    public void editEntry(int id, String new_text, int new_priority, boolean later){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DataEntry.COLUMN_NAME_TEXT, new_text);
+        values.put(DataEntry.COLUMN_NAME_PRIORITY, new_priority);
+        if(later){
+            values.put(DataEntry.COLUMN_NAME_LATER, true);
+            values.put(DataEntry.COLUMN_NAME_DONE, false);
+        }else{
+            values.put(DataEntry.COLUMN_NAME_LATER, false);
+        }
+        db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+        notifyAllLists();
+    }
+
     /**
      * Retrieve the ideas of the NOW tab with the desired priority
      *

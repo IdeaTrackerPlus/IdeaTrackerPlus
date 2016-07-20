@@ -11,12 +11,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="New Idea"/>
+        android:text="Edit Idea"/>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText" />
+        android:id="@+id/editIdeaText" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -35,27 +35,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:id="@+id/radioGroup">
+            android:id="@+id/editRadioGroup">
 
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/radio_1"
-                android:id="@+id/radioButton1"
+                android:id="@+id/editRadioButton1"
                 android:checked="true" />
 
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/radio_2"
-                android:id="@+id/radioButton2"
+                android:id="@+id/editRadioButton2"
                 android:checked="false" />
 
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/radio_3"
-                android:id="@+id/radioButton3"
+                android:id="@+id/editRadioButton3"
                 android:checked="false" />
         </RadioGroup>
     </LinearLayout>
@@ -76,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="New ToggleButton"
-            android:id="@+id/doLater" />
+            android:id="@+id/editDoLater" />
     </LinearLayout>
 
     <LinearLayout
@@ -89,13 +89,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancel"
-            android:id="@+id/cancelButton" />
+            android:id="@+id/cancelEditButton" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Done"
-            android:id="@+id/doneButton"
+            android:id="@+id/doneEditButton"
             android:layout_gravity="right" />
     </LinearLayout>
 </LinearLayout>

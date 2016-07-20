@@ -17,6 +17,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
     private String mIdea;
     private int mTabNumber;
+    private int mIdRecycler;
+
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView txtView;
@@ -33,16 +35,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         mTabNumber = tabNumber;
     }
 
-    public void editText(String newText){
-        mIdea = newText;
-    }
-
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.horizontal_item_view, parent, false);
-
-        return new MyViewHolder(itemView);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view, parent, false);
+        MyViewHolder holder = new MyViewHolder(itemView);
+        return holder;
     }
 
     @Override
@@ -62,6 +59,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         holder.txtView.setText(mIdea);
                         holder.txtView.setBackgroundResource(R.color.white);
                         holder.txtView.setTextColor(Color.BLACK);
+                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(1,mIdRecycler);
+                        holder.txtView.setOnClickListener(onClickListener);
                         break;
 
                     case 2: //DONE
@@ -84,6 +83,10 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                     case 1: //IDEA
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setBackgroundResource(R.color.white);
+                        holder.txtView.setTextColor(Color.DKGRAY);
+                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(2,mIdRecycler);
+                        holder.txtView.setOnClickListener(onClickListener);
                         break;
 
                     case 2: //NOW
@@ -106,6 +109,10 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                     case 1: //IDEA
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setBackgroundResource(R.color.white);
+                        holder.txtView.setTextColor(Color.GRAY);
+                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(3,mIdRecycler);
+                        holder.txtView.setOnClickListener(onClickListener);
                         break;
 
                     case 2: //RECOVER
@@ -118,6 +125,13 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 break;
 
         }
+
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mIdRecycler = (Integer) recyclerView.getTag();
 
     }
 

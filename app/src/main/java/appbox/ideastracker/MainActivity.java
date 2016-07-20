@@ -2,15 +2,21 @@ package appbox.ideastracker;
 
 import android.app.Dialog;
 import android.content.ContentValues;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -38,6 +44,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -63,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private FragmentManager mFragmentManager;
 
+    private int mPrimaryColor = R.color.md_blue_500;
+
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -85,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         //Get the database helper
         mDbHelper = DatabaseHelper.getInstance(this);
@@ -151,16 +161,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 new SpectrumDialog.Builder(getApplicationContext())
                         .setColors(R.array.colors)
-                        .setSelectedColorRes(R.color.blue)
-                        .setDismissOnColorSelected(true)
-                        .setOutlineWidth(2)
+                        .setSelectedColor(mPrimaryColor)
+                        .setDismissOnColorSelected(false)
+                        .setFixedColumnCount(4)
                         .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
                             @Override
                             public void onColorSelected(boolean positiveResult, @ColorInt int color) {
                                 if (positiveResult) {
-                                    Toast.makeText(getApplicationContext(), "Color selected: #" + Integer.toHexString(color).toUpperCase(), Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "Dialog cancelled", Toast.LENGTH_SHORT).show();
+                                    //update selected color
+                                    changePrimaryColor(color);
+                                    mPrimaryColor = color;
                                 }
                             }
                         }).build().show(mFragmentManager, "dialog_spectrum");
@@ -174,6 +184,11 @@ public class MainActivity extends AppCompatActivity {
                 newMoveDialog(view);
             }
         });
+
+        /** Change navigation bar color
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+        }*/
 
     }
 
@@ -234,7 +249,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     private void newMoveDialog(View view) {
@@ -266,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
             }).setCallback(new Snackbar.Callback() {
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
-                    if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT && to.equals("Trash")) {
+                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
                         //delete for real ideas in temp
                         mDbHelper.deleteAllFromTemp();
                     }
@@ -275,6 +289,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
         snackbar.show();
+    }
+
+    private void changePrimaryColor(int color){
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        LinearLayout rightDrawer = (LinearLayout) findViewById(R.id.right_drawer);
+        LinearLayout leftDrawer = (LinearLayout) findViewById(R.id.left_drawer);
+
+        fab.setBackgroundTintList(ColorStateList.valueOf(color));
+        toolbar.setBackgroundColor(color);
+        tabLayout.setBackgroundColor(color);
+        rightDrawer.setBackgroundColor(color);
+        leftDrawer.setBackgroundColor(color);
+        appbar.setBackgroundColor(color);
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
+            getWindow().setStatusBarColor(darken(color));
+        }
+    }
+
+    public int darken(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.75f;
+        color = Color.HSVToColor(hsv);
+        return color;
     }
 
     @Override
