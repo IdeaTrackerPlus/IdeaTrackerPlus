@@ -43,7 +43,7 @@ public class RecyclerOnClickListener implements View.OnClickListener{
         //Initialize the Dialog
         final Dialog myDialog = new Dialog(mView.getContext());
         myDialog.setContentView(R.layout.edit_idea_form);
-        myDialog.setCancelable(false);
+        myDialog.setCanceledOnTouchOutside(true);
 
         //Get the views and buttons
         Button done = (Button) myDialog.findViewById(R.id.doneEditButton);
