@@ -14,13 +14,8 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,11 +26,11 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
@@ -43,15 +38,20 @@ import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.mikepenz.materialdrawer.model.*;
-import com.mikepenz.materialdrawer.model.interfaces.Badgeable;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-import com.mikepenz.materialdrawer.model.interfaces.Nameable;
 import com.thebluealliance.spectrum.SpectrumDialog;
 
-import java.util.zip.Inflater;
+import org.w3c.dom.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
@@ -59,11 +59,16 @@ import appbox.ideastracker.listadapters.MyListAdapter;
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper mDbHelper;
+
     private Drawer result = null;
     private Drawer append = null;
+    private AccountHeader header = null;
+    private Toolbar mToolbar;
     private FragmentManager mFragmentManager;
 
     private int mPrimaryColor;
+    private ArrayList<String> mTableNames;
+    private List<IProfile> mProfiles;
 
 
     @SuppressWarnings("ConstantConditions")
@@ -72,13 +77,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //TABLES
+        //TODO: retrieve table names from shared preferences
+        //if table name gathering failed, no names then create default one
+        mTableNames = new ArrayList<>();
+        mTableNames.add("My_Project");
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mToolbar.setTitle("My_Project");
+        setSupportActionBar(mToolbar);
 
         mFragmentManager = getSupportFragmentManager();
 
         //Get the database helper
         mDbHelper = DatabaseHelper.getInstance(this);
+        //mDbHelper.newTable("My_Project");
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -107,20 +120,55 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //NEW DRAWERS
-        // Create the AccountHeader
-        AccountHeader headerResult = new AccountHeaderBuilder()
+        //DRAWERS
+        setUpDrawers(savedInstanceState);
+
+    }
+
+    private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
+        @Override
+        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+            if (drawerItem != null && drawerItem instanceof IProfile) {
+                String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
+                mToolbar.setTitle(tableName);
+                mDbHelper.switchTable(tableName);
+            }
+            return false;
+        }
+    };
+
+    private AccountHeader.OnAccountHeaderListener header_listener = new AccountHeader.OnAccountHeaderListener() {
+        @Override
+        public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+            return true;
+        }
+    };
+
+    private void setUpDrawers(Bundle savedInstanceState) {
+
+        //PROFILES
+        mProfiles = new ArrayList<>();
+        for (String table : mTableNames) {
+            mProfiles.add(new ProfileDrawerItem().withName(table).withOnDrawerItemClickListener(profile_listener));
+        }
+
+        //HEADER
+        header = new AccountHeaderBuilder()
                 .withActivity(this)
+                .withOnAccountHeaderListener(header_listener)
                 .withHeaderBackground(R.drawable.header)
+                .withProfiles(mProfiles)
+                .withProfileImagesVisible(false)
+                .withSavedInstance(savedInstanceState)
                 .build();
 
 
-        //create the drawer and remember the `Drawer` result object
+        //LEFT DRAWER
         result = new DrawerBuilder(this)
-                .withToolbar(toolbar)
+                .withToolbar(mToolbar)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
-                .withAccountHeader(headerResult)
+                .withAccountHeader(header)
                 .addDrawerItems(
                         new PrimaryDrawerItem().withIdentifier(1).withName("Rename table").withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(2).withName("Delete table").withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
@@ -130,7 +178,26 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        // do something with the clicked item :D
+                        if (drawerItem != null) {
+                            int id = (int) drawerItem.getIdentifier();
+                            switch (id) {
+                                case 1:
+                                    renameTableDialog();
+                                    break;
+
+                                case 2:
+                                    int index = mTableNames.indexOf(DataEntry.TABLE_NAME);
+                                    mTableNames.remove(index);
+                                    mProfiles.remove(index);
+                                    mDbHelper.deleteTable();
+                                    switchToExistingTable(index);
+                                    break;
+
+                                case 3:
+                                    newTableDialog();
+                                    break;
+                            }
+                        }
                         return true;
                     }
                 })
@@ -140,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         mPrimaryColor = getResources().getColor(R.color.md_blue_500);
         final PrimaryDrawerItem aItem1 = new PrimaryDrawerItem().withIdentifier(1).withName("Primary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
 
+        //RIGHT DRAWER
         append = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
@@ -147,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                         new SectionDrawerItem().withName("Customize colors"),
                         aItem1,
                         new PrimaryDrawerItem().withIdentifier(2).withName("Secondary color").withIcon(FontAwesome.Icon.faw_paint_brush).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(3).withName("Priority colors").withIcon(FontAwesome.Icon.faw_paint_brush).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(3).withName("Text color").withIcon(FontAwesome.Icon.faw_paint_brush).withSelectable(false),
                         new SectionDrawerItem().withName("Functions"),
                         new PrimaryDrawerItem().withIdentifier(4).withName("Move all ideas from a tab").withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(5).withName("Expand/collapse all").withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
@@ -194,12 +262,11 @@ public class MainActivity extends AppCompatActivity {
                                     break;
                             }
                         }
-
                         return true;
                     }
                 })
+                .withSavedInstance(savedInstanceState)
                 .append(result);
-
     }
 
     @Override
@@ -340,6 +407,110 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void newTableDialog() {
+
+        final Dialog myDialog = new Dialog(this);
+        myDialog.setContentView(R.layout.table_form);
+        myDialog.setCanceledOnTouchOutside(true);
+        myDialog.show();
+
+        TextView title = (TextView) myDialog.findViewById(R.id.table_title);
+        title.setText("New Project");
+        final EditText name = (EditText) myDialog.findViewById(R.id.table_editText);
+
+        Button done = (Button) myDialog.findViewById(R.id.table_doneButton);
+        done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String tableName = name.getText().toString();
+                //TODO: make sure name is valid
+                if (mTableNames.contains(tableName)) {
+                    //TODO: Warning same name exist already
+                } else {
+                    mDbHelper.newTable(tableName);
+                    mTableNames.add(tableName);
+                    IProfile newProfile = new ProfileDrawerItem().withName(tableName).withOnDrawerItemClickListener(profile_listener);
+                    header.addProfiles(newProfile);
+                    myDialog.dismiss();
+                    //TODO: open the profile drawer and select the new profile
+                    header.setActiveProfile(newProfile);
+                    header.toggleSelectionList(getApplicationContext());
+                    mToolbar.setTitle(tableName);
+                }
+            }
+        });
+
+        Button cancel = (Button) myDialog.findViewById(R.id.table_cancelButton);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myDialog.dismiss();
+            }
+        });
+    }
+
+    private void renameTableDialog() {
+
+        final Dialog myDialog = new Dialog(this);
+        myDialog.setContentView(R.layout.table_form);
+        myDialog.setCanceledOnTouchOutside(true);
+        myDialog.show();
+
+        TextView title = (TextView) myDialog.findViewById(R.id.table_title);
+        title.setText("Rename Project: " + DataEntry.TABLE_NAME);
+        final EditText name = (EditText) myDialog.findViewById(R.id.table_editText);
+
+        Button done = (Button) myDialog.findViewById(R.id.table_doneButton);
+        done.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //update table's name is the list and the database
+                String tableName = name.getText().toString();
+                int index = mTableNames.indexOf(DataEntry.TABLE_NAME);
+                mTableNames.add(index, tableName);
+                mTableNames.remove(DataEntry.TABLE_NAME);
+                mDbHelper.renameTable(tableName);
+
+                //update profile's name
+                IProfile profile = mProfiles.get(index);
+                profile.withName(tableName);
+                header.updateProfile(profile);
+
+                mToolbar.setTitle(tableName);
+
+                myDialog.dismiss();
+            }
+        });
+
+        Button cancel = (Button) myDialog.findViewById(R.id.table_cancelButton);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myDialog.dismiss();
+            }
+        });
+    }
+
+    private void switchToExistingTable(int index) {
+        index -= 1;
+        boolean inBounds = (index >= 0) && (index < mTableNames.size());
+        if (inBounds) {
+            String tableToSelect = mTableNames.get(index);
+            IProfile profileToSelect = mProfiles.get(index);
+            header.setActiveProfile(profileToSelect);
+            mToolbar.setTitle(tableToSelect);
+            mDbHelper.switchTable(tableToSelect);
+        }else if(!mTableNames.isEmpty()){
+            String tableToSelect = mTableNames.get(0);
+            IProfile profileToSelect = mProfiles.get(0);
+            header.setActiveProfile(profileToSelect);
+            mToolbar.setTitle(tableToSelect);
+            mDbHelper.switchTable(tableToSelect);
+        }else{
+            //TODO: No table to show
+        }
     }
 
     @SuppressWarnings("ConstantConditions")

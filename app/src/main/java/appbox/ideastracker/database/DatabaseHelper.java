@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.*;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.util.Pair;
@@ -57,23 +58,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sInstance;
     }
 
-
-    public static synchronized void notifyAllLists() {
-        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
-        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
-        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
-    }
-
     private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
+
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // To change in  release version
+        //TODO: change in release version
         db.execSQL(SQL_DELETE_ENTRIES);
         onCreate(db);
     }
@@ -81,6 +76,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
+
+    public void newTable(String tableName) {
+        DataEntry.setTableName(tableName);
+        String SQL_NEW_TABLE =
+                "CREATE TABLE " + tableName + " (" +
+                        DataEntry._ID + " INTEGER PRIMARY KEY," +
+                        DataEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_DONE + BOOL_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_LATER + BOOL_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE +
+                        " )";
+        getWritableDatabase().execSQL(SQL_NEW_TABLE);
+        notifyAllLists();
+    }
+
+    public void switchTable(String tableName) {
+        DataEntry.setTableName(tableName);
+        notifyAllLists();
+    }
+
+    public void renameTable(String newName) {
+        getWritableDatabase().execSQL("ALTER TABLE " + DataEntry.TABLE_NAME + " RENAME TO " + newName);
+        DataEntry.setTableName(newName);
+        notifyAllLists();
+    }
+
+    public void deleteTable() {
+        String SQL_DELETE =
+                "DROP TABLE IF EXISTS " + DataEntry.TABLE_NAME;
+        getWritableDatabase().execSQL(SQL_DELETE);
+    }
+
 
     public static void setAdapterIdea(BaseExpandableListAdapter adapter) {
         mExpandleAdapter = adapter;
@@ -92,6 +121,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static void setAdapterDone(BaseAdapter adapter) {
         mAdapterDone = adapter;
+    }
+
+    public static void notifyAllLists() {
+        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
+        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
+        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
     }
 
     public void newEntry(String text, int priority, boolean later) {
@@ -110,10 +145,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values);
     }
 
-    public Cursor getEntryById(int id){
+    public Cursor getEntryById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] projection = {DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
-        return  db.query(
+        return db.query(
                 DataEntry.TABLE_NAME,  // The table to query
                 projection,                               // The columns to return
                 "_id=?",                    // The columns for the WHERE clause
@@ -124,7 +159,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
     }
 
-    public String getTextById(int id){
+    public String getTextById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -135,7 +170,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "nothing";
     }
 
-    public int getPriorityById(int id){
+    public int getPriorityById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -146,16 +181,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
-    public void editEntry(int id, String new_text, int new_priority, boolean later){
+    public void editEntry(int id, String new_text, int new_priority, boolean later) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataEntry.COLUMN_NAME_TEXT, new_text);
         values.put(DataEntry.COLUMN_NAME_PRIORITY, new_priority);
-        if(later){
+        if (later) {
             values.put(DataEntry.COLUMN_NAME_LATER, true);
             values.put(DataEntry.COLUMN_NAME_DONE, false);
-        }else{
+        } else {
             values.put(DataEntry.COLUMN_NAME_LATER, false);
         }
         db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
@@ -442,7 +477,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return true;
     }
-
 
 
 }

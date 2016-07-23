@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 /* Inner class that defines the table contents */
 public abstract class DataEntry implements BaseColumns {
 
-    public static final String TABLE_NAME = "myGame";
+    public static String TABLE_NAME = "My_Project";
     public static final String COLUMN_NAME_ENTRY_ID = "entryid";
     public static final String COLUMN_NAME_TEXT = "text";
     public static final String COLUMN_NAME_PRIORITY = "priority";
@@ -16,6 +16,10 @@ public abstract class DataEntry implements BaseColumns {
     public static final String COLUMN_NAME_DONE = "done";
     public static final String COLUMN_NAME_TEMP = "temp";
     public static final String COLUMN_NAME_NULLABLE = "null";
+
+    public static void setTableName(String newTableName){
+        TABLE_NAME = newTableName;
+    }
 
 
 }
