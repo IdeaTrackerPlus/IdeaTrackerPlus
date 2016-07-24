@@ -1,6 +1,8 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -48,11 +50,13 @@ import com.thebluealliance.spectrum.SpectrumDialog;
 
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
+import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
 
@@ -66,9 +70,17 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar mToolbar;
     private FragmentManager mFragmentManager;
 
+
+    private TinyDB mTinyDB;
+    private static final String PREF_KEY = "MyPrefKey";
     private int mPrimaryColor;
-    private ArrayList<String> mTableNames;
+    private ArrayList<Object> mProjects;
     private List<IProfile> mProfiles;
+    private int mSelectedProfileIndex;
+
+    private int defaultPrimaryColor;
+    private int defaultSecondaryColor;
+    private int defaultTextColor;
 
 
     @SuppressWarnings("ConstantConditions")
@@ -77,21 +89,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //TABLES
-        //TODO: retrieve table names from shared preferences
-        //if table name gathering failed, no names then create default one
-        mTableNames = new ArrayList<>();
-        mTableNames.add("My_Project");
+        //Default colors
+        defaultPrimaryColor = getResources().getColor(R.color.md_blue_500);
+        defaultSecondaryColor = getResources().getColor(R.color.md_orange_500);
+        defaultTextColor = getResources().getColor(R.color.md_white);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setTitle("My_Project");
         setSupportActionBar(mToolbar);
 
         mFragmentManager = getSupportFragmentManager();
 
         //Get the database helper
         mDbHelper = DatabaseHelper.getInstance(this);
-        //mDbHelper.newTable("My_Project");
+
+        //TABLES
+        mTinyDB = new TinyDB(this);
+        loadProjects();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -129,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
             if (drawerItem != null && drawerItem instanceof IProfile) {
+                mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
                 mToolbar.setTitle(tableName);
                 mDbHelper.switchTable(tableName);
@@ -146,12 +160,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpDrawers(Bundle savedInstanceState) {
 
-        //PROFILES
-        mProfiles = new ArrayList<>();
-        for (String table : mTableNames) {
-            mProfiles.add(new ProfileDrawerItem().withName(table).withOnDrawerItemClickListener(profile_listener));
-        }
-
         //HEADER
         header = new AccountHeaderBuilder()
                 .withActivity(this)
@@ -161,6 +169,11 @@ public class MainActivity extends AppCompatActivity {
                 .withProfileImagesVisible(false)
                 .withSavedInstance(savedInstanceState)
                 .build();
+
+        //Select first one
+        header.setActiveProfile(mProfiles.get(0));
+        mToolbar.setTitle(mProfiles.get(0).getName().getText());
+        DataEntry.setTableName(mProfiles.get(0).getName().getText());
 
 
         //LEFT DRAWER
@@ -186,11 +199,10 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 2:
-                                    int index = mTableNames.indexOf(DataEntry.TABLE_NAME);
-                                    mTableNames.remove(index);
-                                    mProfiles.remove(index);
+                                    mProfiles.remove(mSelectedProfileIndex);
+                                    deleteProject();
                                     mDbHelper.deleteTable();
-                                    switchToExistingTable(index);
+                                    switchToExistingTable(mSelectedProfileIndex);
                                     break;
 
                                 case 3:
@@ -426,16 +438,19 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String tableName = name.getText().toString();
                 //TODO: make sure name is valid
-                if (mTableNames.contains(tableName)) {
+                if (false) {
                     //TODO: Warning same name exist already
                 } else {
                     mDbHelper.newTable(tableName);
-                    mTableNames.add(tableName);
                     IProfile newProfile = new ProfileDrawerItem().withName(tableName).withOnDrawerItemClickListener(profile_listener);
-                    header.addProfiles(newProfile);
+                    mProfiles.add(newProfile);
                     myDialog.dismiss();
-                    //TODO: open the profile drawer and select the new profile
+
+                    saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
+
+                    //open the profile drawer and select the new profile
                     header.setActiveProfile(newProfile);
+                    mSelectedProfileIndex = mProfiles.size() - 1;
                     header.toggleSelectionList(getApplicationContext());
                     mToolbar.setTitle(tableName);
                 }
@@ -468,15 +483,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //update table's name is the list and the database
                 String tableName = name.getText().toString();
-                int index = mTableNames.indexOf(DataEntry.TABLE_NAME);
-                mTableNames.add(index, tableName);
-                mTableNames.remove(DataEntry.TABLE_NAME);
+                renameProject(tableName);
                 mDbHelper.renameTable(tableName);
 
                 //update profile's name
-                IProfile profile = mProfiles.get(index);
+                IProfile profile = mProfiles.get(mSelectedProfileIndex);
                 profile.withName(tableName);
                 header.updateProfile(profile);
+                mProfiles.remove(mSelectedProfileIndex);
+                mProfiles.add(mSelectedProfileIndex, profile);
 
                 mToolbar.setTitle(tableName);
 
@@ -495,20 +510,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void switchToExistingTable(int index) {
         index -= 1;
-        boolean inBounds = (index >= 0) && (index < mTableNames.size());
+        boolean inBounds = (index >= 0) && (index < mProfiles.size());
         if (inBounds) {
-            String tableToSelect = mTableNames.get(index);
             IProfile profileToSelect = mProfiles.get(index);
+            String tableToSelect = profileToSelect.getName().getText();
             header.setActiveProfile(profileToSelect);
             mToolbar.setTitle(tableToSelect);
             mDbHelper.switchTable(tableToSelect);
-        }else if(!mTableNames.isEmpty()){
-            String tableToSelect = mTableNames.get(0);
+            mSelectedProfileIndex = index;
+        } else if (!mProfiles.isEmpty()) {
             IProfile profileToSelect = mProfiles.get(0);
+            String tableToSelect = profileToSelect.getName().getText();
             header.setActiveProfile(profileToSelect);
             mToolbar.setTitle(tableToSelect);
             mDbHelper.switchTable(tableToSelect);
-        }else{
+            mSelectedProfileIndex = 0;
+        } else {
             //TODO: No table to show
         }
     }
@@ -538,6 +555,55 @@ public class MainActivity extends AppCompatActivity {
         hsv[2] *= 0.75f;
         color = Color.HSVToColor(hsv);
         return color;
+    }
+
+    public void saveProject(Project p) {
+
+        if (mProjects == null) {
+            mProjects = new ArrayList<>();
+        }
+        mProjects.add(p);
+
+        // save the project list to preference
+        mTinyDB.putListObject(PREF_KEY, mProjects);
+
+    }
+
+    public void saveProjectColors(int primaryColor, int secondaryColor, int textColor) {
+        Project p = (Project) mProjects.get(mSelectedProfileIndex);
+        p.setPrimaryColor(primaryColor);
+        p.setSecondaryColor(secondaryColor);
+        p.setTextColor(textColor);
+        mTinyDB.putListObject(PREF_KEY, mProjects);
+    }
+
+    public void renameProject(String newName) {
+        Project p = (Project) mProjects.get(mSelectedProfileIndex);
+        p.setName(newName);
+        mTinyDB.putListObject(PREF_KEY, mProjects);
+    }
+
+    public void deleteProject() {
+        mProjects.remove(mSelectedProfileIndex);
+        mTinyDB.putListObject(PREF_KEY, mProjects);
+    }
+
+    public void loadProjects() {
+
+        mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
+        if (mProjects.size() == 0) {
+            saveProject(new Project("MyProject",
+                    defaultPrimaryColor,
+                    defaultSecondaryColor,
+                    defaultTextColor));
+            mDbHelper.newTable("MyProject");
+        }
+
+        mProfiles = new ArrayList<>();
+        for (Object p : mProjects) {
+            Project project = (Project) p;
+            mProfiles.add(new ProfileDrawerItem().withName(project.getName()).withOnDrawerItemClickListener(profile_listener));
+        }
     }
 
     @Override

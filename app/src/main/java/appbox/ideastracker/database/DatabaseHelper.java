@@ -63,8 +63,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(SQL_CREATE_ENTRIES);
-
+        //do nothing
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
