@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.*;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.util.Pair;
@@ -32,17 +33,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String INT_TYPE = " INT";
     private static final String BOOL_TYPE = " BOOLEAN";
     private static final String COMMA_SEP = ",";
-    private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + DataEntry.TABLE_NAME + " (" +
-                    DataEntry._ID + " INTEGER PRIMARY KEY," +
-                    DataEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_DONE + BOOL_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_LATER + BOOL_TYPE + COMMA_SEP +
-                    DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE +
-                    " )";
-
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + DataEntry.TABLE_NAME;
 
@@ -57,23 +47,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sInstance;
     }
 
-
-    public static synchronized void notifyAllLists() {
-        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
-        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
-        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
-    }
-
     private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(SQL_CREATE_ENTRIES);
+        //do nothing
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // To change in  release version
+        //TODO: change in release version
         db.execSQL(SQL_DELETE_ENTRIES);
         onCreate(db);
     }
@@ -81,6 +64,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
+
+    public void newTable(String tableName) {
+        DataEntry.setTableName(tableName);
+        String SQL_NEW_TABLE =
+                "CREATE TABLE " + DataEntry.TABLE_NAME + " (" +
+                        DataEntry._ID + " INTEGER PRIMARY KEY," +
+                        DataEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_DONE + BOOL_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_LATER + BOOL_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE +
+                        " )";
+        getWritableDatabase().execSQL(SQL_NEW_TABLE);
+        notifyAllLists();
+    }
+
+    public void switchTable(String tableName) {
+        DataEntry.setTableName(tableName);
+        notifyAllLists();
+    }
+
+    public void renameTable(String newName) {
+        getWritableDatabase().execSQL("ALTER TABLE " + DataEntry.TABLE_NAME + " RENAME TO " + "[" + newName + "]");
+        DataEntry.setTableName(newName);
+        notifyAllLists();
+    }
+
+    public void deleteTable() {
+        String SQL_DELETE =
+                "DROP TABLE IF EXISTS " + DataEntry.TABLE_NAME;
+        getWritableDatabase().execSQL(SQL_DELETE);
+    }
+
 
     public static void setAdapterIdea(BaseExpandableListAdapter adapter) {
         mExpandleAdapter = adapter;
@@ -92,6 +109,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static void setAdapterDone(BaseAdapter adapter) {
         mAdapterDone = adapter;
+    }
+
+    public static void notifyAllLists() {
+        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
+        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
+        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
     }
 
     public void newEntry(String text, int priority, boolean later) {
@@ -110,10 +133,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values);
     }
 
-    public Cursor getEntryById(int id){
+    public Cursor getEntryById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] projection = {DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
-        return  db.query(
+        return db.query(
                 DataEntry.TABLE_NAME,  // The table to query
                 projection,                               // The columns to return
                 "_id=?",                    // The columns for the WHERE clause
@@ -124,7 +147,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
     }
 
-    public String getTextById(int id){
+    public String getTextById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -135,7 +158,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "nothing";
     }
 
-    public int getPriorityById(int id){
+    public int getPriorityById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -146,16 +169,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
-    public void editEntry(int id, String new_text, int new_priority, boolean later){
+    public void editEntry(int id, String new_text, int new_priority, boolean later) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DataEntry.COLUMN_NAME_TEXT, new_text);
         values.put(DataEntry.COLUMN_NAME_PRIORITY, new_priority);
-        if(later){
+        if (later) {
             values.put(DataEntry.COLUMN_NAME_LATER, true);
             values.put(DataEntry.COLUMN_NAME_DONE, false);
-        }else{
+        } else {
             values.put(DataEntry.COLUMN_NAME_LATER, false);
         }
         db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
@@ -169,90 +192,102 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return a list of the ideas paired with their id in the database
      */
     public ArrayList<Pair<Integer, String>> readIdeas(int priority) {
-        SQLiteDatabase db = this.getReadableDatabase();
 
-        // Only the text and priority will be read
-        String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
+        if (!DataEntry.TABLE_NAME.equals("[]")) {
 
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder = DataEntry._ID + " ASC";
+            SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                "later=? and done=? and temp=?",                    // The columns for the WHERE clause
-                new String[]{"0", "0", "0"},                  // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
+            // Only the text and priority will be read
+            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
 
-        ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-        Pair<Integer, String> pair;
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder = DataEntry._ID + " ASC";
 
-        //Scan the ideas and return only the one with the expected priority
-        if (cursor.moveToFirst()) {
+            Cursor cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    "later=? and done=? and temp=?",                    // The columns for the WHERE clause
+                    new String[]{"0", "0", "0"},                  // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
 
-            while (cursor.isAfterLast() == false) {
-                String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
-                if (prio == priority + 1) {
-                    pair = new Pair<>(id, text);
-                    ideas.add(pair);
-                } else if (priority == -1) { // if priority -1, add anyway
-                    pair = new Pair<>(id, text);
-                    ideas.add(pair);
+            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+            Pair<Integer, String> pair;
+
+            //Scan the ideas and return only the one with the expected priority
+            if (cursor.moveToFirst()) {
+
+                while (cursor.isAfterLast() == false) {
+                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                    int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+                    if (prio == priority + 1) {
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                    } else if (priority == -1) { // if priority -1, add anyway
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                    }
+                    cursor.moveToNext();
                 }
-                cursor.moveToNext();
             }
+            cursor.close();
+            return ideas;
         }
-        cursor.close();
-        return ideas;
+
+        return new ArrayList<>();
     }
 
     public ArrayList<Pair<Integer, String>> readIdeas(boolean later) {
-        SQLiteDatabase db = this.getReadableDatabase();
 
-        // Only the text and priority will be read
-        String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT};
+        if (!DataEntry.TABLE_NAME.equals("[]")) {
 
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder = DataEntry._ID + " ASC";
-        //Either get the "later" or the "done"
-        String where = "";
-        if (later) {
-            where = "later=? and temp=?";
-        } else {
-            where = "done=? and temp=?";
-        }
+            SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                where,                                   // The columns for the WHERE clause
-                new String[]{"1", "0"},                      // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
+            // Only the text and priority will be read
+            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT};
 
-        ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-        Pair<Integer, String> pair;
-
-        //Scan the ideas and return everything
-        if (cursor.moveToFirst()) {
-
-            while (cursor.isAfterLast() == false) {
-                String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                pair = new Pair<>(id, text);
-                ideas.add(pair);
-                cursor.moveToNext();
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder = DataEntry._ID + " ASC";
+            //Either get the "later" or the "done"
+            String where = "";
+            if (later) {
+                where = "later=? and temp=?";
+            } else {
+                where = "done=? and temp=?";
             }
+
+            Cursor cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    where,                                   // The columns for the WHERE clause
+                    new String[]{"1", "0"},                      // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
+
+            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+            Pair<Integer, String> pair;
+
+            //Scan the ideas and return everything
+            if (cursor.moveToFirst()) {
+
+                while (cursor.isAfterLast() == false) {
+                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                    pair = new Pair<>(id, text);
+                    ideas.add(pair);
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            return ideas;
         }
-        cursor.close();
-        return ideas;
+
+        return new ArrayList<>();
     }
 
     public ArrayList<Integer> readTempIdeas() {
@@ -442,7 +477,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return true;
     }
-
 
 
 }

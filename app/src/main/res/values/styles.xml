@@ -13,19 +13,13 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="spaced">
-        <item name="android:layout_marginTop">10dp</item>
-        <item name="android:layout_marginLeft">10dp</item>
-        <item name="android:layout_marginRight">10dp</item>
-        <item name="android:padding">10dp</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceButton</item>
+    <style name="EditTextTintTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="text">
         <item name="android:textAllCaps">false</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

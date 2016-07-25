@@ -1,101 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1"
-    android:gravity="center_horizontal"
-    android:layout_margin="@dimen/activity_horizontal_margin"
-    android:divider="@drawable/empty_tall_divider">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Edit Idea"/>
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:orientation="vertical"
+    android:weightSum="1">
 
     <EditText
+        android:id="@+id/editIdeaText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editIdeaText" />
+        android:layout_marginTop="8dp" />
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_gravity="center_horizontal">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Priority :" />
+            android:layout_marginRight="16dp"
+            android:text="Priority"
+            android:textSize="16sp" />
 
         <RadioGroup
+            android:id="@+id/editRadioGroup"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:id="@+id/editRadioGroup">
+            android:orientation="horizontal">
 
             <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/radio_1"
                 android:id="@+id/editRadioButton1"
-                android:checked="true" />
-
-            <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/radio_2"
+                android:buttonTint="@color/priority1"
+                android:checked="true"
+                android:text="@string/radio_1" />
+
+            <RadioButton
                 android:id="@+id/editRadioButton2"
-                android:checked="false" />
-
-            <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/radio_3"
+                android:buttonTint="@color/priority2"
+                android:checked="false"
+                android:text="@string/radio_2" />
+
+            <RadioButton
                 android:id="@+id/editRadioButton3"
-                android:checked="false" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/priority3"
+                android:checked="false"
+                android:text="@string/radio_3" />
         </RadioGroup>
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Do Later :" />
+            android:layout_marginRight="16dp"
+            android:text="Do later"
+            android:textSize="16sp" />
 
-        <ToggleButton
+        <Switch
+            android:id="@+id/editDoLater"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New ToggleButton"
-            android:id="@+id/editDoLater" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:id="@+id/cancelEditButton" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Done"
-            android:id="@+id/doneEditButton"
-            android:layout_gravity="right" />
-    </LinearLayout>
+    <Button
+        android:id="@+id/doneEditButton"
+        style="?android:borderlessButtonStyle"
+        android:layout_width="48dp"
+        android:layout_height="40dp"
+        android:layout_gravity="right|bottom"
+        android:layout_marginTop="8dp"
+        android:text="OK"
+        android:textColor="@color/md_pink_a200" />
 </LinearLayout>

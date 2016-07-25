@@ -8,8 +8,7 @@
     <string name="drawer_close">Close navigation drawer</string>
     <string name="move_all">Move All Ideas</string>
     <string name="from">From</string>
-    <string name="to">To</string>
-    <string name="go">GO</string>
+    <string name="to">to</string>
     <string name="functions_label">Functions</string>
     <string name="options_label">Options</string>
     <string name="mainColor_label">Change main color</string>
@@ -21,9 +20,9 @@
     </string-array>
 
     <string-array name="array_to">
-        <item>Ideas</item>
-        <item>Later</item>
         <item>Done</item>
+        <item>Later</item>
+        <item>Ideas</item>
         <item>Trash</item>
     </string-array>
 </resources>
