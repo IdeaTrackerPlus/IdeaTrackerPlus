@@ -28,12 +28,25 @@
         <item>@color/md_teal_500</item>
         <item>@color/md_green_500</item>
         <item>@color/md_light_green_500</item>
-        <item>@color/md_lime_500</item>
         <item>@color/md_yellow_500</item>
         <item>@color/md_amber_500</item>
         <item>@color/md_orange_500</item>
         <item>@color/md_deep_orange_500</item>
+        <item>@color/md_grey_600</item>
+        <item>@color/md_grey_800</item>
+        <item>@color/md_blue_grey_600</item>
+        <item>@color/md_blue_grey_800</item>
     </array>
+
+    <array name="textColors">
+        <item>@color/md_grey_600</item>
+        <item>@color/md_grey_800</item>
+        <item>@color/md_blue_grey_600</item>
+        <item>@color/md_blue_grey_800</item>
+        <item>@color/md_white</item>
+    </array>
+
+
 
     <color name="md_amber_100">#ffecb3</color>
     <color name="md_amber_200">#ffe082</color>

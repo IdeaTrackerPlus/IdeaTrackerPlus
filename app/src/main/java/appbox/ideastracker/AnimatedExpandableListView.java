@@ -35,12 +35,15 @@ import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ListView;
 
 /**
  * This class defines an ExpandableListView which supports animations for
  * collapsing and expanding groups.
  */
 public class AnimatedExpandableListView extends ExpandableListView {
+
+    private static AnimatedExpandableListView sInstance;
 
     @SuppressWarnings("unused")
     private static final String TAG = AnimatedExpandableListAdapter.class.getSimpleName();
@@ -52,16 +55,27 @@ public class AnimatedExpandableListView extends ExpandableListView {
 
     private AnimatedExpandableListAdapter adapter;
 
+    public static synchronized AnimatedExpandableListView getInstance() {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        return sInstance;
+    }
+
     public AnimatedExpandableListView(Context context) {
         super(context);
+        sInstance = this;
+
     }
 
     public AnimatedExpandableListView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        sInstance = this;
     }
 
     public AnimatedExpandableListView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        sInstance = this;
     }
 
     /**
@@ -120,6 +134,13 @@ public class AnimatedExpandableListView extends ExpandableListView {
         return expandGroup(groupPos);
     }
 
+    public void expandAll(){
+        int count = adapter.getGroupCount();
+        for(int i=0;i<count;i++){
+            expandGroupWithAnimation(i);
+        }
+    }
+
     /**
      * Collapses the given group with an animation.
      *
@@ -166,6 +187,27 @@ public class AnimatedExpandableListView extends ExpandableListView {
         // Force the listview to refresh it's views
         adapter.notifyDataSetChanged();
         return isGroupExpanded(groupPos);
+    }
+
+    public void collapseAll(){
+        int count = adapter.getGroupCount();
+        for(int i=0;i<count;i++){
+            collapseGroupWithAnimation(i);
+        }
+    }
+
+    public void collapseExpandAll(){
+        int count = adapter.getGroupCount();
+        boolean allExpanded = true;
+        for(int i=0;i<count;i++){
+            if(!isGroupExpanded(i)) allExpanded = false;
+        }
+
+        if(allExpanded){
+            collapseAll();
+        }else{
+            expandAll();
+        }
     }
 
     private int getAnimationDuration() {

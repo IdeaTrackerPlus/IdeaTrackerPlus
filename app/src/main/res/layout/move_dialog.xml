@@ -3,24 +3,14 @@
     android:id="@+id/move_dialog"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:divider="@drawable/empty_tall_divider"
     android:gravity="center_horizontal"
-    android:layout_margin="@dimen/activity_horizontal_margin"
-    android:divider="@drawable/empty_tall_divider">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="@string/move_all"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <TextView
@@ -54,27 +44,16 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="16dp">
-
-        <Button
-            android:id="@+id/cancel_move_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel" />
-
-        <Button
-            android:id="@+id/move_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Go" />
-
-
-    </LinearLayout>
+    <Button
+        android:id="@+id/move_button"
+        style="?android:borderlessButtonStyle"
+        android:layout_marginTop="16dp"
+        android:layout_width="48dp"
+        android:layout_height="40dp"
+        android:layout_marginRight="16dp"
+        android:layout_gravity="right|bottom"
+        android:textColor="@color/md_pink_a200"
+        android:text="OK" />
 
 
 </LinearLayout>

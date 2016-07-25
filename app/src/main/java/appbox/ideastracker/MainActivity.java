@@ -1,8 +1,6 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -32,7 +30,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.Switch;
 import android.widget.ToggleButton;
 
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
@@ -47,12 +45,13 @@ import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.thebluealliance.spectrum.SpectrumDialog;
+import com.yarolegovich.lovelydialog.LovelyCustomDialog;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
+import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
-import org.w3c.dom.Text;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
@@ -69,11 +68,15 @@ public class MainActivity extends AppCompatActivity {
     private AccountHeader header = null;
     private Toolbar mToolbar;
     private FragmentManager mFragmentManager;
+    private Dialog mMoveDialog;
+    private Dialog mNewIdeaDialog;
 
 
     private TinyDB mTinyDB;
     private static final String PREF_KEY = "MyPrefKey";
     private int mPrimaryColor;
+    private int mSecondaryColor;
+    private int mTextColor;
     private ArrayList<Object> mProjects;
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
@@ -81,6 +84,10 @@ public class MainActivity extends AppCompatActivity {
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
+
+    private PrimaryDrawerItem mColorItem1;
+    private PrimaryDrawerItem mColorItem2;
+    private PrimaryDrawerItem mColorItem3;
 
 
     @SuppressWarnings("ConstantConditions")
@@ -90,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Default colors
-        defaultPrimaryColor = getResources().getColor(R.color.md_blue_500);
+        defaultPrimaryColor = getResources().getColor(R.color.md_indigo_500);
         defaultSecondaryColor = getResources().getColor(R.color.md_orange_500);
         defaultTextColor = getResources().getColor(R.color.md_white);
 
@@ -128,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG.setAction("Action", null).show();
                 newIdeaDialog();
             }
         });
@@ -146,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
                 mToolbar.setTitle(tableName);
                 mDbHelper.switchTable(tableName);
+                switchToProjectColors();
             }
             return false;
         }
@@ -170,12 +177,6 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        //Select first one
-        header.setActiveProfile(mProfiles.get(0));
-        mToolbar.setTitle(mProfiles.get(0).getName().getText());
-        DataEntry.setTableName(mProfiles.get(0).getName().getText());
-
-
         //LEFT DRAWER
         result = new DrawerBuilder(this)
                 .withToolbar(mToolbar)
@@ -183,10 +184,10 @@ public class MainActivity extends AppCompatActivity {
                 .withSelectedItem(-1)
                 .withAccountHeader(header)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withIdentifier(1).withName("Rename table").withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(2).withName("Delete table").withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(1).withName("Rename project").withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(2).withName("Delete project").withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
                         new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withIdentifier(3).withName("New Table").withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(3).withName("New project").withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
                 )
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -199,10 +200,7 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 2:
-                                    mProfiles.remove(mSelectedProfileIndex);
-                                    deleteProject();
-                                    mDbHelper.deleteTable();
-                                    switchToExistingTable(mSelectedProfileIndex);
+                                    deleteTableDialog();
                                     break;
 
                                 case 3:
@@ -216,18 +214,20 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        mPrimaryColor = getResources().getColor(R.color.md_blue_500);
-        final PrimaryDrawerItem aItem1 = new PrimaryDrawerItem().withIdentifier(1).withName("Primary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
+        mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName("Primary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
+        mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName("Secondary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
+        mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName("Text color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
 
         //RIGHT DRAWER
         append = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
                 .addDrawerItems(
-                        new SectionDrawerItem().withName("Customize colors"),
-                        aItem1,
-                        new PrimaryDrawerItem().withIdentifier(2).withName("Secondary color").withIcon(FontAwesome.Icon.faw_paint_brush).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(3).withName("Text color").withIcon(FontAwesome.Icon.faw_paint_brush).withSelectable(false),
+                        new SectionDrawerItem().withName("Color preferences"),
+                        mColorItem1,
+                        mColorItem2,
+                        mColorItem3,
+                        new PrimaryDrawerItem().withIdentifier(6).withName("Reset color preferences").withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
                         new SectionDrawerItem().withName("Functions"),
                         new PrimaryDrawerItem().withIdentifier(4).withName("Move all ideas from a tab").withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(5).withName("Expand/collapse all").withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                             switch (id) {
                                 case 1:
                                     new SpectrumDialog.Builder(getApplicationContext())
+                                            .setTitle("Select primary color")
                                             .setColors(R.array.colors)
                                             .setSelectedColor(mPrimaryColor)
                                             .setDismissOnColorSelected(false)
@@ -252,10 +253,8 @@ public class MainActivity extends AppCompatActivity {
                                                 public void onColorSelected(boolean positiveResult, @ColorInt int color) {
                                                     if (positiveResult) {
                                                         //update selected color
-                                                        changePrimaryColor(color);
-                                                        aItem1.withIconColor(color);
-                                                        append.updateItem(aItem1);
                                                         mPrimaryColor = color;
+                                                        changePrimaryColor();
                                                     }
                                                 }
                                             }).build().show(mFragmentManager, "dialog_spectrum");
@@ -263,14 +262,54 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 2:
+                                    new SpectrumDialog.Builder(getApplicationContext())
+                                            .setTitle("Select secondary color")
+                                            .setColors(R.array.colors)
+                                            .setSelectedColor(mSecondaryColor)
+                                            .setDismissOnColorSelected(false)
+                                            .setFixedColumnCount(4)
+                                            .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                                                @Override
+                                                public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                                    if (positiveResult) {
+                                                        //update selected color
+                                                        mSecondaryColor = color;
+                                                        changeSecondaryColor();
+                                                    }
+                                                }
+                                            }).build().show(mFragmentManager, "dialog_spectrum");
                                     break;
 
                                 case 3:
+                                    new SpectrumDialog.Builder(getApplicationContext())
+                                            .setTitle("Select text color")
+                                            .setColors(R.array.textColors)
+                                            .setSelectedColor(mTextColor)
+                                            .setDismissOnColorSelected(false)
+                                            .setFixedColumnCount(4)
+                                            .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                                                @Override
+                                                public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                                    if (positiveResult) {
+                                                        //update selected color
+                                                        mTextColor = color;
+                                                        changeTextColor();
+                                                    }
+                                                }
+                                            }).build().show(mFragmentManager, "dialog_spectrum");
                                     break;
 
                                 case 4:
                                     newMoveDialog();
                                     append.closeDrawer();
+                                    break;
+
+                                case 5:
+                                    AnimatedExpandableListView.getInstance().collapseExpandAll();
+                                    break;
+
+                                case 6:
+                                    resetColorsDialog();
                                     break;
                             }
                         }
@@ -279,6 +318,16 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .withSavedInstance(savedInstanceState)
                 .append(result);
+
+        //Select first one
+        mSelectedProfileIndex = 0;
+        IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
+        String activeProfileName = activeProfile.getName().getText();
+        header.setActiveProfile(activeProfile);
+        getSupportActionBar().setTitle(activeProfileName);
+        DataEntry.setTableName(activeProfileName);
+
+        switchToProjectColors();
     }
 
     @Override
@@ -311,248 +360,305 @@ public class MainActivity extends AppCompatActivity {
 
     private void newIdeaDialog() {
 
-        final Dialog myDialog = new Dialog(this);
-        myDialog.setContentView(R.layout.new_idea_form);
-        myDialog.setCanceledOnTouchOutside(true);
-        Button done = (Button) myDialog.findViewById(R.id.doneButton);
-        Button cancel = (Button) myDialog.findViewById(R.id.cancelButton);
-        final ToggleButton doLater = (ToggleButton) myDialog.findViewById(R.id.doLater);
-        final RadioGroup radioGroup = (RadioGroup) myDialog.findViewById(R.id.radioGroup);
+        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.new_idea_form)
+                .setTopColor(mPrimaryColor)
+                .setTitle("New idea")
+                .setIcon(R.drawable.ic_bulb)
+                .setListener(R.id.doneButton, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
+                        RadioGroup radioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
+                        EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
 
-        final EditText ideaField = (EditText) myDialog.findViewById(R.id.editText);
-        myDialog.show();
-        Window window = myDialog.getWindow();
-        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        if (radioGroup.getCheckedRadioButtonId() != -1) {
+                            View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
+                            RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
+                            String selection = (String) btn.getText();
 
-        done.setOnClickListener(new View.OnClickListener() {
+                            String text = ideaField.getText().toString();
+                            boolean later = doLater.isChecked();
+                            int priority = Integer.parseInt(selection);
 
-            @Override
-            public void onClick(View v) {
-                if (radioGroup.getCheckedRadioButtonId() != -1) {
-                    View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
-                    RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
-                    String selection = (String) btn.getText();
+                            mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
 
-                    String text = ideaField.getText().toString();
-                    boolean later = doLater.isChecked();
-                    int priority = Integer.parseInt(selection);
+                            DatabaseHelper.notifyAllLists();
+                        }
 
-                    mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
-
-                    DatabaseHelper.notifyAllLists();
-                }
-
-                myDialog.dismiss();
-            }
-        });
-
-        cancel.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
+                        mNewIdeaDialog.dismiss();
+                    }
+                })
+                .show();
 
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void newMoveDialog() {
 
-        final Dialog myDialog = new Dialog(this);
-        myDialog.setContentView(R.layout.move_dialog);
-        myDialog.setCanceledOnTouchOutside(true);
-        myDialog.show();
-
         final View root = findViewById(R.id.main_content);
-        Button cancelButton = (Button) myDialog.findViewById(R.id.cancel_move_button);
-        Button goButton = (Button) myDialog.findViewById(R.id.move_button);
 
-        goButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
+        mMoveDialog = new LovelyCustomDialog(this)
+                .setView(R.layout.move_dialog)
+                .setTopColor(mPrimaryColor)
+                .setTitle("Move all ideas")
+                .setTitleGravity(Gravity.CENTER_HORIZONTAL)
+                .setIcon(R.drawable.ic_transfer)
+                .setListener(R.id.move_button, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Spinner spinnerFrom = (Spinner) mMoveDialog.findViewById(R.id.spinner_from);
+                        Spinner spinnerTo = (Spinner) mMoveDialog.findViewById(R.id.spinner_to);
+                        final String from = spinnerFrom.getSelectedItem().toString();
+                        final String to = spinnerTo.getSelectedItem().toString();
 
-                Spinner spinnerFrom = (Spinner) myDialog.findViewById(R.id.spinner_from);
-                Spinner spinnerTo = (Spinner) myDialog.findViewById(R.id.spinner_to);
-                final String from = spinnerFrom.getSelectedItem().toString();
-                final String to = spinnerTo.getSelectedItem().toString();
-
-                String snackText = "Nothing to move from " + from;
-                boolean success = false;
-                if (from.equals(to)) snackText = "Locations must be different";
-                else if (mDbHelper.moveAllFromTo(from, to)) {
-                    snackText = "All ideas from " + from + " moved to " + to;
-                    success = true;
-                }
-
-                Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
-                if (success) {
-                    snackbar.setAction("UNDO", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if (to.equals("Trash")) {//undo temp deleting
-                                mDbHelper.recoverAllFromTemp();
-                            } else {
-                                mDbHelper.moveAllFromTo(to, from);
-                            }
+                        String snackText = "Nothing to move from " + from;
+                        boolean success = false;
+                        if (from.equals(to)) snackText = "Locations must be different";
+                        else if (mDbHelper.moveAllFromTo(from, to)) {
+                            snackText = "All ideas from " + from + " moved to " + to;
+                            success = true;
                         }
-                    }).setCallback(new Snackbar.Callback() {
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
-                                //delete for real ideas in temp
-                                mDbHelper.deleteAllFromTemp();
-                            }
+
+                        Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
+                        if (success) {
+                            snackbar.setAction("UNDO", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    if (to.equals("Trash")) {//undo temp deleting
+                                        mDbHelper.recoverAllFromTemp();
+                                    } else {
+                                        mDbHelper.moveAllFromTo(to, from);
+                                    }
+                                }
+                            }).setCallback(new Snackbar.Callback() {
+                                @Override
+                                public void onDismissed(Snackbar snackbar, int event) {
+                                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
+                                        //delete for real ideas in temp
+                                        mDbHelper.deleteAllFromTemp();
+                                    }
+                                }
+                            });
                         }
-                    });
-                }
-
-                snackbar.show();
-            }
-        });
-
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
-
+                        mMoveDialog.dismiss();
+                        snackbar.show();
+                    }
+                })
+                .show();
     }
 
     private void newTableDialog() {
 
-        final Dialog myDialog = new Dialog(this);
-        myDialog.setContentView(R.layout.table_form);
-        myDialog.setCanceledOnTouchOutside(true);
-        myDialog.show();
+        final View root = findViewById(R.id.main_content);
 
-        TextView title = (TextView) myDialog.findViewById(R.id.table_title);
-        title.setText("New Project");
-        final EditText name = (EditText) myDialog.findViewById(R.id.table_editText);
+        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
+                .setTopColor(mPrimaryColor)
+                .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
+                .setTitle("New project")
+                .setMessage("Name your project")
+                .setIcon(R.drawable.ic_notepad)
+                .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
+                    @Override
+                    public boolean check(String text) {
+                        return isProjectNameAvailable(text);
+                    }
+                })
+                .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                    @Override
+                    public void onTextInputConfirmed(String tableName) {
 
-        Button done = (Button) myDialog.findViewById(R.id.table_doneButton);
-        done.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String tableName = name.getText().toString();
-                //TODO: make sure name is valid
-                if (false) {
-                    //TODO: Warning same name exist already
-                } else {
-                    mDbHelper.newTable(tableName);
-                    IProfile newProfile = new ProfileDrawerItem().withName(tableName).withOnDrawerItemClickListener(profile_listener);
-                    mProfiles.add(newProfile);
-                    myDialog.dismiss();
+                        mDbHelper.newTable(tableName);
+                        IProfile newProfile = new ProfileDrawerItem().withName(tableName).withOnDrawerItemClickListener(profile_listener);
+                        mProfiles.add(newProfile);
 
-                    saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
+                        saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
 
-                    //open the profile drawer and select the new profile
-                    header.setActiveProfile(newProfile);
-                    mSelectedProfileIndex = mProfiles.size() - 1;
-                    header.toggleSelectionList(getApplicationContext());
-                    mToolbar.setTitle(tableName);
-                }
-            }
-        });
-
-        Button cancel = (Button) myDialog.findViewById(R.id.table_cancelButton);
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
+                        //open the profile drawer and select the new profile
+                        header.setActiveProfile(newProfile);
+                        mSelectedProfileIndex = mProfiles.size() - 1;
+                        header.toggleSelectionList(getApplicationContext());
+                        mToolbar.setTitle(tableName);
+                    }
+                })
+                .show();
     }
 
     private void renameTableDialog() {
+        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
+                .setTopColor(mPrimaryColor)
+                .setConfirmButtonColor(mSecondaryColor)
+                .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
+                .setMessage("What should the new name be?")
+                .setIcon(R.drawable.ic_edit)
+                .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
+                    @Override
+                    public boolean check(String text) {
+                        return isProjectNameAvailable(text);
+                    }
+                })
+                .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                    @Override
+                    public void onTextInputConfirmed(String tableName) {
+                        //update table's name is the list and the database
+                        renameProject(tableName);
+                        mDbHelper.renameTable(tableName);
 
-        final Dialog myDialog = new Dialog(this);
-        myDialog.setContentView(R.layout.table_form);
-        myDialog.setCanceledOnTouchOutside(true);
-        myDialog.show();
+                        //update profile's name
+                        IProfile profile = mProfiles.get(mSelectedProfileIndex);
+                        profile.withName(tableName);
+                        header.updateProfile(profile);
+                        mProfiles.remove(mSelectedProfileIndex);
+                        mProfiles.add(mSelectedProfileIndex, profile);
 
-        TextView title = (TextView) myDialog.findViewById(R.id.table_title);
-        title.setText("Rename Project: " + DataEntry.TABLE_NAME);
-        final EditText name = (EditText) myDialog.findViewById(R.id.table_editText);
+                        mToolbar.setTitle(tableName);
+                    }
+                })
+                .show();
+    }
 
-        Button done = (Button) myDialog.findViewById(R.id.table_doneButton);
-        done.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //update table's name is the list and the database
-                String tableName = name.getText().toString();
-                renameProject(tableName);
-                mDbHelper.renameTable(tableName);
+    private void deleteTableDialog() {
+        new LovelyStandardDialog(this)
+                .setTopColorRes(R.color.md_red_400)
+                .setButtonsColorRes(R.color.md_deep_orange_500)
+                .setIcon(R.drawable.ic_warning)
+                .setTitle("Delete project " + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "?")
+                .setMessage("All your ideas will be deleted with it.")
+                .setPositiveButton(android.R.string.yes, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mProfiles.remove(mSelectedProfileIndex);
+                        deleteProject();
+                        mDbHelper.deleteTable();
+                        switchToExistingTable(mSelectedProfileIndex);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
 
-                //update profile's name
-                IProfile profile = mProfiles.get(mSelectedProfileIndex);
-                profile.withName(tableName);
-                header.updateProfile(profile);
-                mProfiles.remove(mSelectedProfileIndex);
-                mProfiles.add(mSelectedProfileIndex, profile);
-
-                mToolbar.setTitle(tableName);
-
-                myDialog.dismiss();
-            }
-        });
-
-        Button cancel = (Button) myDialog.findViewById(R.id.table_cancelButton);
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
+    private void resetColorsDialog() {
+        new LovelyStandardDialog(this)
+                .setTopColor(mPrimaryColor)
+                .setButtonsColorRes(R.color.md_pink_a200)
+                .setIcon(R.drawable.ic_drop)
+                .setTitle("Reset color preferences")
+                .setMessage("The color preferences for this project will be reset to the default ones.")
+                .setPositiveButton(android.R.string.yes, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mPrimaryColor = defaultPrimaryColor;
+                        mSecondaryColor = defaultSecondaryColor;
+                        mTextColor = defaultTextColor;
+                        updateColors();
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
     }
 
     private void switchToExistingTable(int index) {
         index -= 1;
         boolean inBounds = (index >= 0) && (index < mProfiles.size());
-        if (inBounds) {
-            IProfile profileToSelect = mProfiles.get(index);
+
+        if (!mProfiles.isEmpty()) {
+
+            if (inBounds) mSelectedProfileIndex = index;
+            else mSelectedProfileIndex = 0;
+
+            IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
             String tableToSelect = profileToSelect.getName().getText();
             header.setActiveProfile(profileToSelect);
             mToolbar.setTitle(tableToSelect);
             mDbHelper.switchTable(tableToSelect);
-            mSelectedProfileIndex = index;
-        } else if (!mProfiles.isEmpty()) {
-            IProfile profileToSelect = mProfiles.get(0);
-            String tableToSelect = profileToSelect.getName().getText();
-            header.setActiveProfile(profileToSelect);
-            mToolbar.setTitle(tableToSelect);
-            mDbHelper.switchTable(tableToSelect);
-            mSelectedProfileIndex = 0;
+
+            switchToProjectColors();
         } else {
             //TODO: No table to show
         }
+
     }
 
+
     @SuppressWarnings("ConstantConditions")
-    private void changePrimaryColor(int color) {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+    private void changePrimaryColor() {
+
+        saveProjectColors();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
-
-        fab.setBackgroundTintList(ColorStateList.valueOf(color));
-        toolbar.setBackgroundColor(color);
-        tabLayout.setBackgroundColor(color);
-        appbar.setBackgroundColor(color);
+        toolbar.setBackgroundColor(mPrimaryColor);
+        tabLayout.setBackgroundColor(mPrimaryColor);
+        appbar.setBackgroundColor(mPrimaryColor);
 
         if (Build.VERSION.SDK_INT >= 21) {
             //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
-            getWindow().setStatusBarColor(darken(color));
+            getWindow().setStatusBarColor(darken(mPrimaryColor));
         }
+
+        mColorItem1.withIconColor(mPrimaryColor);
+        append.updateItem(mColorItem1);
+    }
+
+    private void changeSecondaryColor() {
+
+        saveProjectColors();
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+
+        tabLayout.setSelectedTabIndicatorColor(mSecondaryColor);
+        fab.setBackgroundTintList(ColorStateList.valueOf(mSecondaryColor));
+
+        mColorItem2.withIconColor(mSecondaryColor);
+        append.updateItem(mColorItem2);
+    }
+
+    private void changeTextColor() {
+
+        saveProjectColors();
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+
+        tabLayout.setTabTextColors(darken(mTextColor), mTextColor);
+        mToolbar.setTitleTextColor(mTextColor);
+
+        ToolbarColorizeHelper.colorizeToolbar(mToolbar, mTextColor, this);
+
+        mColorItem3.withIconColor(mTextColor);
+        append.updateItem(mColorItem3);
+
+    }
+
+    private void updateColors() {
+        changePrimaryColor();
+        changeSecondaryColor();
+        changeTextColor();
+    }
+
+    private void switchToProjectColors() {
+        Project selectedProject = (Project) mProjects.get(mSelectedProfileIndex);
+        mPrimaryColor = selectedProject.getPrimaryColor();
+        mSecondaryColor = selectedProject.getSecondaryColor();
+        mTextColor = selectedProject.getTextColor();
+
+        updateColors();
+
+        mColorItem1.withIconColor(mPrimaryColor);
+        mColorItem2.withIconColor(mSecondaryColor);
+        mColorItem3.withIconColor(mTextColor);
+
+        append.updateItem(mColorItem1);
+        append.updateItem(mColorItem2);
+        append.updateItem(mColorItem3);
+
     }
 
     public int darken(int color) {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.75f;
+        hsv[2] *= 0.85f;
         color = Color.HSVToColor(hsv);
         return color;
     }
@@ -569,11 +675,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void saveProjectColors(int primaryColor, int secondaryColor, int textColor) {
+    public void saveProjectColors() {
         Project p = (Project) mProjects.get(mSelectedProfileIndex);
-        p.setPrimaryColor(primaryColor);
-        p.setSecondaryColor(secondaryColor);
-        p.setTextColor(textColor);
+        p.setPrimaryColor(mPrimaryColor);
+        p.setSecondaryColor(mSecondaryColor);
+        p.setTextColor(mTextColor);
         mTinyDB.putListObject(PREF_KEY, mProjects);
     }
 
@@ -581,6 +687,15 @@ public class MainActivity extends AppCompatActivity {
         Project p = (Project) mProjects.get(mSelectedProfileIndex);
         p.setName(newName);
         mTinyDB.putListObject(PREF_KEY, mProjects);
+    }
+
+    public boolean isProjectNameAvailable(String name) {
+
+        for (Object o : mProjects) {
+            Project p = (Project) o;
+            if (p.getName().equalsIgnoreCase(name)) return false;
+        }
+        return true;
     }
 
     public void deleteProject() {

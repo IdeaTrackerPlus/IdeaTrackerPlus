@@ -88,7 +88,7 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
         }
 
         TextView textView = (TextView) view.findViewById(R.id.textViewParent);
-        textView.setText("Priority : " + Integer.toString(groupPosition+1));
+        textView.setText("Priority " + Integer.toString(groupPosition+1));
         LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
         switch (groupPosition){
             case 0: parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority1));

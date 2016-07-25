@@ -79,7 +79,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void newTable(String tableName) {
         DataEntry.setTableName(tableName);
         String SQL_NEW_TABLE =
-                "CREATE TABLE " + tableName + " (" +
+                "CREATE TABLE " + DataEntry.TABLE_NAME + " (" +
                         DataEntry._ID + " INTEGER PRIMARY KEY," +
                         DataEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
@@ -98,7 +98,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void renameTable(String newName) {
-        getWritableDatabase().execSQL("ALTER TABLE " + DataEntry.TABLE_NAME + " RENAME TO " + newName);
+        getWritableDatabase().execSQL("ALTER TABLE " + DataEntry.TABLE_NAME + " RENAME TO " + "[" + newName + "]");
         DataEntry.setTableName(newName);
         notifyAllLists();
     }
