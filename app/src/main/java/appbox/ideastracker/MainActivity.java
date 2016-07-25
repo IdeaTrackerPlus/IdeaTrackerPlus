@@ -4,10 +4,12 @@ import android.app.Dialog;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -16,6 +18,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -52,6 +55,7 @@ import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.Inflater;
 
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
@@ -67,7 +71,11 @@ public class MainActivity extends AppCompatActivity {
     private Drawer append = null;
     private AccountHeader header = null;
     private Toolbar mToolbar;
+    private FloatingActionButton mFab;
     private FragmentManager mFragmentManager;
+    private NonSwipeableViewPager mViewPager;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private TabLayout tabLayout;
     private Dialog mMoveDialog;
     private Dialog mNewIdeaDialog;
 
@@ -80,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Object> mProjects;
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
+    private boolean mNoTable = false;
 
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
@@ -115,24 +124,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
 
         // Set up the ViewPager with the sections adapter.
-        NonSwipeableViewPager mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
+        mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         // Set up the tab layout
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         tabLayout.setupWithViewPager(mViewPager);
 
-        tabLayout.removeAllTabs();
-        tabLayout.addTab(tabLayout.newTab().setText("Ideas"));
-        tabLayout.addTab(tabLayout.newTab().setText("Later"));
-        tabLayout.addTab(tabLayout.newTab().setText("Done"));
-
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 newIdeaDialog();
@@ -238,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
 
-                        if (drawerItem != null) {
+                        if (drawerItem != null && !mNoTable) {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
                                 case 1:
@@ -312,6 +315,8 @@ public class MainActivity extends AppCompatActivity {
                                     resetColorsDialog();
                                     break;
                             }
+                        } else {
+                            //TODO: create a table message
                         }
                         return true;
                     }
@@ -449,18 +454,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void newTableDialog() {
 
-        final View root = findViewById(R.id.main_content);
-
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
                 .setTitle("New project")
-                .setMessage("Name your project")
+                .setMessage("Find your project an awesome name")
                 .setIcon(R.drawable.ic_notepad)
                 .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return isProjectNameAvailable(text);
+                    }
+                })
+                .setInputFilter("Try something longer", new LovelyTextInputDialog.TextFilter() {
+                    @Override
+                    public boolean check(String text) {
+                        return !text.equals("");
                     }
                 })
                 .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
@@ -478,6 +487,11 @@ public class MainActivity extends AppCompatActivity {
                         mSelectedProfileIndex = mProfiles.size() - 1;
                         header.toggleSelectionList(getApplicationContext());
                         mToolbar.setTitle(tableName);
+                        mFab.setVisibility(View.VISIBLE);
+                        mNoTable = false;
+
+                        mViewPager.setAdapter(null);
+                        mViewPager.setAdapter(mSectionsPagerAdapter);
                     }
                 })
                 .show();
@@ -488,12 +502,18 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(mSecondaryColor)
                 .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
-                .setMessage("What should the new name be?")
+                .setMessage("A new name for a fresh start.")
                 .setIcon(R.drawable.ic_edit)
                 .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return isProjectNameAvailable(text);
+                    }
+                })
+                .setInputFilter("Try something longer", new LovelyTextInputDialog.TextFilter() {
+                    @Override
+                    public boolean check(String text) {
+                        return !text.equals("");
                     }
                 })
                 .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
@@ -521,14 +541,25 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
-                .setTitle("Delete project " + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "?")
-                .setMessage("All your ideas will be deleted with it.")
-                .setPositiveButton(android.R.string.yes, new View.OnClickListener() {
+                .setTitle("Delete project '" + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "'")
+                .setMessage("I agree, it was not that good anyway.")
+                .setPositiveButton(android.R.string.ok, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
                         mProfiles.remove(mSelectedProfileIndex);
                         deleteProject();
                         mDbHelper.deleteTable();
+                        if (mProjects.isEmpty()) {
+                            DataEntry.setTableName("");
+                            mToolbar.setTitle(R.string.app_name);
+                            mFab.setVisibility(View.INVISIBLE);
+                            header.setProfiles(mProfiles);
+                            mNoTable = true;
+
+                            mViewPager.setAdapter(null);
+                            mViewPager.setAdapter(mSectionsPagerAdapter);
+                        }
                         switchToExistingTable(mSelectedProfileIndex);
                     }
                 })
@@ -605,11 +636,10 @@ public class MainActivity extends AppCompatActivity {
 
         saveProjectColors();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
         tabLayout.setSelectedTabIndicatorColor(mSecondaryColor);
-        fab.setBackgroundTintList(ColorStateList.valueOf(mSecondaryColor));
+        mFab.setBackgroundTintList(ColorStateList.valueOf(mSecondaryColor));
 
         mColorItem2.withIconColor(mSecondaryColor);
         append.updateItem(mColorItem2);
@@ -730,7 +760,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        append.openDrawer();
+        if (!mNoTable) append.openDrawer();
         return super.onOptionsItemSelected(item);
     }
 
@@ -763,6 +793,11 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = null;
+            if (DataEntry.TABLE_NAME.equals("[]")) {
+                Log.d("NICKLOS", "hello");
+                return inflater.inflate(R.layout.no_project_layout, container, false);
+            }
+
             switch (this.getIndex()) {
                 case 0: //IDEAS
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -826,6 +861,8 @@ public class MainActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        private ArrayList<Fragment> fragments = new ArrayList<>();
+
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -833,7 +870,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            return ListFragment.newInstance(position);
+            ListFragment frag = ListFragment.newInstance(position);
+            fragments.add(frag);
+            return frag;
         }
 
         @Override
@@ -854,6 +893,14 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
+
+        public void clearAll() {
+            for (int i = 0; i < fragments.size(); i++)
+                mFragmentManager.beginTransaction().remove(fragments.get(i)).commit();
+            fragments.clear();
+
+        }
+
     }
 
 }
