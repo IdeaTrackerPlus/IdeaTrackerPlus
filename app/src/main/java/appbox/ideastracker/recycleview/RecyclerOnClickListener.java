@@ -33,6 +33,8 @@ public class RecyclerOnClickListener implements View.OnClickListener{
     private EditText mIdeaField;
     private Switch mDoLater;
 
+    private static int mPrimaryColor;
+
     public RecyclerOnClickListener(int tabNumber,int idRecycler){
         mIdRecycler = idRecycler;
         mTabNumber = tabNumber;
@@ -45,11 +47,15 @@ public class RecyclerOnClickListener implements View.OnClickListener{
 
     }
 
+    public static void setPrimaryColor(int color){
+        mPrimaryColor = color;
+    }
+
     private void editIdeaDialog(){
 
         mEditIdeaDialog = new LovelyCustomDialog(mView.getContext(),R.style.EditTextTintTheme)
                 .setView(R.layout.edit_idea_form)
-                .setTopColorRes(R.color.md_blue_500)
+                .setTopColor(mPrimaryColor)
                 .setTitle("Edit idea")
                 .setIcon(R.drawable.ic_edit)
                 .setListener(R.id.doneEditButton, new View.OnClickListener() {

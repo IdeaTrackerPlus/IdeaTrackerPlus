@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
@@ -26,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -62,6 +64,7 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
+import appbox.ideastracker.recycleview.RecyclerOnClickListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -89,6 +92,8 @@ public class MainActivity extends AppCompatActivity {
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
     private boolean mNoTable = false;
+
+    private RadioGroup mRadioGroup;
 
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
@@ -125,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
+        ListFragment.setMainActivity(this);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
@@ -290,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
                                             .setSelectedColor(mTextColor)
                                             .setDismissOnColorSelected(false)
                                             .setFixedColumnCount(4)
+                                            .setOutlineWidth(2)
                                             .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
                                                 @Override
                                                 public void onColorSelected(boolean positiveResult, @ColorInt int color) {
@@ -363,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void newIdeaDialog() {
+    public void newIdeaDialog() {
 
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
@@ -395,6 +402,56 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+
+    }
+
+    public void newIdeaDialog(int priority) {
+
+        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.new_idea_form)
+                .setTopColor(mPrimaryColor)
+                .setTitle("New idea")
+                .setIcon(R.drawable.ic_bulb)
+                .setListener(R.id.doneButton, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
+                        EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+
+                        if (mRadioGroup.getCheckedRadioButtonId() != -1) {
+                            View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
+                            RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
+                            String selection = (String) btn.getText();
+
+                            String text = ideaField.getText().toString();
+                            boolean later = doLater.isChecked();
+                            int priority = Integer.parseInt(selection);
+
+                            mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
+
+                            DatabaseHelper.notifyAllLists();
+                        }
+
+                        mNewIdeaDialog.dismiss();
+                    }
+                })
+                .show();
+
+        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
+        RadioButton radio = null;
+        switch (priority) {
+            case 1:
+                radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton1);
+                break;
+            case 2:
+                radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton2);
+                break;
+            case 3:
+                radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton3);
+                break;
+        }
+        radio.setChecked(true);
+
 
     }
 
@@ -630,6 +687,8 @@ public class MainActivity extends AppCompatActivity {
 
         mColorItem1.withIconColor(mPrimaryColor);
         append.updateItem(mColorItem1);
+
+        RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
     }
 
     private void changeSecondaryColor() {
@@ -685,7 +744,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public int darken(int color) {
+    private int darken(int color) {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
         hsv[2] *= 0.85f;
@@ -693,7 +752,7 @@ public class MainActivity extends AppCompatActivity {
         return color;
     }
 
-    public void saveProject(Project p) {
+    private void saveProject(Project p) {
 
         if (mProjects == null) {
             mProjects = new ArrayList<>();
@@ -705,7 +764,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void saveProjectColors() {
+    private void saveProjectColors() {
         Project p = (Project) mProjects.get(mSelectedProfileIndex);
         p.setPrimaryColor(mPrimaryColor);
         p.setSecondaryColor(mSecondaryColor);
@@ -713,13 +772,13 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB.putListObject(PREF_KEY, mProjects);
     }
 
-    public void renameProject(String newName) {
+    private void renameProject(String newName) {
         Project p = (Project) mProjects.get(mSelectedProfileIndex);
         p.setName(newName);
         mTinyDB.putListObject(PREF_KEY, mProjects);
     }
 
-    public boolean isProjectNameAvailable(String name) {
+    private boolean isProjectNameAvailable(String name) {
 
         for (Object o : mProjects) {
             Project p = (Project) o;
@@ -728,12 +787,12 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void deleteProject() {
+    private void deleteProject() {
         mProjects.remove(mSelectedProfileIndex);
         mTinyDB.putListObject(PREF_KEY, mProjects);
     }
 
-    public void loadProjects() {
+    private void loadProjects() {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
         if (mProjects.size() == 0) {
@@ -773,6 +832,8 @@ public class MainActivity extends AppCompatActivity {
          * fragment.
          */
 
+        private static MainActivity mainActivity;
+
         public static ListFragment newInstance(int index) {
             ListFragment f = new ListFragment();
 
@@ -782,6 +843,10 @@ public class MainActivity extends AppCompatActivity {
             f.setArguments(args);
 
             return f;
+        }
+
+        public static void setMainActivity(MainActivity act) {
+            mainActivity = act;
         }
 
         public int getIndex() {
@@ -794,7 +859,6 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = null;
             if (DataEntry.TABLE_NAME.equals("[]")) {
-                Log.d("NICKLOS", "hello");
                 return inflater.inflate(R.layout.no_project_layout, container, false);
             }
 
@@ -809,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
                     list.expandGroup(0);
                     list.expandGroup(1);
                     list.expandGroup(2);
-                    setExpandAnimation(list);
+                    setListeners(list);
 
                     break;
 
@@ -835,20 +899,42 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
 
-        void setExpandAnimation(final AnimatedExpandableListView listView) {
+        void setListeners(final AnimatedExpandableListView listView) {
             listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 
                 @Override
                 public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
 
-                    if (listView.isGroupExpanded(groupPosition)) {
-                        listView.collapseGroupWithAnimation(groupPosition);
-                    } else {
-                        listView.expandGroupWithAnimation(groupPosition);
+                    if (listView.getExpandableListAdapter().getChildrenCount(groupPosition) != 0) { //group is not empty
+                        if (listView.isGroupExpanded(groupPosition)) {
+                            listView.collapseGroupWithAnimation(groupPosition);
+                        } else {
+                            listView.expandGroupWithAnimation(groupPosition);
+                        }
+                    } else { //group is empty
+                        mainActivity.newIdeaDialog(groupPosition + 1);
+
                     }
                     return true;
                 }
 
+            });
+
+            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    int itemType = ExpandableListView.getPackedPositionType(id);
+
+                    if (itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
+                        int groupPosition = ExpandableListView.getPackedPositionGroup(id);
+                        mainActivity.newIdeaDialog(groupPosition + 1);
+                        return true;
+
+                    } else {
+                        // null item; we don't consume the click
+                        return false;
+                    }
+                }
             });
 
         }
@@ -861,7 +947,6 @@ public class MainActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        private ArrayList<Fragment> fragments = new ArrayList<>();
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -870,9 +955,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            ListFragment frag = ListFragment.newInstance(position);
-            fragments.add(frag);
-            return frag;
+            return ListFragment.newInstance(position);
         }
 
         @Override
@@ -893,14 +976,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-
-        public void clearAll() {
-            for (int i = 0; i < fragments.size(); i++)
-                mFragmentManager.beginTransaction().remove(fragments.get(i)).commit();
-            fragments.clear();
-
-        }
-
     }
 
 }
