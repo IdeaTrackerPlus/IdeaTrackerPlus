@@ -11,6 +11,7 @@ public abstract class DataEntry implements BaseColumns {
     public static String TABLE_NAME = "[MyProject]";
     public static final String COLUMN_NAME_ENTRY_ID = "entryid";
     public static final String COLUMN_NAME_TEXT = "text";
+    public static final String COLUMN_NAME_NOTE = "note";
     public static final String COLUMN_NAME_PRIORITY = "priority";
     public static final String COLUMN_NAME_LATER = "later";
     public static final String COLUMN_NAME_DONE = "done";

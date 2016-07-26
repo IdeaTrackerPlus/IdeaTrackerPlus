@@ -50,6 +50,8 @@
     <string name="get_started">Get started with a new project</string>
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
+    <string name="hint_edit_idea">A great new idea</string>
+    <string name="hint_edit_note">Some note or comment</string>
 
     <string-array name="array_from">
         <item>Done</item>

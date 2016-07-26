@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
@@ -68,6 +70,7 @@ import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
 import appbox.ideastracker.recycleview.MyRecyclerView;
 import appbox.ideastracker.recycleview.RecyclerOnClickListener;
+import appbox.ideastracker.recycleview.RecyclerOnLongClickListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -290,6 +293,14 @@ public class MainActivity extends AppCompatActivity {
                                                         //update selected color
                                                         mPrimaryColor = color;
                                                         changePrimaryColor();
+                                                        saveProjectColors();
+
+                                                        //change project icon
+                                                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                                                        disk.setColorFilter(mPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+                                                        IProfile p = header.getActiveProfile();
+                                                        p.withIcon(disk);
+                                                        header.updateProfile(p);
                                                     }
                                                 }
                                             }).build().show(mFragmentManager, "dialog_spectrum");
@@ -310,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                                                         //update selected color
                                                         mSecondaryColor = color;
                                                         changeSecondaryColor();
+                                                        saveProjectColors();
                                                     }
                                                 }
                                             }).build().show(mFragmentManager, "dialog_spectrum");
@@ -330,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
                                                         //update selected color
                                                         mTextColor = color;
                                                         changeTextColor();
+                                                        saveProjectColors();
                                                     }
                                                 }
                                             }).build().show(mFragmentManager, "dialog_spectrum");
@@ -410,6 +423,7 @@ public class MainActivity extends AppCompatActivity {
                         Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
                         RadioGroup radioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
                         EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+                        EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
                         if (radioGroup.getCheckedRadioButtonId() != -1) {
                             View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
@@ -417,10 +431,11 @@ public class MainActivity extends AppCompatActivity {
                             String selection = (String) btn.getText();
 
                             String text = ideaField.getText().toString();
+                            String note = noteField.getText().toString();
                             boolean later = doLater.isChecked();
                             int priority = Integer.parseInt(selection);
 
-                            mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
+                            mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
                             displayIdeasCount();
 
                             DatabaseHelper.notifyAllLists();
@@ -445,6 +460,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
                         EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+                        EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
                         if (mRadioGroup.getCheckedRadioButtonId() != -1) {
                             View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
@@ -452,10 +468,11 @@ public class MainActivity extends AppCompatActivity {
                             String selection = (String) btn.getText();
 
                             String text = ideaField.getText().toString();
+                            String note = noteField.getText().toString();
                             boolean later = doLater.isChecked();
                             int priority = Integer.parseInt(selection);
 
-                            mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
+                            mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
 
                             DatabaseHelper.notifyAllLists();
                         }
@@ -564,7 +581,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onTextInputConfirmed(String tableName) {
 
                         mDbHelper.newTable(tableName);
-                        IProfile newProfile = new ProfileDrawerItem().withName(tableName).withOnDrawerItemClickListener(profile_listener);
+
+                        //create the profile with its colored icon
+                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                        disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+                        IProfile newProfile = new ProfileDrawerItem().withName(tableName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
                         mProfiles.add(newProfile);
 
                         saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
@@ -572,6 +593,8 @@ public class MainActivity extends AppCompatActivity {
                         //open the profile drawer and select the new profile
                         header.setActiveProfile(newProfile);
                         mSelectedProfileIndex = mProfiles.size() - 1;
+                        switchToProjectColors();
+
                         result.openDrawer();
                         header.toggleSelectionList(getApplicationContext());
                         mToolbar.setTitle(tableName);
@@ -653,6 +676,12 @@ public class MainActivity extends AppCompatActivity {
 
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
+
+                            //reset color
+                            mPrimaryColor = defaultPrimaryColor;
+                            mSecondaryColor = defaultSecondaryColor;
+                            mTextColor = defaultTextColor;
+                            updateColors();
                         }
                         switchToExistingTable(mSelectedProfileIndex);
                     }
@@ -674,7 +703,15 @@ public class MainActivity extends AppCompatActivity {
                         mPrimaryColor = defaultPrimaryColor;
                         mSecondaryColor = defaultSecondaryColor;
                         mTextColor = defaultTextColor;
+                        saveProjectColors();
                         updateColors();
+
+                        //change project icon
+                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                        disk.setColorFilter(mPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+                        IProfile p = header.getActiveProfile();
+                        p.withIcon(disk);
+                        header.updateProfile(p);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -708,8 +745,6 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("ConstantConditions")
     private void changePrimaryColor() {
 
-        saveProjectColors();
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
@@ -727,11 +762,10 @@ public class MainActivity extends AppCompatActivity {
         append.updateItem(mColorItem1);
 
         RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
+        RecyclerOnLongClickListener.setPrimaryColor(mPrimaryColor);
     }
 
     private void changeSecondaryColor() {
-
-        saveProjectColors();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -743,8 +777,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeTextColor() {
-
-        saveProjectColors();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -844,8 +876,10 @@ public class MainActivity extends AppCompatActivity {
         mProfiles = new ArrayList<>();
         for (Object p : mProjects) {
             Project project = (Project) p;
+            Drawable drawable = getResources().getDrawable(R.drawable.disk);
+            drawable.setColorFilter(project.getPrimaryColor(), PorterDuff.Mode.SRC_ATOP);
             mProfiles.add(new ProfileDrawerItem().withName(project.getName())
-                    .withIcon(project.getPrimaryColor())
+                    .withIcon(drawable)
                     .withOnDrawerItemClickListener(profile_listener));
         }
     }

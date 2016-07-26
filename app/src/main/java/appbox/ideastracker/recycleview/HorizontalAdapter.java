@@ -45,6 +45,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
 
+        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(mIdRecycler);
+
         switch(mTabNumber){
             case 1: //TAB#1 IDEA
                 switch (position){
@@ -56,10 +58,12 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //IDEA
+                        holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         holder.txtView.setBackgroundResource(R.color.white);
                         holder.txtView.setTextColor(Color.BLACK);
-                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(1,mIdRecycler);
+                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(1,mIdRecycler);
+                        holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
@@ -82,10 +86,12 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //IDEA
+                        holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         holder.txtView.setBackgroundResource(R.color.white);
                         holder.txtView.setTextColor(Color.DKGRAY);
-                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(2,mIdRecycler);
+                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(2,mIdRecycler);
+                        holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
@@ -108,10 +114,12 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //IDEA
+                        holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         holder.txtView.setBackgroundResource(R.color.white);
                         holder.txtView.setTextColor(Color.GRAY);
-                        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(3,mIdRecycler);
+                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(3,mIdRecycler);
+                        holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
