@@ -39,6 +39,7 @@ import android.widget.Switch;
 import android.widget.ToggleButton;
 
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
+import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
@@ -196,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(1).withName("Rename project").withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(2).withName("Delete project").withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
                         new DividerDrawerItem(),
+                        new PrimaryDrawerItem().withIdentifier(4).withName("All projects").withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(3).withName("New project").withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
                 )
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -214,6 +216,10 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 3:
                                     newTableDialog();
+                                    break;
+
+                                case 4:
+                                    header.toggleSelectionList(getApplicationContext());
                                     break;
                             }
                         }
@@ -555,9 +561,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renameTableDialog() {
+
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(mSecondaryColor)
+                .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
                 .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
                 .setMessage("A new name for a fresh start.")
                 .setIcon(R.drawable.ic_edit)

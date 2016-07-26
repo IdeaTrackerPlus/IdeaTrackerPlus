@@ -290,6 +290,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return new ArrayList<>();
     }
 
+    /**
+     * Count the active ideas (not done) in the current project (table)
+     *
+     * @return
+     */
+    public int getIdeasCount() {
+        Cursor mCount = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME +
+                " where done=0 and temp=0", null);
+        mCount.moveToFirst();
+        int count = mCount.getInt(0);
+        mCount.close();
+        return count;
+    }
+
     public ArrayList<Integer> readTempIdeas() {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] projection = {DataEntry._ID};
