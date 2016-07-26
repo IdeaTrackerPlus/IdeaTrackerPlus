@@ -1,6 +1,7 @@
 package appbox.ideastracker.recycleview;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -60,7 +61,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //IDEA
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
-                        holder.txtView.setBackgroundResource(R.color.white);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            holder.txtView.setBackgroundResource(R.drawable.white_ripple);
+                        }else{
+                            holder.txtView.setBackgroundResource(R.color.white);
+                        }
                         holder.txtView.setTextColor(Color.BLACK);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(1,mIdRecycler);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
@@ -88,7 +93,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //IDEA
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
-                        holder.txtView.setBackgroundResource(R.color.white);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            holder.txtView.setBackgroundResource(R.drawable.white_ripple);
+                        }else{
+                            holder.txtView.setBackgroundResource(R.color.white);
+                        }
                         holder.txtView.setTextColor(Color.DKGRAY);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(2,mIdRecycler);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
@@ -116,7 +125,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //IDEA
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
-                        holder.txtView.setBackgroundResource(R.color.white);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            holder.txtView.setBackgroundResource(R.drawable.white_ripple);
+                        }else{
+                            holder.txtView.setBackgroundResource(R.color.white);
+                        }
                         holder.txtView.setTextColor(Color.GRAY);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(3,mIdRecycler);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
