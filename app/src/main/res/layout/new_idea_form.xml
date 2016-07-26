@@ -14,6 +14,16 @@
         android:hint="@string/hint_edit_idea"
         android:textColorHint="@color/md_grey_500"/>
 
+    <TextView
+        android:id="@+id/new_error_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:text="@string/try_longer"
+        android:textColor="@color/md_red_500"
+        android:visibility="gone"
+        />
+
     <EditText
         android:id="@+id/editNote"
         android:layout_width="match_parent"

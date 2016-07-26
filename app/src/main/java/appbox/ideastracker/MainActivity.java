@@ -21,6 +21,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -39,6 +41,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
@@ -57,6 +60,8 @@ import com.thebluealliance.spectrum.SpectrumDialog;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean mNoTable = false;
 
     private RadioGroup mRadioGroup;
+    private TextView mError;
+    private EditText mIdeaField;
 
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
@@ -422,29 +429,37 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
                         RadioGroup radioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-                        EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
                         EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
-                        if (radioGroup.getCheckedRadioButtonId() != -1) {
-                            View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
-                            RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
-                            String selection = (String) btn.getText();
+                        String text = mIdeaField.getText().toString();
+                        if(!text.equals("")) {
 
-                            String text = ideaField.getText().toString();
-                            String note = noteField.getText().toString();
-                            boolean later = doLater.isChecked();
-                            int priority = Integer.parseInt(selection);
+                            if (radioGroup.getCheckedRadioButtonId() != -1) {
+                                View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
+                                RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
+                                String selection = (String) btn.getText();
 
-                            mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
-                            displayIdeasCount();
+                                String note = noteField.getText().toString();
+                                boolean later = doLater.isChecked();
+                                int priority = Integer.parseInt(selection);
 
-                            DatabaseHelper.notifyAllLists();
+                                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
+                                displayIdeasCount();
+
+                                DatabaseHelper.notifyAllLists();
+                            }
+
+                            mNewIdeaDialog.dismiss();
+                        }else{
+                            mError.setVisibility(View.VISIBLE);
                         }
-
-                        mNewIdeaDialog.dismiss();
                     }
                 })
                 .show();
+
+        mError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
+        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
 
     }
 
@@ -459,29 +474,39 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
-                        EditText ideaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
                         EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
-                        if (mRadioGroup.getCheckedRadioButtonId() != -1) {
-                            View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
-                            RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
-                            String selection = (String) btn.getText();
+                        String text = mIdeaField.getText().toString();
+                        if(!text.equals("")) {
 
-                            String text = ideaField.getText().toString();
-                            String note = noteField.getText().toString();
-                            boolean later = doLater.isChecked();
-                            int priority = Integer.parseInt(selection);
+                            if (mRadioGroup.getCheckedRadioButtonId() != -1) {
+                                View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
+                                RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
+                                String selection = (String) btn.getText();
 
-                            mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
+                                String note = noteField.getText().toString();
+                                boolean later = doLater.isChecked();
+                                int priority = Integer.parseInt(selection);
 
-                            DatabaseHelper.notifyAllLists();
+                                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
+
+                                DatabaseHelper.notifyAllLists();
+                            }
+
+                            mNewIdeaDialog.dismiss();
+                        }else{
+                            mError.setVisibility(View.VISIBLE);
                         }
-
-                        mNewIdeaDialog.dismiss();
                     }
                 })
                 .show();
 
+        //set up the error message
+        mError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
+        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //check the right priority radio button
         mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
         RadioButton radio = null;
         switch (priority) {
@@ -894,7 +919,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void noProjectSnack() {
+    private void noProjectSnack() {
         result.closeDrawer();
         append.closeDrawer();
         Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
@@ -1043,7 +1068,7 @@ public class MainActivity extends AppCompatActivity {
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -1073,6 +1098,24 @@ public class MainActivity extends AppCompatActivity {
                     return getString(R.string.third_tab);
             }
             return null;
+        }
+    }
+
+    private class HideErrorOnTextChanged implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            mError.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
         }
     }
 

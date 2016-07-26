@@ -1,14 +1,18 @@
 package appbox.ideastracker.recycleview;
 
 import android.app.Dialog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 
+import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DatabaseHelper;
 
@@ -25,6 +29,7 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
     private RadioGroup mRadioGroup;
     private EditText mIdeaField;
     private EditText mNoteField;
+    private TextView mError;
     private Switch mDoLater;
 
     private static int mPrimaryColor;
@@ -55,20 +60,26 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
                 .setListener(R.id.doneEditButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mRadioGroup.getCheckedRadioButtonId() != -1) {
-                            View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
-                            RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
-                            String selection = (String) btn.getText();
 
-                            String new_text = mIdeaField.getText().toString();
-                            String new_note = mNoteField.getText().toString();
-                            boolean new_later = mDoLater.isChecked();
-                            int new_priority = Integer.parseInt(selection.toString());
+                        String new_text = mIdeaField.getText().toString();
+                        if(!new_text.equals("")) {
 
-                            mDbHelper.editEntry(mIdRecycler,new_text,new_note, new_priority,new_later);
+                            if (mRadioGroup.getCheckedRadioButtonId() != -1) {
+                                View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
+                                RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
+                                String selection = (String) btn.getText();
+
+                                String new_note = mNoteField.getText().toString();
+                                boolean new_later = mDoLater.isChecked();
+                                int new_priority = Integer.parseInt(selection.toString());
+
+                                mDbHelper.editEntry(mIdRecycler, new_text, new_note, new_priority, new_later);
+                            }
+
+                            mEditIdeaDialog.dismiss();
+                        }else{
+                            mError.setVisibility(View.VISIBLE);
                         }
-
-                        mEditIdeaDialog.dismiss();
                     }
                 })
                 .show();
@@ -78,6 +89,10 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
         mRadioGroup = (RadioGroup) mEditIdeaDialog.findViewById(R.id.editRadioGroup);
         mIdeaField = (EditText) mEditIdeaDialog.findViewById(R.id.editIdeaText);
         mNoteField = (EditText) mEditIdeaDialog.findViewById(R.id.edit_Note);
+
+        //set up the error message
+        mError = (TextView) mEditIdeaDialog.findViewById(R.id.edit_error_message);
+        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
 
         //Get the values from the idea and set them
         mDbHelper = DatabaseHelper.getInstance(mView.getContext());
@@ -98,4 +113,23 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
         radio.setChecked(true);
 
     }
+
+    private class HideErrorOnTextChanged implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            mError.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    }
+
 }
