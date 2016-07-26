@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 
+import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 
@@ -21,6 +22,8 @@ public class MyRecyclerView extends RecyclerView {
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
     private DatabaseHelper mDbHelper;
+
+    private static MainActivity mainActivity;
 
 
     public MyRecyclerView(Context context) {
@@ -36,6 +39,10 @@ public class MyRecyclerView extends RecyclerView {
     public MyRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         isActivated = false;
+    }
+
+    public static void setMainActivity(MainActivity act){
+        mainActivity = act;
     }
 
     public void setUp() {
@@ -118,6 +125,7 @@ public class MyRecyclerView extends RecyclerView {
                 int tagId = (int) this.getTag();
                 mDbHelper.moveToTab(3, tagId);
                 notifyChange();
+                mainActivity.displayIdeasCount();
             }
         }
     }
@@ -156,10 +164,12 @@ public class MyRecyclerView extends RecyclerView {
                 int tagId = (int) this.getTag();
                 mDbHelper.deleteEntryWithSnack(this,tagId);
                 notifyChange();
+                mainActivity.displayIdeasCount();
             } else { //NOW
                 int tagId = (int) this.getTag();
                 mDbHelper.moveToTab(1, tagId);
                 notifyChange();
+                mainActivity.displayIdeasCount();
             }
         }
     }

@@ -15,6 +15,8 @@ import android.widget.BaseExpandableListAdapter;
 
 import java.util.ArrayList;
 
+import appbox.ideastracker.MainActivity;
+
 /**
  * Created by Nicklos on 12/07/2016.
  */
@@ -23,6 +25,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static DatabaseHelper sInstance;
     private static BaseExpandableListAdapter mExpandleAdapter;
     private static BaseAdapter mAdapterLater, mAdapterDone;
+
+    private static MainActivity mainActivity;
 
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 2;
@@ -45,6 +49,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             sInstance = new DatabaseHelper(context.getApplicationContext());
         }
         return sInstance;
+    }
+
+    public static void setMainActivity(MainActivity act){
+        mainActivity = act;
+
     }
 
     private DatabaseHelper(Context context) {
@@ -346,6 +355,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     public void onClick(View view) {
                         recoverFromTemp(id);
                         notifyAllLists();
+                        mainActivity.displayIdeasCount();
                     }
                 }).setCallback(new Snackbar.Callback() {
                     @Override

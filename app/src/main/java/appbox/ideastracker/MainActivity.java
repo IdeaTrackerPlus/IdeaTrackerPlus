@@ -65,6 +65,7 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
+import appbox.ideastracker.recycleview.MyRecyclerView;
 import appbox.ideastracker.recycleview.RecyclerOnClickListener;
 
 public class MainActivity extends AppCompatActivity {
@@ -111,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Static calls
+        ListFragment.setMainActivity(this);
+        MyRecyclerView.setMainActivity(this);
+        DatabaseHelper.setMainActivity(this);
+
+
         //Default colors
         defaultPrimaryColor = getResources().getColor(R.color.md_indigo_500);
         defaultSecondaryColor = getResources().getColor(R.color.md_orange_500);
@@ -131,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
-        ListFragment.setMainActivity(this);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
@@ -162,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
                 mToolbar.setTitle(tableName);
                 mDbHelper.switchTable(tableName);
+                displayIdeasCount();
                 switchToProjectColors();
             }
             return false;
@@ -344,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
         header.setActiveProfile(activeProfile);
         getSupportActionBar().setTitle(activeProfileName);
         DataEntry.setTableName(activeProfileName);
+        displayIdeasCount();
 
         switchToProjectColors();
     }
@@ -400,6 +408,7 @@ public class MainActivity extends AppCompatActivity {
                             int priority = Integer.parseInt(selection);
 
                             mDbHelper.newEntry(text, priority, later); //add the idea to the actual database
+                            displayIdeasCount();
 
                             DatabaseHelper.notifyAllLists();
                         }
@@ -485,6 +494,7 @@ public class MainActivity extends AppCompatActivity {
                         else if (mDbHelper.moveAllFromTo(from, to)) {
                             snackText = "All ideas from " + from + " moved to " + to;
                             success = true;
+                            displayIdeasCount();
                         }
 
                         Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
@@ -497,6 +507,7 @@ public class MainActivity extends AppCompatActivity {
                                     } else {
                                         mDbHelper.moveAllFromTo(to, from);
                                     }
+                                    displayIdeasCount();
                                 }
                             }).setCallback(new Snackbar.Callback() {
                                 @Override
@@ -521,7 +532,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
                 .setTitle("New project")
-                .setMessage("Find your project an awesome name")
+                .setMessage("Give your project an awesome name")
                 .setIcon(R.drawable.ic_notepad)
                 .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
                     @Override
@@ -550,11 +561,15 @@ public class MainActivity extends AppCompatActivity {
                         mSelectedProfileIndex = mProfiles.size() - 1;
                         header.toggleSelectionList(getApplicationContext());
                         mToolbar.setTitle(tableName);
-                        mFab.setVisibility(View.VISIBLE);
-                        mNoTable = false;
+                        displayIdeasCount();
 
-                        mViewPager.setAdapter(null);
-                        mViewPager.setAdapter(mSectionsPagerAdapter);
+                        if (mNoTable) {
+                            mFab.setVisibility(View.VISIBLE);
+                            mNoTable = false;
+
+                            mViewPager.setAdapter(null);
+                            mViewPager.setAdapter(mSectionsPagerAdapter);
+                        }
                     }
                 })
                 .show();
@@ -665,6 +680,7 @@ public class MainActivity extends AppCompatActivity {
             header.setActiveProfile(profileToSelect);
             mToolbar.setTitle(tableToSelect);
             mDbHelper.switchTable(tableToSelect);
+            displayIdeasCount();
 
             switchToProjectColors();
         } else {
@@ -813,8 +829,20 @@ public class MainActivity extends AppCompatActivity {
         mProfiles = new ArrayList<>();
         for (Object p : mProjects) {
             Project project = (Project) p;
-            mProfiles.add(new ProfileDrawerItem().withName(project.getName()).withOnDrawerItemClickListener(profile_listener));
+            mProfiles.add(new ProfileDrawerItem().withName(project.getName())
+                    .withIcon(project.getPrimaryColor())
+                    .withOnDrawerItemClickListener(profile_listener));
         }
+    }
+
+    public void displayIdeasCount() {
+        int count = mDbHelper.getIdeasCount();
+        if (count == 0) {
+            header.setSelectionSecondLine("No ideas");
+        } else {
+            header.setSelectionSecondLine(count + " ideas");
+        }
+
     }
 
     @Override
