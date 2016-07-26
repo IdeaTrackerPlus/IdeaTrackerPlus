@@ -53,7 +53,7 @@
         android:layout_marginRight="16dp"
         android:layout_gravity="right|bottom"
         android:textColor="@color/md_pink_a200"
-        android:text="OK" />
+        android:text="@string/ok" />
 
 
 </LinearLayout>

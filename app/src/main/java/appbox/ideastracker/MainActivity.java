@@ -31,6 +31,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -201,11 +202,11 @@ public class MainActivity extends AppCompatActivity {
                 .withSelectedItem(-1)
                 .withAccountHeader(header)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withIdentifier(1).withName("Rename project").withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(2).withName("Delete project").withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(1).withName(R.string.rename_pro).withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(2).withName(R.string.delete_pro).withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
                         new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withIdentifier(4).withName("All projects").withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(3).withName("New project").withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
                 )
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -214,11 +215,19 @@ public class MainActivity extends AppCompatActivity {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
                                 case 1:
-                                    renameTableDialog();
+                                    if (!mNoTable) {
+                                        renameTableDialog();
+                                    } else {
+                                        noProjectSnack();
+                                    }
                                     break;
 
                                 case 2:
-                                    deleteTableDialog();
+                                    if (!mNoTable) {
+                                        deleteTableDialog();
+                                    } else {
+                                        noProjectSnack();
+                                    }
                                     break;
 
                                 case 3:
@@ -226,7 +235,11 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 4:
-                                    header.toggleSelectionList(getApplicationContext());
+                                    if (!mNoTable) {
+                                        header.toggleSelectionList(getApplicationContext());
+                                    } else {
+                                        noProjectSnack();
+                                    }
                                     break;
                             }
                         }
@@ -236,23 +249,23 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName("Primary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
-        mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName("Secondary color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
-        mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName("Text color").withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
+        mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
+        mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
+        mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
 
         //RIGHT DRAWER
         append = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
                 .addDrawerItems(
-                        new SectionDrawerItem().withName("Color preferences"),
+                        new SectionDrawerItem().withName(R.string.color_prefs),
                         mColorItem1,
                         mColorItem2,
                         mColorItem3,
-                        new PrimaryDrawerItem().withIdentifier(6).withName("Reset color preferences").withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
-                        new SectionDrawerItem().withName("Functions"),
-                        new PrimaryDrawerItem().withIdentifier(4).withName("Move all ideas from a tab").withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(5).withName("Expand/collapse all").withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(6).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
+                        new SectionDrawerItem().withName(R.string.functions),
+                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.move_all_ideas).withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.expand_collapse).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withStickyFooter(R.layout.footer)
@@ -265,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
                             switch (id) {
                                 case 1:
                                     new SpectrumDialog.Builder(getApplicationContext())
-                                            .setTitle("Select primary color")
+                                            .setTitle(R.string.select_prim_col)
                                             .setColors(R.array.colors)
                                             .setSelectedColor(mPrimaryColor)
                                             .setDismissOnColorSelected(false)
@@ -285,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 2:
                                     new SpectrumDialog.Builder(getApplicationContext())
-                                            .setTitle("Select secondary color")
+                                            .setTitle(R.string.select_sec_col)
                                             .setColors(R.array.colors)
                                             .setSelectedColor(mSecondaryColor)
                                             .setDismissOnColorSelected(false)
@@ -304,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 3:
                                     new SpectrumDialog.Builder(getApplicationContext())
-                                            .setTitle("Select text color")
+                                            .setTitle(R.string.select_text_col)
                                             .setColors(R.array.textColors)
                                             .setSelectedColor(mTextColor)
                                             .setDismissOnColorSelected(false)
@@ -336,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
                                     break;
                             }
                         } else {
-                            //TODO: create a table message
+                            noProjectSnack();
                         }
                         return true;
                     }
@@ -488,9 +501,9 @@ public class MainActivity extends AppCompatActivity {
                         final String from = spinnerFrom.getSelectedItem().toString();
                         final String to = spinnerTo.getSelectedItem().toString();
 
-                        String snackText = "Nothing to move from " + from;
+                        String snackText = getString(R.string.nothing_move) + from;
                         boolean success = false;
-                        if (from.equals(to)) snackText = "Locations must be different";
+                        if (from.equals(to)) snackText = getString(R.string.must_diff);
                         else if (mDbHelper.moveAllFromTo(from, to)) {
                             snackText = "All ideas from " + from + " moved to " + to;
                             success = true;
@@ -499,10 +512,10 @@ public class MainActivity extends AppCompatActivity {
 
                         Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
                         if (success) {
-                            snackbar.setAction("UNDO", new View.OnClickListener() {
+                            snackbar.setAction(R.string.undo, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    if (to.equals("Trash")) {//undo temp deleting
+                                    if (to.equals(getString(R.string.trash))) {//undo temp deleting
                                         mDbHelper.recoverAllFromTemp();
                                     } else {
                                         mDbHelper.moveAllFromTo(to, from);
@@ -512,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
                             }).setCallback(new Snackbar.Callback() {
                                 @Override
                                 public void onDismissed(Snackbar snackbar, int event) {
-                                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals("Trash")) {
+                                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals(getString(R.string.trash))) {
                                         //delete for real ideas in temp
                                         mDbHelper.deleteAllFromTemp();
                                     }
@@ -531,16 +544,16 @@ public class MainActivity extends AppCompatActivity {
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
-                .setTitle("New project")
-                .setMessage("Give your project an awesome name")
+                .setTitle(R.string.new_pro)
+                .setMessage(R.string.new_pro_message)
                 .setIcon(R.drawable.ic_notepad)
-                .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.name_taken, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return isProjectNameAvailable(text);
                     }
                 })
-                .setInputFilter("Try something longer", new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.try_longer, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return !text.equals("");
@@ -559,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
                         //open the profile drawer and select the new profile
                         header.setActiveProfile(newProfile);
                         mSelectedProfileIndex = mProfiles.size() - 1;
+                        result.openDrawer();
                         header.toggleSelectionList(getApplicationContext());
                         mToolbar.setTitle(tableName);
                         displayIdeasCount();
@@ -581,15 +595,15 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
                 .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
-                .setMessage("A new name for a fresh start.")
+                .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
-                .setInputFilter("A project with this name already exists", new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.name_taken, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return isProjectNameAvailable(text);
                     }
                 })
-                .setInputFilter("Try something longer", new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.try_longer, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
                         return !text.equals("");
@@ -621,7 +635,7 @@ public class MainActivity extends AppCompatActivity {
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
                 .setTitle("Delete project '" + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "'")
-                .setMessage("I agree, it was not that good anyway.")
+                .setMessage(R.string.delete_pro_message)
                 .setPositiveButton(android.R.string.ok, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -634,6 +648,7 @@ public class MainActivity extends AppCompatActivity {
                             mToolbar.setTitle(R.string.app_name);
                             mFab.setVisibility(View.INVISIBLE);
                             header.setProfiles(mProfiles);
+                            header.setSelectionSecondLine(getString(R.string.no_project));
                             mNoTable = true;
 
                             mViewPager.setAdapter(null);
@@ -651,8 +666,8 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColor(mPrimaryColor)
                 .setButtonsColorRes(R.color.md_pink_a200)
                 .setIcon(R.drawable.ic_drop)
-                .setTitle("Reset color preferences")
-                .setMessage("The color preferences for this project will be reset to the default ones.")
+                .setTitle(R.string.reset_color_prefs)
+                .setMessage(R.string.reset_color_pref_message)
                 .setPositiveButton(android.R.string.yes, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -819,11 +834,11 @@ public class MainActivity extends AppCompatActivity {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
         if (mProjects.size() == 0) {
-            saveProject(new Project("MyProject",
+            saveProject(new Project(getString(R.string.default_project_name),
                     defaultPrimaryColor,
                     defaultSecondaryColor,
                     defaultTextColor));
-            mDbHelper.newTable("MyProject");
+            mDbHelper.newTable(getString(R.string.default_project_name));
         }
 
         mProfiles = new ArrayList<>();
@@ -838,11 +853,17 @@ public class MainActivity extends AppCompatActivity {
     public void displayIdeasCount() {
         int count = mDbHelper.getIdeasCount();
         if (count == 0) {
-            header.setSelectionSecondLine("No ideas");
+            header.setSelectionSecondLine(getString(R.string.no_ideas));
         } else {
             header.setSelectionSecondLine(count + " ideas");
         }
 
+    }
+
+    public void noProjectSnack() {
+        result.closeDrawer();
+        append.closeDrawer();
+        Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
     }
 
     @Override
@@ -894,7 +915,15 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = null;
             if (DataEntry.TABLE_NAME.equals("[]")) {
-                return inflater.inflate(R.layout.no_project_layout, container, false);
+                rootView = inflater.inflate(R.layout.no_project_layout, container, false);
+                LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.noProject);
+                lin.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mainActivity.newTableDialog();
+                    }
+                });
+                return rootView;
             }
 
             switch (this.getIndex()) {
@@ -1003,11 +1032,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "Ideas";
+                    return getString(R.string.first_tab);
                 case 1:
-                    return "Later";
+                    return getString(R.string.second_tab);
                 case 2:
-                    return "Done";
+                    return getString(R.string.third_tab);
             }
             return null;
         }

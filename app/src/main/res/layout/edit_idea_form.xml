@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="16dp"
-            android:text="Priority"
+            android:text="@string/priority"
             android:textSize="16sp" />
 
         <RadioGroup
@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="16dp"
-            android:text="Do later"
+            android:text="@string/do_later"
             android:textSize="16sp" />
 
         <Switch
