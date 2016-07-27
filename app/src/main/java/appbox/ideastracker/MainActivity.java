@@ -1,6 +1,8 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -20,6 +22,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -44,6 +47,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.github.paolorotolo.appintro.AppIntro;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -123,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mTinyDB = new TinyDB(this);
+        introOnFirstStart();
+
         //Static calls
         ListFragment.setMainActivity(this);
         MyRecyclerView.setMainActivity(this);
@@ -143,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         mDbHelper = DatabaseHelper.getInstance(this);
 
         //TABLES
-        mTinyDB = new TinyDB(this);
         loadProjects();
 
         // Create the adapter that will return a fragment for each of the three
@@ -169,6 +175,35 @@ public class MainActivity extends AppCompatActivity {
         //DRAWERS
         setUpDrawers(savedInstanceState);
 
+    }
+
+    private void introOnFirstStart() {
+        //  Declare a new thread to do a preference check
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                //  Create a new boolean and preference and set it to true
+                boolean notFirstStart = mTinyDB.getBoolean("firstStart");
+
+                //  If the activity has never started before...
+                if (!notFirstStart) {
+
+                    //  Launch app intro
+                    Intent i = new Intent(MainActivity.this, MyIntro.class);
+                    startActivity(i);
+
+                    mTinyDB.putBoolean("firstStart", true);
+                }
+            }
+        });
+
+        t.start();
+    }
+
+    private void forceIntro() {
+        Intent i = new Intent(MainActivity.this, MyIntro.class);
+        startActivity(i);
     }
 
     private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
@@ -432,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
                         EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
                         String text = mIdeaField.getText().toString();
-                        if(!text.equals("")) {
+                        if (!text.equals("")) {
 
                             if (radioGroup.getCheckedRadioButtonId() != -1) {
                                 View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
@@ -450,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             mNewIdeaDialog.dismiss();
-                        }else{
+                        } else {
                             mError.setVisibility(View.VISIBLE);
                         }
                     }
@@ -477,7 +512,7 @@ public class MainActivity extends AppCompatActivity {
                         EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
                         String text = mIdeaField.getText().toString();
-                        if(!text.equals("")) {
+                        if (!text.equals("")) {
 
                             if (mRadioGroup.getCheckedRadioButtonId() != -1) {
                                 View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
@@ -494,7 +529,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             mNewIdeaDialog.dismiss();
-                        }else{
+                        } else {
                             mError.setVisibility(View.VISIBLE);
                         }
                     }
