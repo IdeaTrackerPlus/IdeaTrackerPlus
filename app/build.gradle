@@ -35,5 +35,6 @@ dependencies {
     compile 'com.mikepenz:fontawesome-typeface:4.4.0.1@aar'
     compile 'com.yarolegovich:lovely-dialog:1.0.4'
     compile 'com.github.paolorotolo:appintro:4.0.0'
+    compile 'com.github.amlcurran.showcaseview:library:5.4.3'
     compile files('libs/gson-2.4.jar')
 }

@@ -52,6 +52,7 @@
     <string name="done">Done</string>
     <string name="hint_edit_idea">A great new idea</string>
     <string name="hint_edit_note">Some note or comment</string>
+    <string name="error_empty_taken">Name is empty or already taken</string>
 
     <string-array name="array_from">
         <item>Done</item>

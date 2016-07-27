@@ -302,7 +302,7 @@ public class TinyDB {
      * @return boolean value at 'key' or 'defaultValue' if key not found
      */
     public boolean getBoolean(String key) {
-        return preferences.getBoolean(key, false);
+        return preferences.getBoolean(key, true);
     }
 
     /**

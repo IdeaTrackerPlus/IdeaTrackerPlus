@@ -2,19 +2,15 @@ package appbox.ideastracker;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -22,32 +18,30 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
-import com.github.paolorotolo.appintro.AppIntro;
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -69,14 +63,13 @@ import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.zip.Inflater;
 
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
+import appbox.ideastracker.recycleview.HorizontalAdapter;
 import appbox.ideastracker.recycleview.MyRecyclerView;
 import appbox.ideastracker.recycleview.RecyclerOnClickListener;
 import appbox.ideastracker.recycleview.RecyclerOnLongClickListener;
@@ -112,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView mError;
     private EditText mIdeaField;
 
+    private ShowcaseView mFirstIdeaguide;
+
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
@@ -128,6 +123,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mTinyDB = new TinyDB(this);
+        mTinyDB.putBoolean("firstIdea",true);
+        mTinyDB.putBoolean("firstProject",true);
+        mTinyDB.putBoolean("handleIdea",true);
         introOnFirstStart();
 
         //Static calls
@@ -149,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
         //Get the database helper
         mDbHelper = DatabaseHelper.getInstance(this);
 
-        //TABLES
-        loadProjects();
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -168,11 +164,18 @@ public class MainActivity extends AppCompatActivity {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(mFirstIdeaguide != null){
+                    mFirstIdeaguide.hide();
+                    mFirstIdeaguide = null;
+                }
                 newIdeaDialog();
             }
         });
 
-        //DRAWERS
+        //TABLES
+        loadProjects();
+
+        // Set up the drawers and their items
         setUpDrawers(savedInstanceState);
 
     }
@@ -184,16 +187,14 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
 
                 //  Create a new boolean and preference and set it to true
-                boolean notFirstStart = mTinyDB.getBoolean("firstStart");
+                boolean firstStart = mTinyDB.getBoolean("firstStart");
 
                 //  If the activity has never started before...
-                if (!notFirstStart) {
+                if (firstStart) {
 
-                    //  Launch app intro
-                    Intent i = new Intent(MainActivity.this, MyIntro.class);
-                    startActivity(i);
+                    forceIntro();
 
-                    mTinyDB.putBoolean("firstStart", true);
+                    mTinyDB.putBoolean("firstStart", false);
                 }
             }
         });
@@ -205,28 +206,6 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(MainActivity.this, MyIntro.class);
         startActivity(i);
     }
-
-    private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
-        @Override
-        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-            if (drawerItem != null && drawerItem instanceof IProfile) {
-                mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
-                String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
-                mToolbar.setTitle(tableName);
-                mDbHelper.switchTable(tableName);
-                displayIdeasCount();
-                switchToProjectColors();
-            }
-            return false;
-        }
-    };
-
-    private AccountHeader.OnAccountHeaderListener header_listener = new AccountHeader.OnAccountHeaderListener() {
-        @Override
-        public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-            return true;
-        }
-    };
 
     private void setUpDrawers(Bundle savedInstanceState) {
 
@@ -291,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 })
+                .withOnDrawerListener(new MyDrawerListener())
                 .withSavedInstance(savedInstanceState)
                 .build();
 
@@ -313,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(5).withName(R.string.expand_collapse).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
-                .withStickyFooter(R.layout.footer)
+                .withFooter(R.layout.footer)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -409,19 +389,30 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 })
+                .withOnDrawerListener(new MyDrawerListener())
                 .withSavedInstance(savedInstanceState)
                 .append(result);
 
         //Select first one
-        mSelectedProfileIndex = 0;
-        IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
-        String activeProfileName = activeProfile.getName().getText();
-        header.setActiveProfile(activeProfile);
-        getSupportActionBar().setTitle(activeProfileName);
-        DataEntry.setTableName(activeProfileName);
-        displayIdeasCount();
+        if (!mNoTable) {
+            mSelectedProfileIndex = 0;
+            IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
+            String activeProfileName = activeProfile.getName().getText();
+            header.setActiveProfile(activeProfile);
+            getSupportActionBar().setTitle(activeProfileName);
+            DataEntry.setTableName(activeProfileName);
+            displayIdeasCount();
 
-        switchToProjectColors();
+            switchToProjectColors();
+        } else {
+            header.setProfiles(mProfiles);
+            header.setSelectionSecondLine(getString(R.string.no_project));
+            //reset color
+            mPrimaryColor = defaultPrimaryColor;
+            mSecondaryColor = defaultSecondaryColor;
+            mTextColor = defaultTextColor;
+            updateColors();
+        }
     }
 
     @Override
@@ -469,22 +460,37 @@ public class MainActivity extends AppCompatActivity {
                         String text = mIdeaField.getText().toString();
                         if (!text.equals("")) {
 
+                            boolean later = doLater.isChecked();
+
                             if (radioGroup.getCheckedRadioButtonId() != -1) {
                                 View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
                                 RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
                                 String selection = (String) btn.getText();
 
                                 String note = noteField.getText().toString();
-                                boolean later = doLater.isChecked();
                                 int priority = Integer.parseInt(selection);
 
                                 mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
                                 displayIdeasCount();
 
                                 DatabaseHelper.notifyAllLists();
+
                             }
 
                             mNewIdeaDialog.dismiss();
+
+                            if(mTinyDB.getBoolean("handleIdea")){
+                                //move tab where idea was created
+                                int index = 0;
+                                if(later) index = 1;
+
+                                tabLayout.setScrollPosition(index,0f,true);
+                                mViewPager.setCurrentItem(index);
+
+                                //start the handle idea guide
+                                handleIdeaGuide();
+                            }
+
                         } else {
                             mError.setVisibility(View.VISIBLE);
                         }
@@ -526,6 +532,8 @@ public class MainActivity extends AppCompatActivity {
                                 mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
 
                                 DatabaseHelper.notifyAllLists();
+                                displayIdeasCount();
+
                             }
 
                             mNewIdeaDialog.dismiss();
@@ -624,16 +632,10 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle(R.string.new_pro)
                 .setMessage(R.string.new_pro_message)
                 .setIcon(R.drawable.ic_notepad)
-                .setInputFilter(R.string.name_taken, new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
-                        return isProjectNameAvailable(text);
-                    }
-                })
-                .setInputFilter(R.string.try_longer, new LovelyTextInputDialog.TextFilter() {
-                    @Override
-                    public boolean check(String text) {
-                        return !text.equals("");
+                        return isProjectNameAvailable(text) && !text.equals("");
                     }
                 })
                 .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
@@ -667,6 +669,8 @@ public class MainActivity extends AppCompatActivity {
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
                         }
+
+                        if (mTinyDB.getBoolean("firstProject")) firstProjectGuide();
                     }
                 })
                 .show();
@@ -680,16 +684,10 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
                 .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
-                .setInputFilter(R.string.name_taken, new LovelyTextInputDialog.TextFilter() {
+                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
                     @Override
                     public boolean check(String text) {
-                        return isProjectNameAvailable(text);
-                    }
-                })
-                .setInputFilter(R.string.try_longer, new LovelyTextInputDialog.TextFilter() {
-                    @Override
-                    public boolean check(String text) {
-                        return !text.equals("");
+                        return !text.equals("") && isProjectNameAvailable(text);
                     }
                 })
                 .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
@@ -799,6 +797,53 @@ public class MainActivity extends AppCompatActivity {
             //TODO: No table to show
         }
 
+    }
+
+    private void firstProjectGuide() {
+
+        new ShowcaseView.Builder(this)
+                .setTarget(new ViewTarget(header.getView()))
+                .setContentTitle("Your projects are in this drawer")
+                .setStyle(R.style.CustomShowcaseTheme2)
+                .replaceEndButton(R.layout.got_it)
+                .setContentText("Click on the header to switch to the project manager")
+                .blockAllTouches()
+                .build()
+                .show();
+        mTinyDB.putBoolean("firstProject", false);
+    }
+
+    private void firstIdeaGuide() {
+
+        mFirstIdeaguide = new ShowcaseView.Builder(this)
+                .setTarget(new ViewTarget(mFab))
+                .setContentTitle("Create ideas for your project")
+                .setStyle(R.style.CustomShowcaseTheme2)
+                .replaceEndButton(R.layout.empty_layout)
+                .build();
+
+        mFirstIdeaguide.show();
+
+        append.closeDrawer();
+        result.closeDrawer();
+        mTinyDB.putBoolean("firstIdea", false);
+    }
+
+    private void handleIdeaGuide(){
+
+        View firstIdea = findViewById(R.id.firstIdea);
+
+        mFirstIdeaguide = new ShowcaseView.Builder(this)
+                .setTarget(new ViewTarget(firstIdea))
+                .setContentTitle("Manage your ideas")
+                .setContentText("Try click, long click and swipe on the ideas")
+                .setStyle(R.style.CustomShowcaseTheme2)
+                .replaceEndButton(R.layout.got_it)
+                .blockAllTouches()
+                .build();
+
+        mFirstIdeaguide.show();
+        mTinyDB.putBoolean("handleIdea",false);
     }
 
 
@@ -926,11 +971,10 @@ public class MainActivity extends AppCompatActivity {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
         if (mProjects.size() == 0) {
-            saveProject(new Project(getString(R.string.default_project_name),
-                    defaultPrimaryColor,
-                    defaultSecondaryColor,
-                    defaultTextColor));
-            mDbHelper.newTable(getString(R.string.default_project_name));
+            DataEntry.setTableName("");
+            mToolbar.setTitle(R.string.app_name);
+            mFab.setVisibility(View.INVISIBLE);
+            mNoTable = true;
         }
 
         mProfiles = new ArrayList<>();
@@ -1151,6 +1195,48 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
 
+        }
+    }
+
+    private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
+        @Override
+        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+            if (drawerItem != null && drawerItem instanceof IProfile) {
+                mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
+                String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
+                mToolbar.setTitle(tableName);
+                mDbHelper.switchTable(tableName);
+                displayIdeasCount();
+                switchToProjectColors();
+            }
+            return false;
+        }
+    };
+
+    private AccountHeader.OnAccountHeaderListener header_listener = new AccountHeader.OnAccountHeaderListener() {
+        @Override
+        public boolean onProfileChanged(View view, IProfile profile, boolean current) {
+            return true;
+        }
+    };
+
+    private class MyDrawerListener implements Drawer.OnDrawerListener {
+
+        @Override
+        public void onDrawerOpened(View drawerView) {
+
+        }
+
+        @Override
+        public void onDrawerClosed(View drawerView) {
+
+            if (mTinyDB.getBoolean("firstIdea") && !mNoTable){
+                firstIdeaGuide();
+            }
+        }
+
+        @Override
+        public void onDrawerSlide(View drawerView, float slideOffset) {
         }
     }
 
