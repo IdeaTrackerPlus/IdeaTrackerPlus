@@ -68,4 +68,15 @@
         <item>Later</item>
         <item>Done</item>
     </string-array>
+
+    <string-array name="done_cheers">
+        <item>Nice one!</item>
+        <item>That was a tough one.</item>
+        <item>One more done.</item>
+        <item>This project is looking good!</item>
+        <item>One step closer.</item>
+        <item>Done!</item>
+        <item>Truly awesome.</item>
+    </string-array>
+
 </resources>

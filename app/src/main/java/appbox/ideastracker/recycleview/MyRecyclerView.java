@@ -4,12 +4,16 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Random;
+
 import appbox.ideastracker.MainActivity;
+import appbox.ideastracker.R;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 
@@ -123,6 +127,7 @@ public class MyRecyclerView extends RecyclerView {
                 notifyChange();
             } else { //move to DONE
                 int tagId = (int) this.getTag();
+                cheerSnackmessage();
                 mDbHelper.moveToTab(3, tagId);
                 notifyChange();
                 mainActivity.displayIdeasCount();
@@ -172,6 +177,12 @@ public class MyRecyclerView extends RecyclerView {
                 mainActivity.displayIdeasCount();
             }
         }
+    }
+
+    private void cheerSnackmessage(){
+        String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
+        String randomStr = array[new Random().nextInt(array.length)];
+        Snackbar.make(mainActivity.findViewById(R.id.main_content),randomStr,Snackbar.LENGTH_LONG).show();
     }
 
 }
