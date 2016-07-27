@@ -5,4 +5,5 @@
     android:layout_height="wrap_content"
     android:text="GOT IT"
     android:textStyle="bold"
+    android:textSize="20sp"
     android:textColor="@color/md_pink_a200"/>

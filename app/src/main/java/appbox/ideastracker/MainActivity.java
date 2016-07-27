@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
@@ -48,12 +50,17 @@ import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.interfaces.OnCheckedChangeListener;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
+import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+import com.mikepenz.materialdrawer.model.interfaces.Nameable;
 import com.thebluealliance.spectrum.SpectrumDialog;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
@@ -123,9 +130,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mTinyDB = new TinyDB(this);
-        mTinyDB.putBoolean("firstIdea",true);
-        mTinyDB.putBoolean("firstProject",true);
-        mTinyDB.putBoolean("handleIdea",true);
+//        mTinyDB.putBoolean("firstIdea",true);
+//        mTinyDB.putBoolean("firstProject",true);
+//        mTinyDB.putBoolean("handleIdea",true);
         introOnFirstStart();
 
         //Static calls
@@ -159,12 +166,13 @@ public class MainActivity extends AppCompatActivity {
         // Set up the tab layout
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         tabLayout.setupWithViewPager(mViewPager);
+        tabLayout.setSelectedTabIndicatorHeight(10);
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mFirstIdeaguide != null){
+                if (mFirstIdeaguide != null) {
                     mFirstIdeaguide.hide();
                     mFirstIdeaguide = null;
                 }
@@ -219,6 +227,10 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
+        SwitchDrawerItem doneSwitcher = new SwitchDrawerItem().withName("Show DONE tab").withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if(mTinyDB.getBoolean("showDone")) doneSwitcher.withChecked(true);
+        else toggleTab(false);
+
         //LEFT DRAWER
         result = new DrawerBuilder(this)
                 .withToolbar(mToolbar)
@@ -230,7 +242,16 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(2).withName(R.string.delete_pro).withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
                         new DividerDrawerItem(),
                         new PrimaryDrawerItem().withIdentifier(4).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
+                        new DividerDrawerItem(),
+                        new ExpandableDrawerItem().withName("Settings").withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
+                                doneSwitcher),
+                        new ExpandableDrawerItem().withName("Help").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
+                                new SecondaryDrawerItem().withName("See app intro again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
+                                new SecondaryDrawerItem().withName("Activate tutorial again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
+                                new SecondaryDrawerItem().withName("Report a bug").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false))
+
+
                 )
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -265,6 +286,29 @@ public class MainActivity extends AppCompatActivity {
                                         noProjectSnack();
                                     }
                                     break;
+
+                                case 8:
+                                    forceIntro();
+                                    break;
+
+                                case 9:
+                                    result.closeDrawer();
+                                    Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
+                                            .setCallback(new Snackbar.Callback() {
+                                                @Override
+                                                public void onDismissed(Snackbar snackbar, int event) {
+                                                    mTinyDB.putBoolean("handleIdea", true);
+                                                    mTinyDB.putBoolean("firstProject", true);
+                                                    firstIdeaGuide();
+                                                }
+                                            });
+                                    snackbar.show();
+                                    break;
+
+                                case 10:
+                                    //TODO: report a bug
+                                    break;
+
                             }
                         }
                         return true;
@@ -479,12 +523,12 @@ public class MainActivity extends AppCompatActivity {
 
                             mNewIdeaDialog.dismiss();
 
-                            if(mTinyDB.getBoolean("handleIdea")){
+                            if (mTinyDB.getBoolean("handleIdea")) {
                                 //move tab where idea was created
                                 int index = 0;
-                                if(later) index = 1;
+                                if (later) index = 1;
 
-                                tabLayout.setScrollPosition(index,0f,true);
+                                tabLayout.setScrollPosition(index, 0f, true);
                                 mViewPager.setCurrentItem(index);
 
                                 //start the handle idea guide
@@ -829,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB.putBoolean("firstIdea", false);
     }
 
-    private void handleIdeaGuide(){
+    private void handleIdeaGuide() {
 
         View firstIdea = findViewById(R.id.firstIdea);
 
@@ -843,7 +887,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         mFirstIdeaguide.show();
-        mTinyDB.putBoolean("handleIdea",false);
+        mTinyDB.putBoolean("handleIdea", false);
     }
 
 
@@ -1028,12 +1072,12 @@ public class MainActivity extends AppCompatActivity {
 
         private static MainActivity mainActivity;
 
-        public static ListFragment newInstance(int index) {
+        public static ListFragment newInstance(String tabName) {
             ListFragment f = new ListFragment();
 
             // Supply index input as an argument.
             Bundle args = new Bundle();
-            args.putInt("index", index);
+            args.putString("tabName", tabName);
             f.setArguments(args);
 
             return f;
@@ -1043,8 +1087,8 @@ public class MainActivity extends AppCompatActivity {
             mainActivity = act;
         }
 
-        public int getIndex() {
-            return getArguments().getInt("index", 0);
+        public String getTabName() {
+            return getArguments().getString("tabName");
         }
 
 
@@ -1064,8 +1108,8 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
-            switch (this.getIndex()) {
-                case 0: //IDEAS
+            switch (this.getTabName()) {
+                case "Ideas": //IDEAS
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
                     //sets the adapter that provides data to the list
@@ -1079,7 +1123,7 @@ public class MainActivity extends AppCompatActivity {
 
                     break;
 
-                case 1: //LATER
+                case "Later": //LATER
                     rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list2 = (ListView) rootView.findViewById(R.id.list);
                     MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
@@ -1087,7 +1131,7 @@ public class MainActivity extends AppCompatActivity {
                     list2.setAdapter(adapter2);
                     break;
 
-                case 2: //DONE
+                case "Done": //DONE
                     rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
                     ListView list3 = (ListView) rootView.findViewById(R.id.list);
                     MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
@@ -1149,21 +1193,26 @@ public class MainActivity extends AppCompatActivity {
      */
     private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        private int tabCount = 3;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
+        public void setTabCount(int count){
+            tabCount = count;
+        }
+
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            return ListFragment.newInstance(position);
+            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString());
         }
 
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return tabCount;
         }
 
         @Override
@@ -1230,7 +1279,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawerClosed(View drawerView) {
 
-            if (mTinyDB.getBoolean("firstIdea") && !mNoTable){
+            if (mTinyDB.getBoolean("firstIdea") && !mNoTable) {
                 firstIdeaGuide();
             }
         }
@@ -1238,6 +1287,48 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {
         }
+    }
+
+    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
+
+            int id = (int) drawerItem.getIdentifier();
+            switch (id) {
+                case 5:
+                    toggleTab(true);
+                    break;
+
+                case 6:
+                    toggleTab(false);
+                    break;
+            }
+
+
+        }
+    };
+
+    private void toggleTab(boolean later) {
+
+        int count = tabLayout.getTabCount();
+
+        for (int i = 0; i < count; i++) {
+            if (tabLayout.getTabAt(i).getText().equals("Done")) {
+                tabLayout.removeTabAt(i);
+                mSectionsPagerAdapter.setTabCount(2);
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                mTinyDB.putBoolean("showDone",false);
+                return;
+            }
+        }
+        tabLayout.addTab(tabLayout.newTab().setText("Done"));
+        mSectionsPagerAdapter.setTabCount(3);
+        mViewPager.setAdapter(null);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mTinyDB.putBoolean("showDone",true);
+
+
     }
 
 }
