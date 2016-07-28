@@ -227,9 +227,12 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        SwitchDrawerItem doneSwitcher = new SwitchDrawerItem().withName("Show DONE tab").withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if(mTinyDB.getBoolean("showDone")) doneSwitcher.withChecked(true);
+        SwitchDrawerItem doneSwitch = new SwitchDrawerItem().withName("Show DONE tab").withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if(mTinyDB.getBoolean("showDone")) doneSwitch.withChecked(true);
         else toggleTab(false);
+
+        SwitchDrawerItem cheerSwitch = new SwitchDrawerItem().withName("Show message on task done").withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if(mTinyDB.getBoolean("cheerSwitch")) cheerSwitch.withChecked(true);
 
         //LEFT DRAWER
         result = new DrawerBuilder(this)
@@ -245,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName("Settings").withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitcher),
+                                doneSwitch, cheerSwitch),
                         new ExpandableDrawerItem().withName("Help").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName("See app intro again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName("Activate tutorial again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -1301,6 +1304,14 @@ public class MainActivity extends AppCompatActivity {
 
                 case 6:
                     toggleTab(false);
+                    break;
+
+                case 7:
+                    if(isChecked){
+                        mTinyDB.putBoolean("cheerSwitch",true);
+                    }else{
+                        mTinyDB.putBoolean("cheerSwitch",false);
+                    }
                     break;
             }
 

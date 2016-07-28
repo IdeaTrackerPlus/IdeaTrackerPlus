@@ -16,6 +16,7 @@ import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
+import appbox.ideastracker.database.TinyDB;
 
 /**
  * Created by Nicklos on 13/07/2016.
@@ -26,6 +27,7 @@ public class MyRecyclerView extends RecyclerView {
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
     private DatabaseHelper mDbHelper;
+    private TinyDB mTinyDb;
 
     private static MainActivity mainActivity;
 
@@ -33,16 +35,19 @@ public class MyRecyclerView extends RecyclerView {
     public MyRecyclerView(Context context) {
         super(context);
         isActivated = false;
+        mTinyDb = new TinyDB(context);
     }
 
     public MyRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         isActivated = false;
+        mTinyDb = new TinyDB(context);
     }
 
     public MyRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         isActivated = false;
+        mTinyDb = new TinyDB(context);
     }
 
     public static void setMainActivity(MainActivity act){
@@ -180,9 +185,12 @@ public class MyRecyclerView extends RecyclerView {
     }
 
     private void cheerSnackmessage(){
-        String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
-        String randomStr = array[new Random().nextInt(array.length)];
-        Snackbar.make(mainActivity.findViewById(R.id.main_content),randomStr,Snackbar.LENGTH_LONG).show();
+
+        if(mTinyDb.getBoolean("cheerSwitch")) {
+            String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
+            String randomStr = array[new Random().nextInt(array.length)];
+            Snackbar.make(mainActivity.findViewById(R.id.main_content), randomStr, Snackbar.LENGTH_LONG).show();
+        }
     }
 
 }
