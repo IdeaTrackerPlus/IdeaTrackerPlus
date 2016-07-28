@@ -85,21 +85,23 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
 
         if (view == null) {
             view = inflater.inflate(R.layout.parent_layout, viewGroup, false);
-            TextView textView = (TextView) view.findViewById(R.id.textViewParent);
-            textView.setText("Priority " + Integer.toString(groupPosition + 1));
-            LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
-            switch (groupPosition) {
-                case 0:
-                    parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority1));
-                    break;
-                case 1:
-                    parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority2));
-                    break;
-                case 2:
-                    parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority3));
-                    break;
-            }
         }
+
+        TextView textView = (TextView) view.findViewById(R.id.textViewParent);
+        textView.setText("Priority " + Integer.toString(groupPosition + 1));
+        LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
+        switch (groupPosition) {
+            case 0:
+                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority1));
+                break;
+            case 1:
+                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority2));
+                break;
+            case 2:
+                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority3));
+                break;
+        }
+
 
         //return the entire view
         return view;
@@ -109,8 +111,13 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
     //in this method you must set the text to see the children on the list
     public View getRealChildView(int groupPosition, int childPosition, boolean isLastChild, View view, ViewGroup viewGroup) {
 
-        view = inflater.inflate(R.layout.child_layout, viewGroup, false);
+        if (view == null) {
+            view = inflater.inflate(R.layout.child_layout, viewGroup, false);
+        }
+
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
+        horizontal_recycler_view.reboot(); //in case it's recycled
+
         ArrayList<Pair<Integer, String>> ideas = mDbHelper.readIdeas(groupPosition); //get all ideas from priority
         Pair<Integer, String> pair = ideas.get(childPosition);
         HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second, 1);

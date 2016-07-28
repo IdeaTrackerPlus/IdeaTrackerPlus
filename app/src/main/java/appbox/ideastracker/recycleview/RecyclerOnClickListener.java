@@ -1,23 +1,11 @@
 package appbox.ideastracker.recycleview;
 
-import android.app.Dialog;
-import android.database.Cursor;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.ToggleButton;
 
-import com.yarolegovich.lovelydialog.LovelyCustomDialog;
-import com.yarolegovich.lovelydialog.LovelyInfoDialog;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
+import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
-import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 
 /**
@@ -26,18 +14,21 @@ import appbox.ideastracker.database.DatabaseHelper;
 public class RecyclerOnClickListener implements View.OnClickListener {
 
     private DatabaseHelper mDbHelper;
-    private View mView;
+    private View mTextView;
     private int mIdRecycler;
+    private MyRecyclerView mRecyclerView;
 
     private static int mPrimaryColor;
 
-    public RecyclerOnClickListener(int idRecycler) {
-        mIdRecycler = idRecycler;
+    public RecyclerOnClickListener(MyRecyclerView recyclerView) {
+        mIdRecycler = (Integer) recyclerView.getTag();
+        mRecyclerView = recyclerView;
+
     }
 
     @Override
     public void onClick(View v) {
-        mView = v;
+        mTextView = v;
         showIdeaDialog();
 
     }
@@ -48,17 +39,29 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
     private void showIdeaDialog() {
 
-        mDbHelper = DatabaseHelper.getInstance(mView.getContext());
+        mDbHelper = DatabaseHelper.getInstance(mTextView.getContext());
         String text = mDbHelper.getTextById(mIdRecycler);
         String note = mDbHelper.getNoteById(mIdRecycler);
 
-        new LovelyInfoDialog(mView.getContext())
+        new LovelyStandardDialog(mTextView.getContext())
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
                 .setTitle(text)
                 .setMessage(note)
-                .setConfirmButtonColor(mView.getContext().getResources().getColor(R.color.md_pink_a200))
+                .setPositiveButtonColorRes(R.color.md_pink_a200)
+                .setPositiveButton(R.string.ok,null)
+                .setNeutralButton("DELETE", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mRecyclerView.sendCellToDelete();
+
+                        MainActivity mainActivity = MainActivity.getActivity(mTextView);
+                        mainActivity.displayIdeasCount();
+                    }
+                })
+                .setNeutralButtonColorRes(R.color.md_pink_a200)
                 .show();
 
     }
+
 }

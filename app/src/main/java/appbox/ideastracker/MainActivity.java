@@ -1,6 +1,8 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -21,7 +23,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,13 +37,11 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -60,13 +59,10 @@ import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
-import com.mikepenz.materialdrawer.model.interfaces.Nameable;
 import com.thebluealliance.spectrum.SpectrumDialog;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,8 +72,6 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
-import appbox.ideastracker.recycleview.HorizontalAdapter;
-import appbox.ideastracker.recycleview.MyRecyclerView;
 import appbox.ideastracker.recycleview.RecyclerOnClickListener;
 import appbox.ideastracker.recycleview.RecyclerOnLongClickListener;
 
@@ -131,17 +125,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //
+        DatabaseHelper.setMainActivity(this);
+
         mTinyDB = new TinyDB(this);
 //        mTinyDB.putBoolean("firstIdea",true);
 //        mTinyDB.putBoolean("firstProject",true);
 //        mTinyDB.putBoolean("handleIdea",true);
         introOnFirstStart();
-
-        //Static calls
-        ListFragment.setMainActivity(this);
-        MyRecyclerView.setMainActivity(this);
-        DatabaseHelper.setMainActivity(this);
-
 
         //Default colors
         defaultPrimaryColor = getResources().getColor(R.color.md_indigo_500);
@@ -190,6 +181,29 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public static MainActivity getActivity(View v) {
+
+        Context context = v.getContext();
+        while (context instanceof ContextWrapper) {
+            if (context instanceof MainActivity) {
+                return (MainActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+    public static MainActivity getActivity(Context context) {
+
+        while (context instanceof ContextWrapper) {
+            if (context instanceof MainActivity) {
+                return (MainActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
     private void introOnFirstStart() {
         //  Declare a new thread to do a preference check
         Thread t = new Thread(new Runnable() {
@@ -230,11 +244,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         SwitchDrawerItem doneSwitch = new SwitchDrawerItem().withName("Show DONE tab").withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if(mTinyDB.getBoolean("showDone")) doneSwitch.withChecked(true);
+        if (mTinyDB.getBoolean("showDone")) doneSwitch.withChecked(true);
         else toggleTab(false);
 
         SwitchDrawerItem cheerSwitch = new SwitchDrawerItem().withName("Show message on task done").withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if(mTinyDB.getBoolean("cheerSwitch")) cheerSwitch.withChecked(true);
+        if (mTinyDB.getBoolean("cheerSwitch")) cheerSwitch.withChecked(true);
 
         //LEFT DRAWER
         result = new DrawerBuilder(this)
@@ -666,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
                             mMoveDialog.dismiss();
                             append.closeDrawer();
                             snackbar.show();
-                        }else{
+                        } else {
                             mMoveError.setText(errorText);
                             mMoveError.setVisibility(View.VISIBLE);
                         }
@@ -1098,10 +1112,6 @@ public class MainActivity extends AppCompatActivity {
             return f;
         }
 
-        public static void setMainActivity(MainActivity act) {
-            mainActivity = act;
-        }
-
         public String getTabName() {
             return getArguments().getString("tabName");
         }
@@ -1110,6 +1120,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+
+            mainActivity = MainActivity.getActivity(container);
+
             View rootView = null;
             if (DataEntry.TABLE_NAME.equals("[]")) {
                 rootView = inflater.inflate(R.layout.no_project_layout, container, false);
@@ -1214,7 +1227,7 @@ public class MainActivity extends AppCompatActivity {
             super(fm);
         }
 
-        public void setTabCount(int count){
+        public void setTabCount(int count) {
             tabCount = count;
         }
 
@@ -1333,10 +1346,10 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case 7:
-                    if(isChecked){
-                        mTinyDB.putBoolean("cheerSwitch",true);
-                    }else{
-                        mTinyDB.putBoolean("cheerSwitch",false);
+                    if (isChecked) {
+                        mTinyDB.putBoolean("cheerSwitch", true);
+                    } else {
+                        mTinyDB.putBoolean("cheerSwitch", false);
                     }
                     break;
             }
@@ -1355,7 +1368,7 @@ public class MainActivity extends AppCompatActivity {
                 mSectionsPagerAdapter.setTabCount(2);
                 mViewPager.setAdapter(null);
                 mViewPager.setAdapter(mSectionsPagerAdapter);
-                mTinyDB.putBoolean("showDone",false);
+                mTinyDB.putBoolean("showDone", false);
                 return;
             }
         }
@@ -1363,7 +1376,7 @@ public class MainActivity extends AppCompatActivity {
         mSectionsPagerAdapter.setTabCount(3);
         mViewPager.setAdapter(null);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mTinyDB.putBoolean("showDone",true);
+        mTinyDB.putBoolean("showDone", true);
 
 
     }

@@ -20,6 +20,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     private int mTabNumber;
     private int mIdRecycler;
 
+    private MyRecyclerView mRecyclerView;
+
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView txtView;
@@ -46,7 +48,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
 
-        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(mIdRecycler);
+        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(mRecyclerView);
 
         switch(mTabNumber){
             case 1: //TAB#1 IDEA
@@ -153,6 +155,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         mIdRecycler = (Integer) recyclerView.getTag();
+        mRecyclerView = (MyRecyclerView) recyclerView;
 
     }
 

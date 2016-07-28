@@ -41,8 +41,13 @@ public class MyListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
 
-        view = inflater.inflate(R.layout.child_layout, parent,false);
+        if(view == null){
+            view = inflater.inflate(R.layout.child_layout, parent,false);
+        }
+
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
+        horizontal_recycler_view.reboot(); //in case it's recycled
+
         ArrayList<Pair<Integer ,String >> ideas = mDbHelper.readIdeas(mLater);
         Pair<Integer ,String > pair = ideas.get(position);
         HorizontalAdapter horizontalAdapter;

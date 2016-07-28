@@ -1,9 +1,6 @@
 package appbox.ideastracker.recycleview;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,7 +13,6 @@ import java.util.Random;
 
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
-import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 
@@ -33,29 +29,33 @@ public class MyRecyclerView extends RecyclerView {
     private DatabaseHelper mDbHelper;
     private TinyDB mTinyDb;
 
-    private static MainActivity mainActivity;
+    private MainActivity mainActivity;
 
 
     public MyRecyclerView(Context context) {
         super(context);
-        isActivated = false;
-        mTinyDb = new TinyDB(context);
+        constructor(context);
     }
 
     public MyRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        isActivated = false;
-        mTinyDb = new TinyDB(context);
+        constructor(context);
     }
 
     public MyRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        isActivated = false;
-        mTinyDb = new TinyDB(context);
+        constructor(context);
     }
 
-    public static void setMainActivity(MainActivity act) {
-        mainActivity = act;
+    public void constructor(Context c){
+        isActivated = false;
+        mTinyDb = new TinyDB(c);
+        mainActivity = MainActivity.getActivity(c);
+        mDbHelper = DatabaseHelper.getInstance(c);
+    }
+
+    public void reboot(){
+        isActivated = false;
     }
 
     public void setUp() {
@@ -89,20 +89,8 @@ public class MyRecyclerView extends RecyclerView {
 
     }
 
-    private Runnable myRunnable = new Runnable() {
-        public void run() {
-            DatabaseHelper.notifyAllLists();
-        }
-    };
-
-    private void notifyChange() {
-        Handler handler = new Handler();
-        handler.postDelayed(myRunnable, 300);
-    }
-
     private void stateChangedIdea(int state) {
 
-        mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
         double limLeft = 0.4d * width;
         double limRight = 0.6d * width;
@@ -141,7 +129,6 @@ public class MyRecyclerView extends RecyclerView {
 
     private void stateChangeOther(int state) {
 
-        mDbHelper = DatabaseHelper.getInstance(getContext());
         int width = mManager.getChildAt(0).getWidth();
         double limLeft = 0.4d * width;
         double limRight = 0.6d * width;
@@ -186,7 +173,7 @@ public class MyRecyclerView extends RecyclerView {
         }
     }
 
-    private void sendCellToNow() {
+    public void sendCellToNow() {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
@@ -211,7 +198,7 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    private void sendCellToDelete() {
+    public void sendCellToDelete() {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
@@ -236,7 +223,7 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    private void sendCellToLater() {
+    public void sendCellToLater() {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
@@ -259,7 +246,7 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    private void sendCellToDone() {
+    public void sendCellToDone() {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
@@ -292,7 +279,7 @@ public class MyRecyclerView extends RecyclerView {
             @Override
             protected void applyTransformation(float interpolatedTime, Transformation t) {
                 if (interpolatedTime == 1) {
-                    v.setVisibility(View.GONE);
+                    v.getLayoutParams().height = initialHeight;
                 } else {
                     v.getLayoutParams().height = initialHeight - (int) (initialHeight * interpolatedTime);
                     v.requestLayout();
@@ -311,6 +298,8 @@ public class MyRecyclerView extends RecyclerView {
         anim.setDuration(ANIMATION_DURATION);
         v.startAnimation(anim);
     }
+
+
 
 
 }
