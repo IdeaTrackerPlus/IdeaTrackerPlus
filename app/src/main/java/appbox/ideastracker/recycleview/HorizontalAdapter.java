@@ -3,6 +3,9 @@ package appbox.ideastracker.recycleview;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
+import android.text.style.TextAppearanceSpan;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +22,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     private String mIdea;
     private int mTabNumber;
     private int mIdRecycler;
-
     private MyRecyclerView mRecyclerView;
+
+    // same text size for all ideas
+    private static boolean mBigtext = false;
+
 
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -38,9 +44,18 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         mTabNumber = tabNumber;
     }
 
+    public static void setBigText(boolean b){
+        mBigtext = b;
+    }
+
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view, parent, false);
+        View itemView;
+        if(mBigtext){
+            itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view_big, parent, false);
+        }else{
+            itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view, parent, false);
+        }
         MyViewHolder holder = new MyViewHolder(itemView);
         return holder;
     }

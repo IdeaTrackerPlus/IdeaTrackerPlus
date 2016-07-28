@@ -41,9 +41,9 @@ public class MyListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
 
-        if(view == null){
-            view = inflater.inflate(R.layout.child_layout, parent,false);
-        }
+        //Recycle made complicated with big text option
+        view = inflater.inflate(R.layout.child_layout, parent,false);
+
 
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
         horizontal_recycler_view.reboot(); //in case it's recycled

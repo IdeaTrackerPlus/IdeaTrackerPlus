@@ -72,6 +72,7 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
+import appbox.ideastracker.recycleview.HorizontalAdapter;
 import appbox.ideastracker.recycleview.RecyclerOnClickListener;
 import appbox.ideastracker.recycleview.RecyclerOnLongClickListener;
 
@@ -82,12 +83,17 @@ public class MainActivity extends AppCompatActivity {
     private Drawer result = null;
     private Drawer append = null;
     private AccountHeader header = null;
+    private SwitchDrawerItem doneSwitch;
+    private SwitchDrawerItem cheerSwitch;
+    private SwitchDrawerItem bigTextSwitch;
+
     private Toolbar mToolbar;
     private FloatingActionButton mFab;
     private FragmentManager mFragmentManager;
     private NonSwipeableViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
+
     private Dialog mMoveDialog;
     private Dialog mNewIdeaDialog;
 
@@ -243,12 +249,8 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        SwitchDrawerItem doneSwitch = new SwitchDrawerItem().withName("Show DONE tab").withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if (mTinyDB.getBoolean("showDone")) doneSwitch.withChecked(true);
-        else toggleTab(false);
-
-        SwitchDrawerItem cheerSwitch = new SwitchDrawerItem().withName("Show message on task done").withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if (mTinyDB.getBoolean("cheerSwitch")) cheerSwitch.withChecked(true);
+        //SWITCHs
+        setUpSwitches();
 
         //LEFT DRAWER
         result = new DrawerBuilder(this)
@@ -264,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName("Settings").withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, cheerSwitch),
+                                doneSwitch, cheerSwitch, bigTextSwitch),
                         new ExpandableDrawerItem().withName("Help").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName("See app intro again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName("Activate tutorial again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -475,6 +477,23 @@ public class MainActivity extends AppCompatActivity {
             mTextColor = defaultTextColor;
             updateColors();
         }
+    }
+
+    private void setUpSwitches() {
+
+        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
+        else toggleTab(false);
+
+        cheerSwitch = new SwitchDrawerItem().withName(R.string.show_cheer_msg).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if (mTinyDB.getBoolean(getString(R.string.show_cheer_pref))) cheerSwitch.withChecked(true);
+
+        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)){
+            bigTextSwitch.withChecked(true);
+            HorizontalAdapter.setBigText(true);
+        }
+
     }
 
     @Override
@@ -1065,6 +1084,8 @@ public class MainActivity extends AppCompatActivity {
         int count = mDbHelper.getIdeasCount();
         if (count == 0) {
             header.setSelectionSecondLine(getString(R.string.no_ideas));
+        } else if (count == 1) {
+            header.setSelectionSecondLine(count + " idea");
         } else {
             header.setSelectionSecondLine(count + " ideas");
         }
@@ -1347,11 +1368,24 @@ public class MainActivity extends AppCompatActivity {
 
                 case 7:
                     if (isChecked) {
-                        mTinyDB.putBoolean("cheerSwitch", true);
+                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), true);
                     } else {
-                        mTinyDB.putBoolean("cheerSwitch", false);
+                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), false);
                     }
                     break;
+
+                case 20:
+                    if (isChecked) {
+                        HorizontalAdapter.setBigText(true);
+                        mTinyDB.putBoolean(getString(R.string.big_text_pref),true);
+                        DatabaseHelper.notifyAllLists();
+
+                    } else {
+                        HorizontalAdapter.setBigText(false);
+                        mTinyDB.putBoolean(getString(R.string.big_text_pref),false);
+                        DatabaseHelper.notifyAllLists();
+
+                    }
             }
 
 
@@ -1368,7 +1402,7 @@ public class MainActivity extends AppCompatActivity {
                 mSectionsPagerAdapter.setTabCount(2);
                 mViewPager.setAdapter(null);
                 mViewPager.setAdapter(mSectionsPagerAdapter);
-                mTinyDB.putBoolean("showDone", false);
+                mTinyDB.putBoolean(getString(R.string.show_done_pref), false);
                 return;
             }
         }
@@ -1376,7 +1410,7 @@ public class MainActivity extends AppCompatActivity {
         mSectionsPagerAdapter.setTabCount(3);
         mViewPager.setAdapter(null);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mTinyDB.putBoolean("showDone", true);
+        mTinyDB.putBoolean(getString(R.string.show_done_pref), true);
 
 
     }

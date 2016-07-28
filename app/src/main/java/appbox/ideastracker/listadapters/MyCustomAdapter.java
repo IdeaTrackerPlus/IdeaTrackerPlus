@@ -111,13 +111,11 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
     //in this method you must set the text to see the children on the list
     public View getRealChildView(int groupPosition, int childPosition, boolean isLastChild, View view, ViewGroup viewGroup) {
 
-        if (view == null) {
-            view = inflater.inflate(R.layout.child_layout, viewGroup, false);
-        }
+        //Recycle made complicated with big text option
+        view = inflater.inflate(R.layout.child_layout, viewGroup, false);
 
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
         horizontal_recycler_view.reboot(); //in case it's recycled
-
         ArrayList<Pair<Integer, String>> ideas = mDbHelper.readIdeas(groupPosition); //get all ideas from priority
         Pair<Integer, String> pair = ideas.get(childPosition);
         HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second, 1);

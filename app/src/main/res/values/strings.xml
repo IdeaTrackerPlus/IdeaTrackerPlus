@@ -55,6 +55,12 @@
     <string name="error_empty_taken">Name is empty or already taken</string>
     <string name="help">Help</string>
     <string name="tuto_mode">Tutorial mode is active</string>
+    <string name="show_done_pref">showDone</string>
+    <string name="show_cheer_pref">cheerSwitch</string>
+    <string name="show_done_msg">Show DONE tab</string>
+    <string name="show_cheer_msg">Show message on task done</string>
+    <string name="big_text_pref">bigTextSwitch</string>
+    <string name="big_text_msg">Bigger text for ideas</string>
 
     <string-array name="array_from">
         <item>Done</item>

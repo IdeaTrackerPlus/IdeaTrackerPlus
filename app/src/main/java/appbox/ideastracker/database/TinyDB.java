@@ -305,6 +305,10 @@ public class TinyDB {
         return preferences.getBoolean(key, true);
     }
 
+    public boolean getBoolean(String key, boolean def) {
+        return preferences.getBoolean(key, def);
+    }
+
     /**
      * Get parsed ArrayList of Boolean from SharedPreferences at 'key'
      *
