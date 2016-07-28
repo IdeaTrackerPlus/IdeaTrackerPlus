@@ -109,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean mNoTable = false;
 
     private RadioGroup mRadioGroup;
-    private TextView mError;
+    private TextView mIdeaError;
+    private TextView mMoveError;
     private EditText mIdeaField;
+    private Spinner mFromSpinner, mToSpinner;
 
     private ShowcaseView mFirstIdeaguide;
 
@@ -539,13 +541,13 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         } else {
-                            mError.setVisibility(View.VISIBLE);
+                            mIdeaError.setVisibility(View.VISIBLE);
                         }
                     }
                 })
                 .show();
 
-        mError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
+        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
         mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
         mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
 
@@ -585,14 +587,14 @@ public class MainActivity extends AppCompatActivity {
 
                             mNewIdeaDialog.dismiss();
                         } else {
-                            mError.setVisibility(View.VISIBLE);
+                            mIdeaError.setVisibility(View.VISIBLE);
                         }
                     }
                 })
                 .show();
 
         //set up the error message
-        mError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
+        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
         mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
         mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
 
@@ -623,19 +625,18 @@ public class MainActivity extends AppCompatActivity {
                 .setView(R.layout.move_dialog)
                 .setTopColor(mPrimaryColor)
                 .setTitle("Move all ideas")
-                .setTitleGravity(Gravity.CENTER_HORIZONTAL)
                 .setIcon(R.drawable.ic_transfer)
                 .setListener(R.id.move_button, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Spinner spinnerFrom = (Spinner) mMoveDialog.findViewById(R.id.spinner_from);
-                        Spinner spinnerTo = (Spinner) mMoveDialog.findViewById(R.id.spinner_to);
-                        final String from = spinnerFrom.getSelectedItem().toString();
-                        final String to = spinnerTo.getSelectedItem().toString();
 
-                        String snackText = getString(R.string.nothing_move) + from;
+                        final String from = mFromSpinner.getSelectedItem().toString();
+                        final String to = mToSpinner.getSelectedItem().toString();
+
+                        String snackText = null;
+                        String errorText = getString(R.string.nothing_move) + from;
                         boolean success = false;
-                        if (from.equals(to)) snackText = getString(R.string.must_diff);
+                        if (from.equals(to)) errorText = getString(R.string.must_diff);
                         else if (mDbHelper.moveAllFromTo(from, to)) {
                             snackText = "All ideas from " + from + " moved to " + to;
                             success = true;
@@ -663,12 +664,23 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             });
+                            mMoveDialog.dismiss();
+                            snackbar.show();
+                        }else{
+                            mMoveError.setText(errorText);
+                            mMoveError.setVisibility(View.VISIBLE);
                         }
-                        mMoveDialog.dismiss();
-                        snackbar.show();
                     }
                 })
                 .show();
+
+        mMoveError = (TextView) mMoveDialog.findViewById(R.id.move_error_message);
+        mFromSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_from);
+        mToSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_to);
+
+        mFromSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
+        mToSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
+
     }
 
     private void newTableDialog() {
@@ -1241,11 +1253,24 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            mError.setVisibility(View.GONE);
+            mIdeaError.setVisibility(View.GONE);
         }
 
         @Override
         public void afterTextChanged(Editable s) {
+
+        }
+    }
+
+    private class HideErrorOnSpinnerChanged implements AdapterView.OnItemSelectedListener {
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            mMoveError.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
 
         }
     }
@@ -1291,6 +1316,7 @@ public class MainActivity extends AppCompatActivity {
         public void onDrawerSlide(View drawerView, float slideOffset) {
         }
     }
+
 
     private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
         @Override
