@@ -421,7 +421,6 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 4:
                                     newMoveDialog();
-                                    append.closeDrawer();
                                     break;
 
                                 case 5:
@@ -665,6 +664,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                             mMoveDialog.dismiss();
+                            append.closeDrawer();
                             snackbar.show();
                         }else{
                             mMoveError.setText(errorText);

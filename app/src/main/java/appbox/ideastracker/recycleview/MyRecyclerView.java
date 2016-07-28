@@ -9,6 +9,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 
 import java.util.Random;
 
@@ -22,6 +24,8 @@ import appbox.ideastracker.database.TinyDB;
  * Created by Nicklos on 13/07/2016.
  */
 public class MyRecyclerView extends RecyclerView {
+
+    static final int ANIMATION_DURATION = 200;
 
     private boolean isActivated;
     private HorizontalAdapter mAdapter;
@@ -50,7 +54,7 @@ public class MyRecyclerView extends RecyclerView {
         mTinyDb = new TinyDB(context);
     }
 
-    public static void setMainActivity(MainActivity act){
+    public static void setMainActivity(MainActivity act) {
         mainActivity = act;
     }
 
@@ -127,15 +131,10 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) {
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to LATER
-                int tagId = (int) this.getTag();
-                mDbHelper.moveToTab(2, tagId);
-                notifyChange();
+                sendCellToLater();
             } else { //move to DONE
-                int tagId = (int) this.getTag();
                 cheerSnackmessage();
-                mDbHelper.moveToTab(3, tagId);
-                notifyChange();
-                mainActivity.displayIdeasCount();
+                sendCellToDone();
             }
         }
     }
@@ -171,27 +170,148 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Wait for animation to finish
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //DELETE
-                int tagId = (int) this.getTag();
-                mDbHelper.deleteEntryWithSnack(this,tagId);
-                notifyChange();
-                mainActivity.displayIdeasCount();
+                sendCellToDelete();
             } else { //NOW
-                int tagId = (int) this.getTag();
-                mDbHelper.moveToTab(1, tagId);
-                notifyChange();
-                mainActivity.displayIdeasCount();
+                sendCellToNow();
             }
         }
     }
 
-    private void cheerSnackmessage(){
+    private void cheerSnackmessage() {
 
-        if(mTinyDb.getBoolean("cheerSwitch")) {
+        if (mTinyDb.getBoolean("cheerSwitch")) {
             String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
             String randomStr = array[new Random().nextInt(array.length)];
             Snackbar.make(mainActivity.findViewById(R.id.main_content), randomStr, Snackbar.LENGTH_LONG).show();
         }
     }
+
+    private void sendCellToNow() {
+
+        final View v = this;
+        Animation.AnimationListener al = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                int tagId = (int) v.getTag();
+                mDbHelper.moveToTab(1, tagId);
+                DatabaseHelper.notifyAllLists();
+
+                mainActivity.displayIdeasCount();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+        };
+
+        collapse(v, al);
+    }
+
+    private void sendCellToDelete() {
+
+        final View v = this;
+        Animation.AnimationListener al = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                int tagId = (int) v.getTag();
+                mDbHelper.deleteEntryWithSnack(v, tagId);
+                DatabaseHelper.notifyAllLists();
+
+                mainActivity.displayIdeasCount();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+        };
+
+        collapse(v, al);
+    }
+
+    private void sendCellToLater() {
+
+        final View v = this;
+        Animation.AnimationListener al = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                int tagId = (int) v.getTag();
+                mDbHelper.moveToTab(2, tagId);
+                DatabaseHelper.notifyAllLists();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+        };
+
+        collapse(v, al);
+    }
+
+    private void sendCellToDone() {
+
+        final View v = this;
+        Animation.AnimationListener al = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                int tagId = (int) v.getTag();
+
+                mDbHelper.moveToTab(3, tagId);
+                DatabaseHelper.notifyAllLists();
+                mainActivity.displayIdeasCount();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+        };
+
+        collapse(v, al);
+    }
+
+    private void collapse(final View v, Animation.AnimationListener al) {
+
+        final int initialHeight = v.getMeasuredHeight();
+
+        Animation anim = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                if (interpolatedTime == 1) {
+                    v.setVisibility(View.GONE);
+                } else {
+                    v.getLayoutParams().height = initialHeight - (int) (initialHeight * interpolatedTime);
+                    v.requestLayout();
+                }
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        if (al != null) {
+            anim.setAnimationListener(al);
+        }
+        anim.setDuration(ANIMATION_DURATION);
+        v.startAnimation(anim);
+    }
+
 
 }
 
