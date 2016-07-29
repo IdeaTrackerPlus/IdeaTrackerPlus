@@ -5,7 +5,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
@@ -19,15 +18,22 @@ import appbox.ideastracker.database.TinyDB;
 
 /**
  * Created by Nicklos on 13/07/2016.
+ *
+ * Custom RecyclerView to handle swipe left and right
+ * for quick actions.
+ * Every MyRecyclerView holds an idea's text.
  */
 public class MyRecyclerView extends RecyclerView {
 
-    static final int ANIMATION_DURATION = 200;
 
-    private boolean isActivated;
+    static final int ANIMATION_DURATION = 200; // For the deletion animation
+
+    private boolean isActivated; // If we activated one of the quick actions
+
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
     private DatabaseHelper mDbHelper;
+
     private TinyDB mTinyDb;
 
     private MainActivity mainActivity;
@@ -48,6 +54,10 @@ public class MyRecyclerView extends RecyclerView {
         constructor(context);
     }
 
+    /**
+     * Common code to all constructors
+     * @param c
+     */
     public void constructor(Context c){
         isActivated = false;
         mTinyDb = new TinyDB(c);
@@ -72,6 +82,7 @@ public class MyRecyclerView extends RecyclerView {
 
     @Override
     public void onScrollStateChanged(int state) {
+
         int tab = mAdapter.getTabNumber();
 
         switch (tab) {
@@ -90,8 +101,13 @@ public class MyRecyclerView extends RecyclerView {
 
     }
 
+    /**
+     * Call when state changed in the "Idea" tab
+     * @param state
+     */
     private void stateChangedIdea(int state) {
 
+        // Define limits to trigger quick action
         int width = mManager.getChildAt(0).getWidth();
         double limLeft = 0.4d * width;
         double limRight = 0.6d * width;
@@ -117,7 +133,7 @@ public class MyRecyclerView extends RecyclerView {
                     smoothScrollToPosition(2);
                 } else smoothScrollToPosition(1);
             }
-        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) {
+        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to LATER
                 sendCellToLater();
@@ -128,8 +144,13 @@ public class MyRecyclerView extends RecyclerView {
         }
     }
 
+    /**
+     * Call when state changed in the "Later" or "Done" tab
+     * @param state
+     */
     private void stateChangeOther(int state) {
 
+        // Define limits to trigger quick action
         int width = mManager.getChildAt(0).getWidth();
         double limLeft = 0.4d * width;
         double limRight = 0.6d * width;
@@ -165,6 +186,10 @@ public class MyRecyclerView extends RecyclerView {
         }
     }
 
+    /**
+     * Display a message in a snackbar when a task
+     * has been completed
+     */
     private void cheerSnackmessage() {
 
         if (mTinyDb.getBoolean("cheerSwitch")) {
@@ -272,6 +297,11 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
+    /**
+     * Animate the view to shrink vertically
+     * @param v
+     * @param al
+     */
     private void collapse(final View v, Animation.AnimationListener al) {
 
         final int initialHeight = v.getMeasuredHeight();

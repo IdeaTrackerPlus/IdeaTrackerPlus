@@ -12,20 +12,25 @@ import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 
-import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 26/07/2016.
+ * Listener for long clicks on MyRecyclerView
  */
 public class RecyclerOnLongClickListener implements View.OnLongClickListener{
 
     private DatabaseHelper mDbHelper;
+
+    //RecyclerView attrs
     private int mIdRecycler;
     private int mTabNumber;
     private View mView;
+
     private Dialog mEditIdeaDialog;
+
+    //Dialog views
     private RadioGroup mRadioGroup;
     private EditText mIdeaField;
     private EditText mNoteField;
@@ -50,6 +55,10 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
         mPrimaryColor = color;
     }
 
+    /**
+     * Show a dialog allwing to edit all the attributes
+     * of the idea and showing the original ones.
+     */
     private void editIdeaDialog(){
 
         mEditIdeaDialog = new LovelyCustomDialog(mView.getContext(), R.style.EditTextTintTheme)

@@ -10,33 +10,38 @@ import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 20/07/2016.
+ * Listener for clicks on MyRecyclerView
  */
 public class RecyclerOnClickListener implements View.OnClickListener {
 
     private DatabaseHelper mDbHelper;
+
     private View mTextView;
     private int mIdRecycler;
     private MyRecyclerView mRecyclerView;
 
+    //Color for the dialogs
     private static int mPrimaryColor;
 
     public RecyclerOnClickListener(MyRecyclerView recyclerView) {
         mIdRecycler = (Integer) recyclerView.getTag();
         mRecyclerView = recyclerView;
-
     }
 
     @Override
     public void onClick(View v) {
         mTextView = v;
         showIdeaDialog();
-
     }
 
     public static void setPrimaryColor(int color) {
         mPrimaryColor = color;
     }
 
+    /**
+     * Show a dialog with the idea's text and note
+     * allows to delete the idea
+     */
     private void showIdeaDialog() {
 
         mDbHelper = DatabaseHelper.getInstance(mTextView.getContext());

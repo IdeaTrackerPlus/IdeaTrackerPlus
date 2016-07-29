@@ -3,9 +3,6 @@ package appbox.ideastracker.recycleview;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
-import android.text.style.TextAppearanceSpan;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,12 +13,16 @@ import appbox.ideastracker.R;
 
 /**
  * Created by Nicklos on 13/07/2016.
+ * Adapter for the horizontal RecyclerView containing the idea
+ * as well as the left and right quick actions.
  */
 public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.MyViewHolder> {
 
     private String mIdea;
     private int mTabNumber;
-    private int mIdRecycler;
+
+
+    private int mIdRecycler; //RecylerView tag, also idea's id in database
     private MyRecyclerView mRecyclerView;
 
     // same text size for all ideas
@@ -65,17 +66,19 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
         RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(mRecyclerView);
 
+        //Fill the textView with the right content
         switch(mTabNumber){
             case 1: //TAB#1 IDEA
+
                 switch (position){
-                    case 0: //LATER
+                    case 0: //Quick action send to LATER
                         holder.txtView.setText("LATER");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
                         holder.txtView.setBackgroundResource(R.color.pink);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
 
-                    case 1: //IDEA
+                    case 1: //Idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -89,7 +92,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
-                    case 2: //DONE
+                    case 2: //Quick action send to DONE
                         holder.txtView.setText("DONE");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                         holder.txtView.setBackgroundResource(R.color.orange);
@@ -99,15 +102,16 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 break;
 
             case 2: //TAB#2 LATER
+
                 switch (position){
-                    case 0: //DELETE
+                    case 0: //Quick action send to DELETE
                         holder.txtView.setText("DELETE");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
                         holder.txtView.setBackgroundResource(R.color.red);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
 
-                    case 1: //IDEA
+                    case 1: //Idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -121,7 +125,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
-                    case 2: //NOW
+                    case 2: //Quick action send to NOW
                         holder.txtView.setText("NOW");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                         holder.txtView.setBackgroundResource(R.color.green);
@@ -131,15 +135,16 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 break;
 
             case 3: //TAB#3 DONE
+
                 switch (position){
-                    case 0: //DELETE
+                    case 0: //Quick action send to DELETE
                         holder.txtView.setText("DELETE");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
                         holder.txtView.setBackgroundResource(R.color.red);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
 
-                    case 1: //IDEA
+                    case 1: //idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -153,7 +158,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
 
-                    case 2: //RECOVER
+                    case 2: //Quick action send to RECOVER
                         holder.txtView.setText("RECOVER");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
                         holder.txtView.setBackgroundResource(R.color.purple);

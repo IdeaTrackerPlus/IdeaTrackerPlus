@@ -1,40 +1,34 @@
 package appbox.ideastracker.listadapters;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.DataSetObserver;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 import appbox.ideastracker.AnimatedExpandableListView;
+import appbox.ideastracker.R;
+import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.recycleview.HorizontalAdapter;
 import appbox.ideastracker.recycleview.MyRecyclerView;
-import appbox.ideastracker.R;
-import appbox.ideastracker.database.DataEntry;
-import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 30/06/2016.
- * Adapter for the expandable list of the "Ideas" tab
+ * Adapter for the expandable listView of the "Ideas" tab
  */
 public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandableListAdapter {
-
 
     private LayoutInflater inflater;
     private DatabaseHelper mDbHelper;
 
-
     public MyCustomAdapter(Context context) {
+
         this.inflater = LayoutInflater.from(context);
         mDbHelper = DatabaseHelper.getInstance(context);
     }
@@ -116,11 +110,15 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
 
         MyRecyclerView horizontal_recycler_view = (MyRecyclerView) view.findViewById(R.id.horizontal_recycler_view);
         horizontal_recycler_view.reboot(); //in case it's recycled
+
+        // Get the text and id of the idea
         ArrayList<Pair<Integer, String>> ideas = mDbHelper.readIdeas(groupPosition); //get all ideas from priority
         Pair<Integer, String> pair = ideas.get(childPosition);
+
+        // Set up the manager and adapter of the recycler view
         HorizontalAdapter horizontalAdapter = new HorizontalAdapter(pair.second, 1);
-        horizontal_recycler_view.setTag(pair.first);
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(), LinearLayoutManager.HORIZONTAL, false);
+        horizontal_recycler_view.setTag(pair.first);
         horizontalLayoutManager.scrollToPositionWithOffset(1, 0);
         horizontal_recycler_view.setLayoutManager(horizontalLayoutManager);
         horizontal_recycler_view.setAdapter(horizontalAdapter);
