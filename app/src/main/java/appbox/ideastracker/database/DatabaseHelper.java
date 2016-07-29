@@ -3,9 +3,8 @@ package appbox.ideastracker.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.*;
-import android.os.Handler;
-import android.provider.ContactsContract;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.util.Pair;
@@ -18,17 +17,21 @@ import java.util.ArrayList;
 import appbox.ideastracker.MainActivity;
 
 /**
- * Created by Nicklos on 12/07/2016.
+ * This class takes care of the interaction with the database
+ * where the ideas are stored.
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static DatabaseHelper sInstance;
+
+    // Store the list adapters to notify changes in the database
     private static BaseExpandableListAdapter mExpandleAdapter;
     private static BaseAdapter mAdapterLater, mAdapterDone;
 
+    // Needs to display the number of ideas at all time
     private static MainActivity mainActivity;
 
-    // If you change the database schema, you must increment the database version.
+    // If the database schema change, must increment the database version.
     public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "MyIdeas.db";
 
@@ -40,11 +43,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + DataEntry.TABLE_NAME;
 
+    /**
+     * This methods is used to get an instance of the class and ensure
+     * uniqueness (singleton)
+     * @param context
+     * @return the helper object
+     */
     public static synchronized DatabaseHelper getInstance(Context context) {
 
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        // See this article for more information: http://bit.ly/6LRzfx
         if (sInstance == null) {
             sInstance = new DatabaseHelper(context.getApplicationContext());
         }
@@ -56,16 +62,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    // SET ADAPTERS
+
+    public static void setAdapterIdea(BaseExpandableListAdapter adapter) {
+        mExpandleAdapter = adapter;
+    }
+
+    public static void setAdapterLater(BaseAdapter adapter) {
+        mAdapterLater = adapter;
+    }
+
+    public static void setAdapterDone(BaseAdapter adapter) {
+        mAdapterDone = adapter;
+    }
+
     private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * Nothing is created at first
+     * @param db
+     */
     public void onCreate(SQLiteDatabase db) {
-        //do nothing
+        //Do nothing
     }
 
+    /**
+     * Called when newer version of the database
+     * so users don't their data
+     * @param db
+     * @param oldVersion
+     * @param newVersion
+     */
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //TODO: change in release version
         db.execSQL(SQL_DELETE_ENTRIES);
         onCreate(db);
     }
@@ -74,7 +104,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    /**
+     * Notify the list adapters of the data changes
+     */
+    public static void notifyAllLists() {
+
+        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
+        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
+        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
+    }
+
+    //TABLE OPERATIONS
+
+    /**
+     * Creates a new table (project) in the database
+     * @param tableName
+     */
     public void newTable(String tableName) {
+
         DataEntry.setTableName(tableName);
         String SQL_NEW_TABLE =
                 "CREATE TABLE " + DataEntry.TABLE_NAME + " (" +
@@ -91,42 +138,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notifyAllLists();
     }
 
+    /**
+     * Select another table (project)
+     * @param tableName
+     */
     public void switchTable(String tableName) {
         DataEntry.setTableName(tableName);
         notifyAllLists();
     }
 
+    /**
+     * Rename the current table
+     * @param newName
+     */
     public void renameTable(String newName) {
         getWritableDatabase().execSQL("ALTER TABLE " + DataEntry.TABLE_NAME + " RENAME TO " + "[" + newName + "]");
         DataEntry.setTableName(newName);
         notifyAllLists();
     }
 
+    /**
+     * Delete the current table
+     */
     public void deleteTable() {
         String SQL_DELETE =
                 "DROP TABLE IF EXISTS " + DataEntry.TABLE_NAME;
         getWritableDatabase().execSQL(SQL_DELETE);
     }
 
+    //ENTRY OPERATIONS
 
-    public static void setAdapterIdea(BaseExpandableListAdapter adapter) {
-        mExpandleAdapter = adapter;
-    }
-
-    public static void setAdapterLater(BaseAdapter adapter) {
-        mAdapterLater = adapter;
-    }
-
-    public static void setAdapterDone(BaseAdapter adapter) {
-        mAdapterDone = adapter;
-    }
-
-    public static void notifyAllLists() {
-        if (mExpandleAdapter != null) mExpandleAdapter.notifyDataSetChanged();
-        if (mAdapterLater != null) mAdapterLater.notifyDataSetChanged();
-        if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
-    }
-
+    /**
+     * Create an entry (idea) in the current table (project)
+     * @param text
+     * @param note
+     * @param priority range from 1 (high) to 3 (low)
+     * @param later if the idea should be in the "LATER" tab
+     */
     public void newEntry(String text, String note, int priority, boolean later) {
 
         ContentValues values = new ContentValues();
@@ -144,6 +192,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values);
     }
 
+
+    /**
+     * Find an entry cursor with its id
+     * @param id
+     * @return a Cursor object containing the idea's information
+     */
     public Cursor getEntryById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] projection = {DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY, DataEntry.COLUMN_NAME_NOTE};
@@ -191,6 +245,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
+    /**
+     * Modify an entry's values
+     * @param id
+     * @param new_text
+     * @param new_note
+     * @param new_priority
+     * @param later
+     */
     public void editEntry(int id, String new_text,String new_note, int new_priority, boolean later) {
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -208,157 +270,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notifyAllLists();
     }
 
-    /**
-     * Retrieve the ideas of the NOW tab with the desired priority
-     *
-     * @param priority 0,1,2 for priority 1,2,3 respectively (-1 for all of them)
-     * @return a list of the ideas paired with their id in the database
-     */
-    public ArrayList<Pair<Integer, String>> readIdeas(int priority) {
-
-        if (!DataEntry.TABLE_NAME.equals("[]")) {
-
-            SQLiteDatabase db = this.getReadableDatabase();
-
-            // Only the text and priority will be read
-            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
-
-            // How you want the results sorted in the resulting Cursor
-            String sortOrder = DataEntry._ID + " ASC";
-
-            Cursor cursor = db.query(
-                    DataEntry.TABLE_NAME,  // The table to query
-                    projection,                               // The columns to return
-                    "later=? and done=? and temp=?",                    // The columns for the WHERE clause
-                    new String[]{"0", "0", "0"},                  // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    sortOrder                                 // The sort order
-            );
-
-            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-            Pair<Integer, String> pair;
-
-            //Scan the ideas and return only the one with the expected priority
-            if (cursor.moveToFirst()) {
-
-                while (cursor.isAfterLast() == false) {
-                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                    int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
-                    if (prio == priority + 1) {
-                        pair = new Pair<>(id, text);
-                        ideas.add(pair);
-                    } else if (priority == -1) { // if priority -1, add anyway
-                        pair = new Pair<>(id, text);
-                        ideas.add(pair);
-                    }
-                    cursor.moveToNext();
-                }
-            }
-            cursor.close();
-            return ideas;
-        }
-
-        return new ArrayList<>();
-    }
-
-    public ArrayList<Pair<Integer, String>> readIdeas(boolean later) {
-
-        if (!DataEntry.TABLE_NAME.equals("[]")) {
-
-            SQLiteDatabase db = this.getReadableDatabase();
-
-            // Only the text and priority will be read
-            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT};
-
-            // How you want the results sorted in the resulting Cursor
-            String sortOrder = DataEntry._ID + " ASC";
-            //Either get the "later" or the "done"
-            String where = "";
-            if (later) {
-                where = "later=? and temp=?";
-            } else {
-                where = "done=? and temp=?";
-            }
-
-            Cursor cursor = db.query(
-                    DataEntry.TABLE_NAME,  // The table to query
-                    projection,                               // The columns to return
-                    where,                                   // The columns for the WHERE clause
-                    new String[]{"1", "0"},                      // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    sortOrder                                 // The sort order
-            );
-
-            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-            Pair<Integer, String> pair;
-
-            //Scan the ideas and return everything
-            if (cursor.moveToFirst()) {
-
-                while (cursor.isAfterLast() == false) {
-                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                    pair = new Pair<>(id, text);
-                    ideas.add(pair);
-                    cursor.moveToNext();
-                }
-            }
-            cursor.close();
-            return ideas;
-        }
-
-        return new ArrayList<>();
-    }
-
-    /**
-     * Count the active ideas (not done) in the current project (table)
-     *
-     * @return
-     */
-    public int getIdeasCount() {
-        Cursor mCount = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME +
-                " where done=0 and temp=0", null);
-        mCount.moveToFirst();
-        int count = mCount.getInt(0);
-        mCount.close();
-        return count;
-    }
-
-    public ArrayList<Integer> readTempIdeas() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String[] projection = {DataEntry._ID};
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                "temp=?",                                   // The columns for the WHERE clause
-                new String[]{"1"},                      // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
-        );
-
-        ArrayList<Integer> temps = new ArrayList<>();
-        //Scan the ideas and return everything
-        if (cursor.moveToFirst()) {
-
-            while (cursor.isAfterLast() == false) {
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                temps.add(id);
-                cursor.moveToNext();
-            }
-        }
-        cursor.close();
-        return temps;
-    }
+    //MOVING ENTRIES
 
     public void deleteEntry(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(DataEntry.TABLE_NAME, "_id=" + id, null);
     }
 
+    /**
+     * Mark entry for deletion (temp = 1) and show a snackbar
+     * giving the option to undo the deletion, if the users does not
+     * the idea is deleted.
+     *
+     * @param view
+     * @param id
+     */
     public void deleteEntryWithSnack(View view, final int id) {
 
         moveToTemp(id);
@@ -421,6 +347,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notifyAllLists();
     }
 
+    /**
+     * Move an idea to another tab
+     * @param tabNumber
+     * @param id
+     */
     public void moveToTab(int tabNumber, int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -514,6 +445,162 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 break;
         }
         return true;
+    }
+
+    //READING OPERATIONS
+
+    /**
+     * Retrieve the ideas of the NOW tab with the desired priority
+     * @param priority 0,1,2 for priority 1,2,3 respectively (-1 for all of them)
+     * @return a list of the ideas paired with their id in the database
+     */
+    public ArrayList<Pair<Integer, String>> readIdeas(int priority) {
+
+        if (!DataEntry.TABLE_NAME.equals("[]")) {
+
+            SQLiteDatabase db = this.getReadableDatabase();
+
+            // Only the text and priority will be read
+            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY};
+
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder = DataEntry._ID + " ASC";
+
+            Cursor cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    "later=? and done=? and temp=?",                    // The columns for the WHERE clause
+                    new String[]{"0", "0", "0"},                  // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
+
+            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+            Pair<Integer, String> pair;
+
+            //Scan the ideas and return only the one with the expected priority
+            if (cursor.moveToFirst()) {
+
+                while (cursor.isAfterLast() == false) {
+                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                    int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+                    if (prio == priority + 1) {
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                    } else if (priority == -1) { // if priority -1, add anyway
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                    }
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            return ideas;
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Retrieve the ideas of the LATER or DONE tab with the desired priority
+     * @param later true for LATER tab
+     * @return a list of the ideas paired with their id in the database
+     */
+    public ArrayList<Pair<Integer, String>> readIdeas(boolean later) {
+
+        if (!DataEntry.TABLE_NAME.equals("[]")) {
+
+            SQLiteDatabase db = this.getReadableDatabase();
+
+            // Only the text and priority will be read
+            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT};
+
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder = DataEntry._ID + " ASC";
+            //Either get the "later" or the "done"
+            String where = "";
+            if (later) {
+                where = "later=? and temp=?";
+            } else {
+                where = "done=? and temp=?";
+            }
+
+            Cursor cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    where,                                   // The columns for the WHERE clause
+                    new String[]{"1", "0"},                      // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
+
+            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+            Pair<Integer, String> pair;
+
+            //Scan the ideas and return everything
+            if (cursor.moveToFirst()) {
+
+                while (cursor.isAfterLast() == false) {
+                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                    pair = new Pair<>(id, text);
+                    ideas.add(pair);
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            return ideas;
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Count the active ideas (not done) in the current project (table)
+     *
+     * @return
+     */
+    public int getIdeasCount() {
+        Cursor mCount = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME +
+                " where done=0 and temp=0", null);
+        mCount.moveToFirst();
+        int count = mCount.getInt(0);
+        mCount.close();
+        return count;
+    }
+
+    /**
+     * Get the temporary ideas (temp = 1)
+     * @return a list of their ids
+     */
+    public ArrayList<Integer> readTempIdeas() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {DataEntry._ID};
+        Cursor cursor = db.query(
+                DataEntry.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                "temp=?",                                   // The columns for the WHERE clause
+                new String[]{"1"},                      // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        ArrayList<Integer> temps = new ArrayList<>();
+        //Scan the ideas and return everything
+        if (cursor.moveToFirst()) {
+
+            while (cursor.isAfterLast() == false) {
+                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                temps.add(id);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return temps;
     }
 
 
