@@ -318,8 +318,8 @@ public class MainActivity extends AppCompatActivity {
                                             .setCallback(new Snackbar.Callback() {
                                                 @Override
                                                 public void onDismissed(Snackbar snackbar, int event) {
-                                                    mTinyDB.putBoolean("handleIdea", true);
-                                                    mTinyDB.putBoolean("firstProject", true);
+                                                    mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
+                                                    mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
                                                     firstIdeaGuide();
                                                 }
                                             });
@@ -560,7 +560,7 @@ public class MainActivity extends AppCompatActivity {
 
                             mNewIdeaDialog.dismiss();
 
-                            if (mTinyDB.getBoolean("handleIdea")) {
+                            if (mTinyDB.getBoolean(getString(R.string.handle_idea_pref))) {
                                 //move tab where idea was created
                                 int index = 0;
                                 if (later) index = 1;
@@ -730,7 +730,7 @@ public class MainActivity extends AppCompatActivity {
                         return isProjectNameAvailable(text) && !text.equals("");
                     }
                 })
-                .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                .setConfirmButton(R.string.create, new LovelyTextInputDialog.OnTextInputConfirmListener() {
                     @Override
                     public void onTextInputConfirmed(String tableName) {
 
@@ -762,7 +762,7 @@ public class MainActivity extends AppCompatActivity {
                             mViewPager.setAdapter(mSectionsPagerAdapter);
                         }
 
-                        if (mTinyDB.getBoolean("firstProject")) firstProjectGuide();
+                        if (mTinyDB.getBoolean(getString(R.string.first_project_pref))) firstProjectGuide();
                     }
                 })
                 .show();
@@ -782,7 +782,7 @@ public class MainActivity extends AppCompatActivity {
                         return !text.equals("") && isProjectNameAvailable(text);
                     }
                 })
-                .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                .setConfirmButton(R.string.rename, new LovelyTextInputDialog.OnTextInputConfirmListener() {
                     @Override
                     public void onTextInputConfirmed(String tableName) {
                         //update table's name is the list and the database
@@ -809,7 +809,7 @@ public class MainActivity extends AppCompatActivity {
                 .setIcon(R.drawable.ic_warning)
                 .setTitle("Delete project '" + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "'")
                 .setMessage(R.string.delete_pro_message)
-                .setPositiveButton(android.R.string.ok, new View.OnClickListener() {
+                .setPositiveButton(R.string.delete, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
 
@@ -895,21 +895,21 @@ public class MainActivity extends AppCompatActivity {
 
         new ShowcaseView.Builder(this)
                 .setTarget(new ViewTarget(header.getView()))
-                .setContentTitle("Your projects are in this drawer")
+                .setContentTitle(getString(R.string.first_project_title))
                 .setStyle(R.style.CustomShowcaseTheme2)
                 .replaceEndButton(R.layout.got_it)
-                .setContentText("Click on the header to switch to the project manager")
+                .setContentText(getString(R.string.first_project_content))
                 .blockAllTouches()
                 .build()
                 .show();
-        mTinyDB.putBoolean("firstProject", false);
+        mTinyDB.putBoolean(getString(R.string.first_project_pref), false);
     }
 
     private void firstIdeaGuide() {
 
         mFirstIdeaguide = new ShowcaseView.Builder(this)
                 .setTarget(new ViewTarget(mFab))
-                .setContentTitle("Create ideas for your project")
+                .setContentTitle(getString(R.string.first_idea_title))
                 .setStyle(R.style.CustomShowcaseTheme2)
                 .replaceEndButton(R.layout.empty_layout)
                 .build();
@@ -918,7 +918,7 @@ public class MainActivity extends AppCompatActivity {
 
         append.closeDrawer();
         result.closeDrawer();
-        mTinyDB.putBoolean("firstIdea", false);
+        mTinyDB.putBoolean(getString(R.string.first_idea_pref), false);
     }
 
     private void handleIdeaGuide() {
@@ -927,15 +927,15 @@ public class MainActivity extends AppCompatActivity {
 
         mFirstIdeaguide = new ShowcaseView.Builder(this)
                 .setTarget(new ViewTarget(firstIdea))
-                .setContentTitle("Manage your ideas")
-                .setContentText("Try click, long click and swipe on the ideas")
+                .setContentTitle(getString(R.string.handle_idea_title))
+                .setContentText(getString(R.string.handle_idea_content))
                 .setStyle(R.style.CustomShowcaseTheme2)
                 .replaceEndButton(R.layout.got_it)
                 .blockAllTouches()
                 .build();
 
         mFirstIdeaguide.show();
-        mTinyDB.putBoolean("handleIdea", false);
+        mTinyDB.putBoolean(getString(R.string.handle_idea_pref), false);
     }
 
 
@@ -1341,7 +1341,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawerClosed(View drawerView) {
 
-            if (mTinyDB.getBoolean("firstIdea") && !mNoTable) {
+            if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoTable) {
                 firstIdeaGuide();
             }
         }
