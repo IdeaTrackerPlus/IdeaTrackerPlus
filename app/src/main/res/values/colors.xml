@@ -1,19 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#F39C12</color>
-    <color name="blue">#3361FF</color>
-    <color name="purple">#8F57FF</color>
-    <color name="purple2">#5821C8</color>
-    <color name="pink">#E13861</color>
+    <color name="colorPrimary">@color/md_blue_grey_800</color>
+    <color name="colorPrimaryDark">@color/md_blue_grey_900</color>
+    <color name="colorAccent">@color/md_teal_a400</color>
     <color name="red">#FF3030</color>
-    <color name="green">#2ECC71</color>
     <color name="white">#FFFFFF</color>
-    <color name="orange">#FFA539</color>
-    <color name="priority1">#BEF83636</color>
-    <color name="priority2">#BEF8A836</color>
-    <color name="priority3">#BE54C649</color>
+    <color name="priority1">@color/md_red_400</color>
+    <color name="priority2">@color/md_amber_400</color>
+    <color name="priority3">@color/md_blue_400</color>
 
     <array name="colors">
         <item>@color/md_red_500</item>
@@ -33,16 +27,43 @@
         <item>@color/md_deep_orange_500</item>
         <item>@color/md_grey_600</item>
         <item>@color/md_grey_800</item>
+        <item>@color/md_grey_900</item>
         <item>@color/md_blue_grey_600</item>
         <item>@color/md_blue_grey_800</item>
+        <item>@color/md_blue_grey_900</item>
+    </array>
+
+    <array name="accent_colors">
+        <item>@color/md_red_a400</item>
+        <item>@color/md_pink_a400</item>
+        <item>@color/md_purple_a400</item>
+        <item>@color/md_deep_purple_a400</item>
+        <item>@color/md_indigo_a400</item>
+        <item>@color/md_blue_a400</item>
+        <item>@color/md_light_blue_a400</item>
+        <item>@color/md_cyan_a400</item>
+        <item>@color/md_teal_a400</item>
+        <item>@color/md_green_a400</item>
+        <item>@color/md_light_green_a400</item>
+        <item>@color/md_yellow_a400</item>
+        <item>@color/md_amber_a400</item>
+        <item>@color/md_orange_a400</item>
+        <item>@color/md_deep_orange_a400</item>
     </array>
 
     <array name="textColors">
-        <item>@color/md_grey_600</item>
-        <item>@color/md_grey_800</item>
-        <item>@color/md_blue_grey_600</item>
-        <item>@color/md_blue_grey_800</item>
         <item>@color/md_white</item>
+        <item>@color/md_grey_200</item>
+        <item>@color/md_grey_400</item>
+        <item>@color/md_blue_grey_200</item>
+        <item>@color/md_blue_grey_400</item>
+        <item>@color/md_red_a400</item>
+        <item>@color/md_pink_a400</item>
+        <item>@color/md_blue_a400</item>
+        <item>@color/md_indigo_a400</item>
+        <item>@color/md_green_a400</item>
+        <item>@color/md_amber_a400</item>
+        <item>@color/md_black</item>
     </array>
 
 

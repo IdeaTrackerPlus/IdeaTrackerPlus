@@ -180,8 +180,8 @@ public class MainActivity extends AppCompatActivity {
         introOnFirstStart();
 
         //Default colors
-        defaultPrimaryColor = getResources().getColor(R.color.md_indigo_500);
-        defaultSecondaryColor = getResources().getColor(R.color.md_orange_500);
+        defaultPrimaryColor = getResources().getColor(R.color.md_blue_grey_800);
+        defaultSecondaryColor = getResources().getColor(R.color.md_teal_a400);
         defaultTextColor = getResources().getColor(R.color.md_white);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -392,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(5).withName(R.string.expand_collapse).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
-                .withFooter(R.layout.footer)
+                .withStickyFooter(R.layout.footer)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
                                 case 2:
                                     new SpectrumDialog.Builder(getApplicationContext())
                                             .setTitle(R.string.select_sec_col)
-                                            .setColors(R.array.colors)
+                                            .setColors(R.array.accent_colors)
                                             .setSelectedColor(mSecondaryColor)
                                             .setDismissOnColorSelected(false)
                                             .setFixedColumnCount(4)
@@ -908,8 +908,6 @@ public class MainActivity extends AppCompatActivity {
             displayIdeasCount();
 
             switchToProjectColors();
-        } else {
-            //TODO: No table to show
         }
 
     }

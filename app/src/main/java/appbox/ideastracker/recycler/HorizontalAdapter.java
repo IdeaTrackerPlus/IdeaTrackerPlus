@@ -74,7 +74,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 0: //Quick action send to LATER
                         holder.txtView.setText("LATER");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
-                        holder.txtView.setBackgroundResource(R.color.pink);
+                        holder.txtView.setBackgroundResource(R.color.md_pink_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
 
@@ -95,7 +95,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 2: //Quick action send to DONE
                         holder.txtView.setText("DONE");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-                        holder.txtView.setBackgroundResource(R.color.orange);
+                        holder.txtView.setBackgroundResource(R.color.md_green_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
                 }
@@ -128,7 +128,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 2: //Quick action send to NOW
                         holder.txtView.setText("NOW");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-                        holder.txtView.setBackgroundResource(R.color.green);
+                        holder.txtView.setBackgroundResource(R.color.md_indigo_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
                 }
@@ -161,7 +161,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 2: //Quick action send to RECOVER
                         holder.txtView.setText("RECOVER");
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-                        holder.txtView.setBackgroundResource(R.color.purple);
+                        holder.txtView.setBackgroundResource(R.color.md_indigo_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
                 }

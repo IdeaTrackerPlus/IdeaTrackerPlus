@@ -62,11 +62,11 @@
     <string name="big_text_pref">bigTextSwitch</string>
     <string name="big_text_msg">Bigger text for ideas</string>
     <string name="first_project_title">Your projects are in this drawer</string>
-    <string name="first_project_content">Click on the header to switch to the project manager</string>
+    <string name="first_project_content">Click on the header to switch to the menu</string>
     <string name="first_project_pref">firstProject</string>
     <string name="handle_idea_pref">handleIdea</string>
     <string name="first_idea_pref">firstIdea</string>
-    <string name="first_idea_title">Add your first idea to your project</string>
+    <string name="first_idea_title">Add your first idea</string>
     <string name="handle_idea_title">Manage your ideas</string>
     <string name="handle_idea_content">Try click, long click and swipe on the ideas</string>
     <string name="dont_forget">Don\'t forget to type your idea</string>
@@ -85,13 +85,11 @@
     </string-array>
 
     <string-array name="done_cheers">
-        <item>Nice one!</item>
-        <item>That was a tough one.</item>
-        <item>One more done.</item>
-        <item>This project is looking good!</item>
-        <item>One step closer.</item>
-        <item>Done!</item>
-        <item>Truly awesome.</item>
+        <item>Nice one</item>
+        <item>One more done</item>
+        <item>This project is looking good</item>
+        <item>One step closer</item>
+        <item>Truly awesome</item>
     </string-array>
 
 </resources>
