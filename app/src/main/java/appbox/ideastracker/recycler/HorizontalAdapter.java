@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycleview;
+package appbox.ideastracker.recycler;
 
 import android.graphics.Color;
 import android.os.Build;

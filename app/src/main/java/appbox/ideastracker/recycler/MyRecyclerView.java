@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycleview;
+package appbox.ideastracker.recycler;
 
 import android.content.Context;
 import android.support.design.widget.Snackbar;

@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycleview;
+package appbox.ideastracker.recycler;
 
 import android.view.View;
 

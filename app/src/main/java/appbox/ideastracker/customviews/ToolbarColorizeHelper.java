@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package appbox.ideastracker.customviews;
 
 /*
 Copyright 2015 Michal Pawlowski
@@ -30,6 +30,8 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 
 import java.util.ArrayList;
+
+import appbox.ideastracker.R;
 
 /**
  * Helper class that iterates through Toolbar views, and sets dynamically icons and texts color

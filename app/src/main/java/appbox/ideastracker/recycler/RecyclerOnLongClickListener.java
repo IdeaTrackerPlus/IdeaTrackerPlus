@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycleview;
+package appbox.ideastracker.recycler;
 
 import android.app.Dialog;
 import android.text.Editable;

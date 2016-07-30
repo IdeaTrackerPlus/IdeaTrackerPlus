@@ -67,26 +67,35 @@ import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 import java.util.ArrayList;
 import java.util.List;
 
+import appbox.ideastracker.customviews.AnimatedExpandableListView;
+import appbox.ideastracker.customviews.NonSwipeableViewPager;
+import appbox.ideastracker.customviews.ToolbarColorizeHelper;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
+import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.listadapters.MyCustomAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
-import appbox.ideastracker.recycleview.HorizontalAdapter;
-import appbox.ideastracker.recycleview.RecyclerOnClickListener;
-import appbox.ideastracker.recycleview.RecyclerOnLongClickListener;
+import appbox.ideastracker.recycler.HorizontalAdapter;
+import appbox.ideastracker.recycler.RecyclerOnClickListener;
+import appbox.ideastracker.recycler.RecyclerOnLongClickListener;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper mDbHelper;
 
-    private Drawer result = null;
-    private Drawer append = null;
+    // Drawers items
+    private Drawer leftDrawer = null;
+    private Drawer rightDrawer = null;
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem cheerSwitch;
     private SwitchDrawerItem bigTextSwitch;
+    private PrimaryDrawerItem mColorItem1;
+    private PrimaryDrawerItem mColorItem2;
+    private PrimaryDrawerItem mColorItem3;
 
+    // UI elements
     private Toolbar mToolbar;
     private FloatingActionButton mFab;
     private FragmentManager mFragmentManager;
@@ -94,10 +103,18 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
 
+    // Dialogs
     private Dialog mMoveDialog;
     private Dialog mNewIdeaDialog;
 
+    // Dialogs views
+    private RadioGroup mRadioGroup;
+    private TextView mIdeaError;
+    private TextView mMoveError;
+    private EditText mIdeaField;
+    private Spinner mFromSpinner, mToSpinner;
 
+    // Preferences
     private TinyDB mTinyDB;
     private static final String PREF_KEY = "MyPrefKey";
     private int mPrimaryColor;
@@ -106,24 +123,46 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Object> mProjects;
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
-    private boolean mNoTable = false;
+    private boolean mNoProject = false;
 
-    private RadioGroup mRadioGroup;
-    private TextView mIdeaError;
-    private TextView mMoveError;
-    private EditText mIdeaField;
-    private Spinner mFromSpinner, mToSpinner;
-
-    private ShowcaseView mFirstIdeaguide;
-
+    // Color preferences
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
 
-    private PrimaryDrawerItem mColorItem1;
-    private PrimaryDrawerItem mColorItem2;
-    private PrimaryDrawerItem mColorItem3;
+    // Tutorial element
+    private ShowcaseView mFirstIdeaguide;
 
+
+
+    // STATIC METHODS //
+
+    public static MainActivity getActivity(View v) {
+
+        Context context = v.getContext();
+        while (context instanceof ContextWrapper) {
+            if (context instanceof MainActivity) {
+                return (MainActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+    public static MainActivity getActivity(Context context) {
+
+        while (context instanceof ContextWrapper) {
+            if (context instanceof MainActivity) {
+                return (MainActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+
+
+    // OVERRODE METHODS //
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -187,62 +226,57 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public static MainActivity getActivity(View v) {
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+    }
 
-        Context context = v.getContext();
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        //add the values which need to be saved from the drawer to the bundle
+        outState = leftDrawer.saveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //handle the back press :D close the drawer first and if the drawer is closed close the activity
+        if (leftDrawer != null && leftDrawer.isDrawerOpen()) {
+            leftDrawer.closeDrawer();
+        } else {
+            super.onBackPressed();
         }
-        return null;
     }
 
-    public static MainActivity getActivity(Context context) {
-
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
-    private void introOnFirstStart() {
-        //  Declare a new thread to do a preference check
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                //  Create a new boolean and preference and set it to true
-                boolean firstStart = mTinyDB.getBoolean("firstStart");
-
-                //  If the activity has never started before...
-                if (firstStart) {
-
-                    forceIntro();
-
-                    mTinyDB.putBoolean("firstStart", false);
-                }
-            }
-        });
-
-        t.start();
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (!mNoProject) rightDrawer.openDrawer();
+        return super.onOptionsItemSelected(item);
     }
 
-    private void forceIntro() {
-        Intent i = new Intent(MainActivity.this, MyIntro.class);
-        startActivity(i);
-    }
 
+
+    // ON CREATE SET UP METHODS //
+
+    // Creates and fill the right and left drawers
     private void setUpDrawers(Bundle savedInstanceState) {
 
         //HEADER
         header = new AccountHeaderBuilder()
                 .withActivity(this)
-                .withOnAccountHeaderListener(header_listener)
                 .withHeaderBackground(R.drawable.header)
                 .withProfiles(mProfiles)
                 .withProfileImagesVisible(false)
@@ -253,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
         setUpSwitches();
 
         //LEFT DRAWER
-        result = new DrawerBuilder(this)
+        leftDrawer = new DrawerBuilder(this)
                 .withToolbar(mToolbar)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
@@ -281,27 +315,27 @@ public class MainActivity extends AppCompatActivity {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
                                 case 1:
-                                    if (!mNoTable) {
-                                        renameTableDialog();
+                                    if (!mNoProject) {
+                                        renameProjectDialog();
                                     } else {
                                         noProjectSnack();
                                     }
                                     break;
 
                                 case 2:
-                                    if (!mNoTable) {
-                                        deleteTableDialog();
+                                    if (!mNoProject) {
+                                        deleteProjectDialog();
                                     } else {
                                         noProjectSnack();
                                     }
                                     break;
 
                                 case 3:
-                                    newTableDialog();
+                                    newProjectDialog();
                                     break;
 
                                 case 4:
-                                    if (!mNoTable) {
+                                    if (!mNoProject) {
                                         header.toggleSelectionList(getApplicationContext());
                                     } else {
                                         noProjectSnack();
@@ -313,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 9:
-                                    result.closeDrawer();
+                                    leftDrawer.closeDrawer();
                                     Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
                                             .setCallback(new Snackbar.Callback() {
                                                 @Override
@@ -344,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
         mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
 
         //RIGHT DRAWER
-        append = new DrawerBuilder(this)
+        rightDrawer = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
                 .addDrawerItems(
@@ -363,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
 
-                        if (drawerItem != null && !mNoTable) {
+                        if (drawerItem != null && !mNoProject) {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
                                 case 1:
@@ -455,10 +489,10 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .withOnDrawerListener(new MyDrawerListener())
                 .withSavedInstance(savedInstanceState)
-                .append(result);
+                .append(leftDrawer);
 
         //Select first one
-        if (!mNoTable) {
+        if (!mNoProject) {
             mSelectedProfileIndex = 0;
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
             String activeProfileName = activeProfile.getName().getText();
@@ -479,11 +513,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
 
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
-        else toggleTab(false);
+        else toggleDoneTab();
 
         cheerSwitch = new SwitchDrawerItem().withName(R.string.show_cheer_msg).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_cheer_pref))) cheerSwitch.withChecked(true);
@@ -496,34 +531,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-    }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the drawer to the bundle
-        outState = result.saveInstanceState(outState);
-        super.onSaveInstanceState(outState);
-    }
+    // DIALOG METHODS //
 
-    @Override
-    public void onBackPressed() {
-        //handle the back press :D close the drawer first and if the drawer is closed close the activity
-        if (result != null && result.isDrawerOpen()) {
-            result.closeDrawer();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
+    // Shows an idea creation dialog
     public void newIdeaDialog() {
 
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
@@ -585,6 +597,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Shows and idea creation dialog
+    // pre-select the given priority
     public void newIdeaDialog(int priority) {
 
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
@@ -649,6 +663,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Shows a dialog allowing to move ideas from tab to tab
     private void newMoveDialog() {
 
         final View root = findViewById(R.id.main_content);
@@ -697,7 +712,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                             mMoveDialog.dismiss();
-                            append.closeDrawer();
+                            rightDrawer.closeDrawer();
                             snackbar.show();
                         } else {
                             mMoveError.setText(errorText);
@@ -716,7 +731,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void newTableDialog() {
+    // Shows a project creation dialog
+    private void newProjectDialog() {
 
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
@@ -749,14 +765,14 @@ public class MainActivity extends AppCompatActivity {
                         mSelectedProfileIndex = mProfiles.size() - 1;
                         switchToProjectColors();
 
-                        result.openDrawer();
+                        leftDrawer.openDrawer();
                         header.toggleSelectionList(getApplicationContext());
                         mToolbar.setTitle(tableName);
                         displayIdeasCount();
 
-                        if (mNoTable) {
+                        if (mNoProject) {
                             mFab.setVisibility(View.VISIBLE);
-                            mNoTable = false;
+                            mNoProject = false;
 
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -768,7 +784,8 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void renameTableDialog() {
+    // Show a dialog to rename the current project
+    private void renameProjectDialog() {
 
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
@@ -802,7 +819,8 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void deleteTableDialog() {
+    // Shows a dialog to delete the current project
+    private void deleteProjectDialog() {
         new LovelyStandardDialog(this)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
@@ -822,7 +840,7 @@ public class MainActivity extends AppCompatActivity {
                             mFab.setVisibility(View.INVISIBLE);
                             header.setProfiles(mProfiles);
                             header.setSelectionSecondLine(getString(R.string.no_project));
-                            mNoTable = true;
+                            mNoProject = true;
 
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -833,13 +851,14 @@ public class MainActivity extends AppCompatActivity {
                             mTextColor = defaultTextColor;
                             updateColors();
                         }
-                        switchToExistingTable(mSelectedProfileIndex);
+                        switchToExistingProject(mSelectedProfileIndex);
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
 
+    // Shows a dialog to reset color preferences to default
     private void resetColorsDialog() {
         new LovelyStandardDialog(this)
                 .setTopColor(mPrimaryColor)
@@ -868,7 +887,11 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void switchToExistingTable(int index) {
+    /**
+     * After project deletion, selects another project
+     * @param index the index of the deleted project
+     */
+    private void switchToExistingProject(int index) {
         index -= 1;
         boolean inBounds = (index >= 0) && (index < mProfiles.size());
 
@@ -891,6 +914,40 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
+    // TUTORIAL AND INTRO METHODS //
+
+    // Launch the app introduction only for the first start
+    private void introOnFirstStart() {
+        //  Declare a new thread to do a preference check
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                //  Create a new boolean and preference and set it to true
+                boolean firstStart = mTinyDB.getBoolean("firstStart");
+
+                //  If the activity has never started before...
+                if (firstStart) {
+
+                    forceIntro();
+
+                    mTinyDB.putBoolean("firstStart", false);
+                }
+            }
+        });
+
+        t.start();
+    }
+
+    // Launch the app introduction
+    private void forceIntro() {
+        Intent i = new Intent(MainActivity.this, MyIntro.class);
+        startActivity(i);
+    }
+
+    // Shows the tutorial for the first project creation
     private void firstProjectGuide() {
 
         new ShowcaseView.Builder(this)
@@ -905,6 +962,7 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB.putBoolean(getString(R.string.first_project_pref), false);
     }
 
+    // Shows the tutorial for the first idea creation
     private void firstIdeaGuide() {
 
         mFirstIdeaguide = new ShowcaseView.Builder(this)
@@ -916,11 +974,12 @@ public class MainActivity extends AppCompatActivity {
 
         mFirstIdeaguide.show();
 
-        append.closeDrawer();
-        result.closeDrawer();
+        rightDrawer.closeDrawer();
+        leftDrawer.closeDrawer();
         mTinyDB.putBoolean(getString(R.string.first_idea_pref), false);
     }
 
+    // Shows the tutorial on how interacting with ideas
     private void handleIdeaGuide() {
 
         View firstIdea = findViewById(R.id.firstIdea);
@@ -939,6 +998,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    // UI COLOR METHODS //
+
     @SuppressWarnings("ConstantConditions")
     private void changePrimaryColor() {
 
@@ -956,7 +1018,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mColorItem1.withIconColor(mPrimaryColor);
-        append.updateItem(mColorItem1);
+        rightDrawer.updateItem(mColorItem1);
 
         RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
         RecyclerOnLongClickListener.setPrimaryColor(mPrimaryColor);
@@ -970,7 +1032,7 @@ public class MainActivity extends AppCompatActivity {
         mFab.setBackgroundTintList(ColorStateList.valueOf(mSecondaryColor));
 
         mColorItem2.withIconColor(mSecondaryColor);
-        append.updateItem(mColorItem2);
+        rightDrawer.updateItem(mColorItem2);
     }
 
     private void changeTextColor() {
@@ -983,16 +1045,18 @@ public class MainActivity extends AppCompatActivity {
         ToolbarColorizeHelper.colorizeToolbar(mToolbar, mTextColor, this);
 
         mColorItem3.withIconColor(mTextColor);
-        append.updateItem(mColorItem3);
+        rightDrawer.updateItem(mColorItem3);
 
     }
 
+    // Change all UI colors to match the color attributes
     private void updateColors() {
         changePrimaryColor();
         changeSecondaryColor();
         changeTextColor();
     }
 
+    // Change all UI colors to match the selected project preferences
     private void switchToProjectColors() {
         Project selectedProject = (Project) mProjects.get(mSelectedProfileIndex);
         mPrimaryColor = selectedProject.getPrimaryColor();
@@ -1005,12 +1069,13 @@ public class MainActivity extends AppCompatActivity {
         mColorItem2.withIconColor(mSecondaryColor);
         mColorItem3.withIconColor(mTextColor);
 
-        append.updateItem(mColorItem1);
-        append.updateItem(mColorItem2);
-        append.updateItem(mColorItem3);
+        rightDrawer.updateItem(mColorItem1);
+        rightDrawer.updateItem(mColorItem2);
+        rightDrawer.updateItem(mColorItem3);
 
     }
 
+    // Makes a color darker
     private int darken(int color) {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
@@ -1019,6 +1084,39 @@ public class MainActivity extends AppCompatActivity {
         return color;
     }
 
+
+
+    // UI METHODS //
+
+    // Shows/hide the DONE tab
+    private void toggleDoneTab() {
+
+        int count = tabLayout.getTabCount();
+
+        for (int i = 0; i < count; i++) {
+            if (tabLayout.getTabAt(i).getText().equals("Done")) {
+                tabLayout.removeTabAt(i);
+                mSectionsPagerAdapter.setTabCount(2);
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                mTinyDB.putBoolean(getString(R.string.show_done_pref), false);
+                return;
+            }
+        }
+        tabLayout.addTab(tabLayout.newTab().setText("Done"));
+        mSectionsPagerAdapter.setTabCount(3);
+        mViewPager.setAdapter(null);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mTinyDB.putBoolean(getString(R.string.show_done_pref), true);
+
+
+    }
+
+
+
+    // PROJECT METHODS //
+
+    // Saves a project in the TinyDB
     private void saveProject(Project p) {
 
         if (mProjects == null) {
@@ -1031,6 +1129,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Saves color preferences for the current project
     private void saveProjectColors() {
         Project p = (Project) mProjects.get(mSelectedProfileIndex);
         p.setPrimaryColor(mPrimaryColor);
@@ -1059,6 +1158,7 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB.putListObject(PREF_KEY, mProjects);
     }
 
+    // Fills the project and profile lists with the projects saved in the TinyDB
     private void loadProjects() {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
@@ -1066,7 +1166,7 @@ public class MainActivity extends AppCompatActivity {
             DataEntry.setTableName("");
             mToolbar.setTitle(R.string.app_name);
             mFab.setVisibility(View.INVISIBLE);
-            mNoTable = true;
+            mNoProject = true;
         }
 
         mProfiles = new ArrayList<>();
@@ -1092,27 +1192,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Shows a snackbar message to tell the user there's no project
     private void noProjectSnack() {
-        result.closeDrawer();
-        append.closeDrawer();
+        leftDrawer.closeDrawer();
+        rightDrawer.closeDrawer();
         Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (!mNoTable) append.openDrawer();
-        return super.onOptionsItemSelected(item);
-    }
+
+    // FRAGMENT CLASSES //
 
     /**
-     * A placeholder fragment containing a simple view.
+     * Fragment containing the listView to be displayed in each tab
      */
     public static class ListFragment extends Fragment {
         /**
@@ -1151,7 +1243,7 @@ public class MainActivity extends AppCompatActivity {
                 lin.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mainActivity.newTableDialog();
+                        mainActivity.newProjectDialog();
                     }
                 });
                 return rootView;
@@ -1237,8 +1329,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
+     * Fragment adapter creating the right fragment for the right tab
      */
     private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -1260,7 +1351,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return tabCount;
         }
 
@@ -1277,6 +1367,10 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
+
+
+
+    // LISTENERS //
 
     private class HideErrorOnTextChanged implements TextWatcher {
 
@@ -1309,9 +1403,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Click listener for drawer profiles
     private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
         @Override
         public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+
             if (drawerItem != null && drawerItem instanceof IProfile) {
                 mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
@@ -1324,13 +1420,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private AccountHeader.OnAccountHeaderListener header_listener = new AccountHeader.OnAccountHeaderListener() {
-        @Override
-        public boolean onProfileChanged(View view, IProfile profile, boolean current) {
-            return true;
-        }
-    };
-
+    // Listener to trigger tutorial when drawer is closed
     private class MyDrawerListener implements Drawer.OnDrawerListener {
 
         @Override
@@ -1341,7 +1431,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawerClosed(View drawerView) {
 
-            if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoTable) {
+            if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject) {
                 firstIdeaGuide();
             }
         }
@@ -1351,7 +1441,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    // Listener for the settings switches in the left drawer
     private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
@@ -1359,11 +1449,11 @@ public class MainActivity extends AppCompatActivity {
             int id = (int) drawerItem.getIdentifier();
             switch (id) {
                 case 5:
-                    toggleTab(true);
+                    toggleDoneTab();
                     break;
 
                 case 6:
-                    toggleTab(false);
+                    toggleDoneTab();
                     break;
 
                 case 7:
@@ -1391,28 +1481,5 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-
-    private void toggleTab(boolean later) {
-
-        int count = tabLayout.getTabCount();
-
-        for (int i = 0; i < count; i++) {
-            if (tabLayout.getTabAt(i).getText().equals("Done")) {
-                tabLayout.removeTabAt(i);
-                mSectionsPagerAdapter.setTabCount(2);
-                mViewPager.setAdapter(null);
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                mTinyDB.putBoolean(getString(R.string.show_done_pref), false);
-                return;
-            }
-        }
-        tabLayout.addTab(tabLayout.newTab().setText("Done"));
-        mSectionsPagerAdapter.setTabCount(3);
-        mViewPager.setAdapter(null);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-        mTinyDB.putBoolean(getString(R.string.show_done_pref), true);
-
-
-    }
 
 }

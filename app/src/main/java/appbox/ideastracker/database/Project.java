@@ -1,11 +1,17 @@
-package appbox.ideastracker;
+package appbox.ideastracker.database;
 
 /**
- * Created by Nicklos on 23/07/2016.
+ * This class represents a project to be stored in the TinyDB.
+ *
+ * It does not contain the ideas, basically just the name
+ * of the table in the database that gives access to the ideas.
  */
 public class Project {
 
+    // Name of the table in the database, also name of the project
     private String mName;
+
+    // Color preferences
     private int mPrimaryColor;
     private int mSecondaryColor;
     private int mTextColor;
@@ -16,6 +22,8 @@ public class Project {
         mSecondaryColor = secondaryColor;
         mTextColor = textColor;
     }
+
+    // GETTERs AND SETTERS //
 
     public int getTextColor() {
         return mTextColor;

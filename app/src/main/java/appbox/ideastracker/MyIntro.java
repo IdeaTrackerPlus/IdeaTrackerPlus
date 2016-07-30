@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import com.github.paolorotolo.appintro.AppIntro;
 import com.github.paolorotolo.appintro.AppIntro2;
 import com.github.paolorotolo.appintro.AppIntroFragment;
 
+/**
+ * App introduction activity, showing a short slide show
+ * and describing the app
+ */
 public class MyIntro extends AppIntro2 {
 
     @Override

@@ -12,8 +12,8 @@ import java.util.ArrayList;
 
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.recycleview.HorizontalAdapter;
-import appbox.ideastracker.recycleview.MyRecyclerView;
+import appbox.ideastracker.recycler.HorizontalAdapter;
+import appbox.ideastracker.recycler.MyRecyclerView;
 
 /**
  * Created by Nicklos on 13/07/2016.

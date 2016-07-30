@@ -37,14 +37,14 @@
         </android.support.design.widget.AppBarLayout>
 
 
-        <appbox.ideastracker.NonSwipeableViewPager
+        <appbox.ideastracker.customviews.NonSwipeableViewPager
             android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/appbar"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        </appbox.ideastracker.NonSwipeableViewPager>
+        </appbox.ideastracker.customviews.NonSwipeableViewPager>
 
         <Button
             android:id="@+id/firstIdea"

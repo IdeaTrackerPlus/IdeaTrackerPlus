@@ -12,11 +12,11 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import appbox.ideastracker.AnimatedExpandableListView;
+import appbox.ideastracker.customviews.AnimatedExpandableListView;
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.recycleview.HorizontalAdapter;
-import appbox.ideastracker.recycleview.MyRecyclerView;
+import appbox.ideastracker.recycler.HorizontalAdapter;
+import appbox.ideastracker.recycler.MyRecyclerView;
 
 /**
  * Created by Nicklos on 30/06/2016.

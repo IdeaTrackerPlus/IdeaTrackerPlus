@@ -1,11 +1,14 @@
-package appbox.ideastracker;
+package appbox.ideastracker.customviews;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 /**
- * Created by Nicklos on 13/07/2016.
+ * Custom ViewPager preventing horizontal swiping to switch between tabs.
+ *
+ * The swipe event needs to be handle by the MyRecyclerView to
+ * trigger quick actions on ideas.
  */
 public class NonSwipeableViewPager extends ViewPager {
 

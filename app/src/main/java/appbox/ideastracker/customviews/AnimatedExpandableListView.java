@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package appbox.ideastracker.customviews;
 
 /*
  * Copyright (C) 2014 Gary Guo
@@ -35,7 +35,6 @@ import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.ListView;
 
 /**
  * This class defines an ExpandableListView which supports animations for
