@@ -35,7 +35,6 @@
     <string name="trash">Trash</string>
     <string name="new_pro_message">Give it an awesome name</string>
     <string name="name_taken">Project name already exists</string>
-    <string name="try_longer">Project name can't be empty</string>
     <string name="rename_pro_message">Give it a better name</string>
     <string name="delete_pro_message">And its ideas too</string>
     <string name="no_project">No project</string>
@@ -70,6 +69,7 @@
     <string name="first_idea_title">Add your first idea to your project</string>
     <string name="handle_idea_title">Manage your ideas</string>
     <string name="handle_idea_content">Try click, long click and swipe on the ideas</string>
+    <string name="dont_forget">Don\'t forget to type your idea</string>
 
     <string-array name="array_from">
         <item>Done</item>
