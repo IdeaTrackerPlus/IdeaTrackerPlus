@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
@@ -134,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
     private ShowcaseView mFirstIdeaguide;
 
 
-
     // STATIC METHODS //
 
     public static MainActivity getActivity(View v) {
@@ -161,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // OVERRODE METHODS //
 
     @SuppressWarnings("ConstantConditions")
@@ -172,7 +171,9 @@ public class MainActivity extends AppCompatActivity {
 
         DatabaseHelper.setMainActivity(this);
 
+        // Databases
         mTinyDB = new TinyDB(this);
+        mDbHelper = DatabaseHelper.getInstance(this);
 
         introOnFirstStart();
 
@@ -181,17 +182,12 @@ public class MainActivity extends AppCompatActivity {
         defaultSecondaryColor = getResources().getColor(R.color.md_green_a400);
         defaultTextColor = getResources().getColor(R.color.md_white);
 
+        // Toolbar
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
+        // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
-
-        //Get the database helper
-        mDbHelper = DatabaseHelper.getInstance(this);
-
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
 
         // Set up the ViewPager with the sections adapter.
@@ -203,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
         tabLayout.setSelectedTabIndicatorHeight(10);
 
+        // Wire the floating button
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -265,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // ON CREATE SET UP METHODS //
 
     // Creates and fill the right and left drawers
@@ -280,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        //SWITCHs
+        //SWITCHES
         setUpSwitches();
 
         //LEFT DRAWER
@@ -298,10 +294,12 @@ public class MainActivity extends AppCompatActivity {
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName("Settings").withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
                                 doneSwitch, cheerSwitch, bigTextSwitch),
-                        new ExpandableDrawerItem().withName("Help").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
+                        new ExpandableDrawerItem().withName("Help & feedback").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName("See app intro again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName("Activate tutorial again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
-                                new SecondaryDrawerItem().withName("Report a bug").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false))
+                                new SecondaryDrawerItem().withName("Rate " + getString(R.string.app_name)).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
+                                new SecondaryDrawerItem().withName("Report a bug").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
+                                new SecondaryDrawerItem().withName("Source code").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false))
 
 
                 )
@@ -358,7 +356,19 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 10:
-                                    //TODO: report a bug
+                                    // Open browser to github issues section
+                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker/issues"));
+                                    startActivity(browserIntent);
+                                    break;
+
+                                case 11:
+                                    // Rate
+                                    break;
+
+                                case 12:
+                                    // Open browser to github source code
+                                    Intent browserSource = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker"));
+                                    startActivity(browserSource);
                                     break;
 
                             }
@@ -521,13 +531,12 @@ public class MainActivity extends AppCompatActivity {
         if (mTinyDB.getBoolean(getString(R.string.show_cheer_pref))) cheerSwitch.withChecked(true);
 
         bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)){
+        if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
             bigTextSwitch.withChecked(true);
             HorizontalAdapter.setBigText(true);
         }
 
     }
-
 
 
     // DIALOG METHODS //
@@ -775,7 +784,8 @@ public class MainActivity extends AppCompatActivity {
                             mViewPager.setAdapter(mSectionsPagerAdapter);
                         }
 
-                        if (mTinyDB.getBoolean(getString(R.string.first_project_pref))) firstProjectGuide();
+                        if (mTinyDB.getBoolean(getString(R.string.first_project_pref)))
+                            firstProjectGuide();
                     }
                 })
                 .show();
@@ -886,6 +896,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * After project deletion, selects another project
+     *
      * @param index the index of the deleted project
      */
     private void switchToExistingProject(int index) {
@@ -908,7 +919,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
 
     // TUTORIAL AND INTRO METHODS //
@@ -991,7 +1001,6 @@ public class MainActivity extends AppCompatActivity {
         mFirstIdeaguide.show();
         mTinyDB.putBoolean(getString(R.string.handle_idea_pref), false);
     }
-
 
 
     // UI COLOR METHODS //
@@ -1080,7 +1089,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // UI METHODS //
 
     // Shows/hide the DONE tab
@@ -1106,7 +1114,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
 
 
     // PROJECT METHODS //
@@ -1193,7 +1200,6 @@ public class MainActivity extends AppCompatActivity {
         rightDrawer.closeDrawer();
         Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
     }
-
 
 
     // FRAGMENT CLASSES //
@@ -1364,7 +1370,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // LISTENERS //
 
     private class HideErrorOnTextChanged implements TextWatcher {
@@ -1462,12 +1467,12 @@ public class MainActivity extends AppCompatActivity {
                 case 20:
                     if (isChecked) {
                         HorizontalAdapter.setBigText(true);
-                        mTinyDB.putBoolean(getString(R.string.big_text_pref),true);
+                        mTinyDB.putBoolean(getString(R.string.big_text_pref), true);
                         DatabaseHelper.notifyAllLists();
 
                     } else {
                         HorizontalAdapter.setBigText(false);
-                        mTinyDB.putBoolean(getString(R.string.big_text_pref),false);
+                        mTinyDB.putBoolean(getString(R.string.big_text_pref), false);
                         DatabaseHelper.notifyAllLists();
 
                     }

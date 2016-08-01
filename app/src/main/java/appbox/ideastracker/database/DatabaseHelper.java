@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.BaseAdapter;
@@ -332,7 +331,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void recoverAllFromTemp() {
         ArrayList<Integer> temp = readTempIdeas();
-        Log.d("NICKLOS", Integer.toString(temp.size()));
         for (int id : temp) {
             recoverFromTemp(id);
         }
