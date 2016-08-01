@@ -33,7 +33,7 @@
     <string name="must_diff">Locations must be different</string>
     <string name="undo">UNDO</string>
     <string name="trash">Trash</string>
-    <string name="new_pro_message">Give it an awesome name</string>
+    <string name="new_pro_message">Give it a unique name</string>
     <string name="name_taken">Project name already exists</string>
     <string name="rename_pro_message">Give it a better name</string>
     <string name="delete_pro_message">And its ideas too</string>
@@ -74,6 +74,13 @@
     <string name="done_caps">DONE</string>
     <string name="now">NOW</string>
     <string name="recover">RECOVER</string>
+    <string name="settings">Settings</string>
+    <string name="help_feedback"><![CDATA[Help & feedback]]></string>
+    <string name="see_app_intro">See app intro again</string>
+    <string name="activate_tuto">Activate tutorial again</string>
+    <string name="rate">"Rate "</string>
+    <string name="feedback">Send feedback</string>
+    <string name="source_code">Source code</string>
 
     <string-array name="array_from">
         <item>Done</item>

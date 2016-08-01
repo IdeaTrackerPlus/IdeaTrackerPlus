@@ -294,14 +294,14 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(4).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
-                        new ExpandableDrawerItem().withName("Settings").withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
+                        new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
                                 doneSwitch, cheerSwitch, bigTextSwitch),
-                        new ExpandableDrawerItem().withName("Help & feedback").withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
-                                new SecondaryDrawerItem().withName("See app intro again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
-                                new SecondaryDrawerItem().withName("Activate tutorial again").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
-                                new SecondaryDrawerItem().withName("Rate " + getString(R.string.app_name)).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
-                                new SecondaryDrawerItem().withName("Report a bug").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
-                                new SecondaryDrawerItem().withName("Source code").withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false))
+                        new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
+                                new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
+                                new SecondaryDrawerItem().withName(getString(R.string.rate) + getString(R.string.app_name)).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.feedback).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.source_code).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false))
 
 
                 )
@@ -1051,7 +1051,7 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
-        tabLayout.setTabTextColors(darken(mTextColor), mTextColor);
+        tabLayout.setTabTextColors(slightDarken(mTextColor), mTextColor);
         mToolbar.setTitleTextColor(mTextColor);
 
         ToolbarColorizeHelper.colorizeToolbar(mToolbar, mTextColor, this);
@@ -1092,6 +1092,15 @@ public class MainActivity extends AppCompatActivity {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
         hsv[2] *= 0.85f;
+        color = Color.HSVToColor(hsv);
+        return color;
+    }
+
+    // Makes a color slightly darker
+    private int slightDarken(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.90f;
         color = Color.HSVToColor(hsv);
         return color;
     }
