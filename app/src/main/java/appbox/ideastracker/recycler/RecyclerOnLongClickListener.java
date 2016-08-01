@@ -79,7 +79,7 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
 
                                 String new_note = mNoteField.getText().toString();
                                 boolean new_later = mDoLater.isChecked();
-                                int new_priority = Integer.parseInt(selection.toString());
+                                int new_priority = Integer.parseInt(selection);
 
                                 mDbHelper.editEntry(mIdRecycler, new_text, new_note, new_priority, new_later);
                             }

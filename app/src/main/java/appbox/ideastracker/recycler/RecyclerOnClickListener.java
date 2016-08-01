@@ -14,8 +14,6 @@ import appbox.ideastracker.database.DatabaseHelper;
  */
 public class RecyclerOnClickListener implements View.OnClickListener {
 
-    private DatabaseHelper mDbHelper;
-
     private View mTextView;
     private int mIdRecycler;
     private MyRecyclerView mRecyclerView;
@@ -51,9 +49,9 @@ public class RecyclerOnClickListener implements View.OnClickListener {
      */
     private void showIdeaDialog() {
 
-        mDbHelper = DatabaseHelper.getInstance(mTextView.getContext());
-        String text = mDbHelper.getTextById(mIdRecycler);
-        String note = mDbHelper.getNoteById(mIdRecycler);
+        DatabaseHelper dBhelper = DatabaseHelper.getInstance(mTextView.getContext());
+        String text = dBhelper.getTextById(mIdRecycler);
+        String note = dBhelper.getNoteById(mIdRecycler);
 
         new LovelyStandardDialog(mTextView.getContext())
                 .setTopColor(mPrimaryColor)

@@ -57,8 +57,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         }else{
             itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view, parent, false);
         }
-        MyViewHolder holder = new MyViewHolder(itemView);
-        return holder;
+        return new MyViewHolder(itemView);
     }
 
     @Override
@@ -72,8 +71,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                 switch (position){
                     case 0: //Quick action send to LATER
-                        holder.txtView.setText("LATER");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setText(R.string.later);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
                         holder.txtView.setBackgroundResource(R.color.md_pink_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
@@ -94,8 +93,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 2: //Quick action send to DONE
-                        holder.txtView.setText("DONE");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setText(R.string.done_caps);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         holder.txtView.setBackgroundResource(R.color.md_green_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
@@ -106,8 +105,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                 switch (position){
                     case 0: //Quick action send to DELETE
-                        holder.txtView.setText("DELETE");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setText(R.string.delete);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
                         holder.txtView.setBackgroundResource(R.color.red);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
@@ -128,8 +127,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 2: //Quick action send to NOW
-                        holder.txtView.setText("NOW");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setText(R.string.now);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         holder.txtView.setBackgroundResource(R.color.md_indigo_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
@@ -140,8 +139,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
                 switch (position){
                     case 0: //Quick action send to DELETE
-                        holder.txtView.setText("DELETE");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+                        holder.txtView.setText(R.string.delete);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
                         holder.txtView.setBackgroundResource(R.color.red);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;
@@ -162,8 +161,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 2: //Quick action send to RECOVER
-                        holder.txtView.setText("RECOVER");
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                        holder.txtView.setText(R.string.recover);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         holder.txtView.setBackgroundResource(R.color.md_indigo_a400);
                         holder.txtView.setTextColor(Color.WHITE);
                         break;

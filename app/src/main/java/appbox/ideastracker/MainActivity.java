@@ -20,6 +20,8 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -75,7 +77,7 @@ import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
-import appbox.ideastracker.listadapters.MyCustomAdapter;
+import appbox.ideastracker.listadapters.MyExandableListAdapter;
 import appbox.ideastracker.listadapters.MyListAdapter;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
@@ -178,9 +180,9 @@ public class MainActivity extends AppCompatActivity {
         introOnFirstStart();
 
         //Default colors
-        defaultPrimaryColor = getResources().getColor(R.color.md_blue_grey_800);
-        defaultSecondaryColor = getResources().getColor(R.color.md_green_a400);
-        defaultTextColor = getResources().getColor(R.color.md_white);
+        defaultPrimaryColor = ContextCompat.getColor(this, R.color.md_blue_grey_800);
+        defaultSecondaryColor = ContextCompat.getColor(this, R.color.md_green_a400);
+        defaultTextColor = ContextCompat.getColor(this, R.color.md_white);
 
         // Toolbar
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -424,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
                                                         saveProjectColors();
 
                                                         //change project icon
-                                                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                                                        Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
                                                         disk.setColorFilter(mPrimaryColor, PorterDuff.Mode.SRC_ATOP);
                                                         IProfile p = header.getActiveProfile();
                                                         p.withIcon(disk);
@@ -498,18 +500,24 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .append(leftDrawer);
 
-        //Select first one
+        //Select first project if there is any
         if (!mNoProject) {
             mSelectedProfileIndex = 0;
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
             String activeProfileName = activeProfile.getName().getText();
             header.setActiveProfile(activeProfile);
-            getSupportActionBar().setTitle(activeProfileName);
+
+            ActionBar bar;
+            if ((bar = getSupportActionBar()) != null) {
+                bar.setTitle(activeProfileName);
+            }
+
             DataEntry.setTableName(activeProfileName);
             displayIdeasCount();
 
             switchToProjectColors();
-        } else {
+        } else { // No project
+
             header.setProfiles(mProfiles);
             header.setSelectionSecondLine(getString(R.string.no_project));
             //reset color
@@ -652,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
 
         //check the right priority radio button
         mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-        RadioButton radio = null;
+        RadioButton radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton1);
         switch (priority) {
             case 1:
                 radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton1);
@@ -686,7 +694,7 @@ public class MainActivity extends AppCompatActivity {
                         final String from = mFromSpinner.getSelectedItem().toString();
                         final String to = mToSpinner.getSelectedItem().toString();
 
-                        String snackText = null;
+                        String snackText = "";
                         String errorText = getString(R.string.nothing_move) + from;
                         boolean success = false;
                         if (from.equals(to)) errorText = getString(R.string.must_diff);
@@ -742,7 +750,7 @@ public class MainActivity extends AppCompatActivity {
 
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
+                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
                 .setTitle(R.string.new_pro)
                 .setMessage(R.string.new_pro_message)
                 .setIcon(R.drawable.ic_notepad)
@@ -759,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
                         mDbHelper.newTable(tableName);
 
                         //create the profile with its colored icon
-                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                        Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
                         disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
                         IProfile newProfile = new ProfileDrawerItem().withName(tableName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
                         mProfiles.add(newProfile);
@@ -796,7 +804,7 @@ public class MainActivity extends AppCompatActivity {
 
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(getResources().getColor(R.color.md_pink_a200))
+                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
                 .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
                 .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
@@ -883,7 +891,7 @@ public class MainActivity extends AppCompatActivity {
                         updateColors();
 
                         //change project icon
-                        Drawable disk = getResources().getDrawable(R.drawable.disk);
+                        Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
                         disk.setColorFilter(mPrimaryColor, PorterDuff.Mode.SRC_ATOP);
                         IProfile p = header.getActiveProfile();
                         p.withIcon(disk);
@@ -1174,7 +1182,7 @@ public class MainActivity extends AppCompatActivity {
         mProfiles = new ArrayList<>();
         for (Object p : mProjects) {
             Project project = (Project) p;
-            Drawable drawable = getResources().getDrawable(R.drawable.disk);
+            Drawable drawable = ContextCompat.getDrawable(this, R.drawable.disk);
             drawable.setColorFilter(project.getPrimaryColor(), PorterDuff.Mode.SRC_ATOP);
             mProfiles.add(new ProfileDrawerItem().withName(project.getName())
                     .withIcon(drawable)
@@ -1255,7 +1263,7 @@ public class MainActivity extends AppCompatActivity {
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
                     //sets the adapter that provides data to the list
-                    MyCustomAdapter adapter = new MyCustomAdapter(getContext());
+                    MyExandableListAdapter adapter = new MyExandableListAdapter(getContext());
                     DatabaseHelper.setAdapterIdea(adapter);
                     list.setAdapter(adapter);
                     list.expandGroup(0);

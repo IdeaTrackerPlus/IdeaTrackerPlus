@@ -2,6 +2,7 @@ package appbox.ideastracker.listadapters;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -12,8 +13,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import appbox.ideastracker.customviews.AnimatedExpandableListView;
 import appbox.ideastracker.R;
+import appbox.ideastracker.customviews.AnimatedExpandableListView;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.MyRecyclerView;
@@ -22,12 +23,12 @@ import appbox.ideastracker.recycler.MyRecyclerView;
  * Created by Nicklos on 30/06/2016.
  * Adapter for the expandable listView of the "Ideas" tab
  */
-public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandableListAdapter {
+public class MyExandableListAdapter extends AnimatedExpandableListView.AnimatedExpandableListAdapter {
 
     private LayoutInflater inflater;
     private DatabaseHelper mDbHelper;
 
-    public MyCustomAdapter(Context context) {
+    public MyExandableListAdapter(Context context) {
 
         this.inflater = LayoutInflater.from(context);
         mDbHelper = DatabaseHelper.getInstance(context);
@@ -86,13 +87,13 @@ public class MyCustomAdapter extends AnimatedExpandableListView.AnimatedExpandab
         LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
         switch (groupPosition) {
             case 0:
-                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority1));
+                parent.setBackgroundColor(ContextCompat.getColor(inflater.getContext(), R.color.priority1));
                 break;
             case 1:
-                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority2));
+                parent.setBackgroundColor(ContextCompat.getColor(inflater.getContext(), R.color.priority2));
                 break;
             case 2:
-                parent.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.priority3));
+                parent.setBackgroundColor(ContextCompat.getColor(inflater.getContext(), R.color.priority3));
                 break;
         }
 

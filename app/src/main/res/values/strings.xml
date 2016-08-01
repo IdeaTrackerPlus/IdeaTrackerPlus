@@ -70,6 +70,10 @@
     <string name="handle_idea_title">Manage your ideas</string>
     <string name="handle_idea_content">Try click, long click and swipe on the ideas</string>
     <string name="dont_forget">Don\'t forget to type your idea</string>
+    <string name="later">LATER</string>
+    <string name="done_caps">DONE</string>
+    <string name="now">NOW</string>
+    <string name="recover">RECOVER</string>
 
     <string-array name="array_from">
         <item>Done</item>

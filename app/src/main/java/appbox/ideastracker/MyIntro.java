@@ -3,6 +3,7 @@ package appbox.ideastracker;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 
 import com.github.paolorotolo.appintro.AppIntro2;
 import com.github.paolorotolo.appintro.AppIntroFragment;
@@ -17,10 +18,10 @@ public class MyIntro extends AppIntro2 {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addSlide(AppIntroFragment.newInstance("Welcome to Ideas Tracker", "All your ideas in one place", R.drawable.launcher, getResources().getColor(R.color.colorPrimary)));
-        addSlide(AppIntroFragment.newInstance("Keep it simple", "Capture ideas faster with little information recquired", R.drawable.fast_idea, getResources().getColor(R.color.md_blue_400)));
-        addSlide(AppIntroFragment.newInstance("Stay organized", "Class your ideas in projects to stay on focus", R.drawable.focus_projects, getResources().getColor(R.color.md_amber_400)));
-        addSlide(AppIntroFragment.newInstance("Get things done", "Your ideas become tasks with different priorities", R.drawable.multi_check, getResources().getColor(R.color.md_red_400)));
+        addSlide(AppIntroFragment.newInstance("Welcome to Ideas Tracker", "All your ideas in one place", R.drawable.launcher, ContextCompat.getColor(this, R.color.colorPrimary)));
+        addSlide(AppIntroFragment.newInstance("Keep it simple", "Capture ideas faster with little information recquired", R.drawable.fast_idea, ContextCompat.getColor(this, R.color.md_blue_400)));
+        addSlide(AppIntroFragment.newInstance("Stay organized", "Class your ideas in projects to stay on focus", R.drawable.focus_projects, ContextCompat.getColor(this, R.color.md_amber_400)));
+        addSlide(AppIntroFragment.newInstance("Get things done", "Your ideas become tasks with different priorities", R.drawable.multi_check, ContextCompat.getColor(this, R.color.md_red_400)));
 
         showStatusBar(false);
 

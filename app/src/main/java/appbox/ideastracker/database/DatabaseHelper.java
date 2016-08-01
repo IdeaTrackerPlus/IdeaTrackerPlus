@@ -214,7 +214,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String getTextById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
-            while (cursor.isAfterLast() == false) {
+            while (!cursor.isAfterLast()) {
                 return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
             }
         }
@@ -225,7 +225,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String getNoteById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
-            while (cursor.isAfterLast() == false) {
+            while (!cursor.isAfterLast()) {
                 return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
             }
         }
@@ -236,7 +236,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public int getPriorityById(int id) {
         Cursor cursor = getEntryById(id);
         if (cursor.moveToFirst()) {
-            while (cursor.isAfterLast() == false) {
+            while (!cursor.isAfterLast()) {
                 return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
             }
         }
@@ -480,7 +480,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             //Scan the ideas and return only the one with the expected priority
             if (cursor.moveToFirst()) {
 
-                while (cursor.isAfterLast() == false) {
+                while (!cursor.isAfterLast()) {
                     String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
                     int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
                     int prio = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
@@ -518,7 +518,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // How you want the results sorted in the resulting Cursor
             String sortOrder = DataEntry._ID + " ASC";
             //Either get the "later" or the "done"
-            String where = "";
+            String where;
             if (later) {
                 where = "later=? and temp=?";
             } else {
@@ -541,7 +541,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             //Scan the ideas and return everything
             if (cursor.moveToFirst()) {
 
-                while (cursor.isAfterLast() == false) {
+                while (!cursor.isAfterLast()) {
                     String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
                     int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
                     pair = new Pair<>(id, text);
@@ -591,7 +591,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         //Scan the ideas and return everything
         if (cursor.moveToFirst()) {
 
-            while (cursor.isAfterLast() == false) {
+            while (!cursor.isAfterLast()) {
                 int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
                 temps.add(id);
                 cursor.moveToNext();
