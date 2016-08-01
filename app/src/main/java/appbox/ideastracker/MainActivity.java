@@ -170,18 +170,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //
         DatabaseHelper.setMainActivity(this);
 
         mTinyDB = new TinyDB(this);
-//        mTinyDB.putBoolean("firstIdea",true);
-//        mTinyDB.putBoolean("firstProject",true);
-//        mTinyDB.putBoolean("handleIdea",true);
+
         introOnFirstStart();
 
         //Default colors
         defaultPrimaryColor = getResources().getColor(R.color.md_blue_grey_800);
-        defaultSecondaryColor = getResources().getColor(R.color.md_teal_a400);
+        defaultSecondaryColor = getResources().getColor(R.color.md_green_a400);
         defaultTextColor = getResources().getColor(R.color.md_white);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);

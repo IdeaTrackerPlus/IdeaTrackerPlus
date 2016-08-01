@@ -20,12 +20,19 @@ public class RecyclerOnClickListener implements View.OnClickListener {
     private int mIdRecycler;
     private MyRecyclerView mRecyclerView;
 
+    // Long click listener to trigger the edit idea action
+    private RecyclerOnLongClickListener mOtherListener;
+
     //Color for the dialogs
     private static int mPrimaryColor;
 
     public RecyclerOnClickListener(MyRecyclerView recyclerView) {
         mIdRecycler = (Integer) recyclerView.getTag();
         mRecyclerView = recyclerView;
+    }
+
+    public void setOtherListener(RecyclerOnLongClickListener otherListener){
+        mOtherListener = otherListener;
     }
 
     @Override
@@ -40,7 +47,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
     /**
      * Show a dialog with the idea's text and note
-     * allows to delete the idea
+     * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
 
@@ -54,7 +61,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                 .setTitle(text)
                 .setMessage(note)
                 .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok,null)
+                .setPositiveButton(R.string.ok, null)
                 .setNeutralButton("DELETE", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -65,6 +72,13 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                     }
                 })
                 .setNeutralButtonColorRes(R.color.md_pink_a200)
+                .setNegativeButton("EDIT", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mOtherListener.editIdeaDialog(mTextView.getContext());
+                    }
+                })
+                .setNegativeButtonColorRes(R.color.md_pink_a200)
                 .show();
 
     }

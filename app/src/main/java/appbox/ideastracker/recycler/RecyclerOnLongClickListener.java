@@ -1,6 +1,7 @@
 package appbox.ideastracker.recycler;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -26,7 +27,6 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
     //RecyclerView attrs
     private int mIdRecycler;
     private int mTabNumber;
-    private View mView;
 
     private Dialog mEditIdeaDialog;
 
@@ -46,8 +46,7 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
 
     @Override
     public boolean onLongClick(View v) {
-        mView = v;
-        editIdeaDialog();
+        editIdeaDialog(v.getContext());
         return true;
     }
 
@@ -59,9 +58,9 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
      * Show a dialog allwing to edit all the attributes
      * of the idea and showing the original ones.
      */
-    private void editIdeaDialog(){
+    public void editIdeaDialog(Context context){
 
-        mEditIdeaDialog = new LovelyCustomDialog(mView.getContext(), R.style.EditTextTintTheme)
+        mEditIdeaDialog = new LovelyCustomDialog(context, R.style.EditTextTintTheme)
                 .setView(R.layout.edit_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setTitle("Edit idea")
@@ -104,7 +103,7 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
         mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
 
         //Get the values from the idea and set them
-        mDbHelper = DatabaseHelper.getInstance(mView.getContext());
+        mDbHelper = DatabaseHelper.getInstance(context);
         mIdeaField.setText(mDbHelper.getTextById(mIdRecycler));
         mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
         if(mTabNumber == 2) mDoLater.toggle();

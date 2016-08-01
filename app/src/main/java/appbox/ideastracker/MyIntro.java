@@ -17,9 +17,10 @@ public class MyIntro extends AppIntro2 {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addSlide(AppIntroFragment.newInstance("Welcome", "learn how to use the app", R.drawable.disk, getResources().getColor(R.color.colorPrimary)));
-        addSlide(AppIntroFragment.newInstance("Welcome", "learn how to use the app", R.drawable.disk, getResources().getColor(R.color.md_deep_orange_300)));
-        addSlide(AppIntroFragment.newInstance("Welcome", "learn how to use the app", R.drawable.disk, getResources().getColor(R.color.md_red_300)));
+        addSlide(AppIntroFragment.newInstance("Welcome to Ideas Tracker", "All your ideas in one place", R.drawable.launcher, getResources().getColor(R.color.colorPrimary)));
+        addSlide(AppIntroFragment.newInstance("Keep it simple", "Capture ideas faster with little information recquired", R.drawable.fast_idea, getResources().getColor(R.color.md_blue_400)));
+        addSlide(AppIntroFragment.newInstance("Stay organized", "Class your ideas in projects to stay on focus", R.drawable.focus_projects, getResources().getColor(R.color.md_amber_400)));
+        addSlide(AppIntroFragment.newInstance("Get things done", "Your ideas become tasks with different priorities", R.drawable.multi_check, getResources().getColor(R.color.md_red_400)));
 
         showStatusBar(false);
 

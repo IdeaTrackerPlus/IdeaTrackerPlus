@@ -88,6 +88,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         }
                         holder.txtView.setTextColor(Color.BLACK);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(1,mIdRecycler);
+                        onClickListener.setOtherListener(onLongClickListener);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
@@ -121,6 +122,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         }
                         holder.txtView.setTextColor(Color.DKGRAY);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(2,mIdRecycler);
+                        onClickListener.setOtherListener(onLongClickListener);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
@@ -154,6 +156,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         }
                         holder.txtView.setTextColor(Color.GRAY);
                         RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(3,mIdRecycler);
+                        onClickListener.setOtherListener(onLongClickListener);
                         holder.txtView.setOnLongClickListener(onLongClickListener);
                         holder.txtView.setOnClickListener(onClickListener);
                         break;
