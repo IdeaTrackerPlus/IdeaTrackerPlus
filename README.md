@@ -9,6 +9,8 @@ Your ideas/tasks are clearly separated by project, no need for tags or filters, 
 
 ![](https://raw.github.com/nserguier/IdeasTracker/master/graphics/showcase.png)
 
+<a href="https://play.google.com/store/apps/details?id=appbox.gameideas"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/en-play-badge-border.png" width="300" /></a>
+
 ## Help making the app better
 
 The app has just been released so it's just the begining of its adventure. I need your help as a user or programmer, if you tried the app please give me feedback by email, it also applies if you have any bug to report. You can also open an issue up there so everybody can chat about it.<br />
