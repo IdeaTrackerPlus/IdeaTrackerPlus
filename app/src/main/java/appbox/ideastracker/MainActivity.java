@@ -365,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 11:
                                     // Rate
+                                    Intent browserRate = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=appbox.gameideas#details-reviews"));
+                                    startActivity(browserRate);
                                     break;
 
                                 case 12:

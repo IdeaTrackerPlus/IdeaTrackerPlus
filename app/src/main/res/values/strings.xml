@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IdeasTracker</string>
+    <string name="app_name">Ideas Tracker</string>
     <string name="action_settings">Settings</string>
     <string name="radio_1">1</string>
     <string name="radio_2">2</string>
@@ -47,7 +47,7 @@
     <string name="priority">Priority</string>
     <string name="do_later">Do later</string>
     <string name="ok">OK</string>
-    <string name="get_started">Get started with a new project</string>
+    <string name="get_started">Get started with a new project\nClick anywhere</string>
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
     <string name="hint_edit_idea">A great new idea</string>

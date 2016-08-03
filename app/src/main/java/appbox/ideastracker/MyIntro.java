@@ -18,10 +18,10 @@ public class MyIntro extends AppIntro2 {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        addSlide(AppIntroFragment.newInstance("Welcome to Ideas Tracker", "All your ideas in one place", R.drawable.launcher, ContextCompat.getColor(this, R.color.colorPrimary)));
-        addSlide(AppIntroFragment.newInstance("Keep it simple", "Capture ideas faster with little information recquired", R.drawable.fast_idea, ContextCompat.getColor(this, R.color.md_blue_400)));
-        addSlide(AppIntroFragment.newInstance("Stay organized", "Class your ideas in projects to stay on focus", R.drawable.focus_projects, ContextCompat.getColor(this, R.color.md_amber_400)));
-        addSlide(AppIntroFragment.newInstance("Get things done", "Your ideas become tasks with different priorities", R.drawable.multi_check, ContextCompat.getColor(this, R.color.md_red_400)));
+        addSlide(AppIntroFragment.newInstance("Welcome to\nIdeas Tracker", "All your ideas and tasks\nin one place", R.drawable.launcher, ContextCompat.getColor(this, R.color.colorPrimary)));
+        addSlide(AppIntroFragment.newInstance("Keep it simple", "Capture ideas faster\nwith little information required", R.drawable.fast_idea, ContextCompat.getColor(this, R.color.md_blue_400)));
+        addSlide(AppIntroFragment.newInstance("Stay organized", "Class your ideas in projects\nto stay on focus", R.drawable.focus_projects, ContextCompat.getColor(this, R.color.md_amber_400)));
+        addSlide(AppIntroFragment.newInstance("Get things done", "Your ideas become tasks\nwith different priorities", R.drawable.multi_check, ContextCompat.getColor(this, R.color.md_red_400)));
 
         showStatusBar(false);
 
