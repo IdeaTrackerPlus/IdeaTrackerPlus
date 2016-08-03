@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ideas Tracker</string>
+    <string name="app_name">IdeasTracker</string>
     <string name="action_settings">Settings</string>
     <string name="radio_1">1</string>
     <string name="radio_2">2</string>
@@ -68,8 +68,8 @@
     <string name="first_idea_pref">firstIdea</string>
     <string name="first_idea_title">Add your first idea</string>
     <string name="handle_idea_title">Manage your ideas</string>
-    <string name="handle_idea_content">Try click, long click and swipe on the ideas</string>
-    <string name="dont_forget">Don\'t forget to type your idea</string>
+    <string name="handle_idea_content">Try clicking, holding and swiping on the ideas</string>
+    <string name="dont_forget">Don\'t forget to type out your idea</string>
     <string name="later">LATER</string>
     <string name="done_caps">DONE</string>
     <string name="now">NOW</string>
@@ -97,10 +97,11 @@
 
     <string-array name="done_cheers">
         <item>Nice one</item>
-        <item>One more done</item>
-        <item>This project is looking good</item>
+        <item>Another finished</item>
+        <item>This project looks great</item>
         <item>One step closer</item>
-        <item>Truly awesome</item>
+        <item>Truly amazing</item>
+        <item>Awesome!</item>
     </string-array>
 
 </resources>

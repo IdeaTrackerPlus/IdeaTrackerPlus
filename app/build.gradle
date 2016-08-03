@@ -1,9 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'MyIdeasTrackerKey'
+            keyPassword 'fanatique1'
+            storeFile file('G:/StudioProjects/keystores/ideas_tracker.jks')
+            storePassword 'Fan-atique2'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "24.0.0"
-
     defaultConfig {
         applicationId "appbox.gameideas"
         minSdkVersion 15
@@ -13,12 +20,11 @@ android {
     }
     buildTypes {
         release {
-            shrinkResources true
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            debuggable true
+            debuggable false
         }
     }
 }
