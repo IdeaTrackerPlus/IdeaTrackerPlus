@@ -7,13 +7,13 @@
     <string name="big_text_msg">Texte grand format</string>
     <string name="cancel">Annuler</string>
     <string name="close">FERMER</string>
-    <string name="create">CREER</string>
+    <string name="create">CRÉER</string>
     <string name="delete">SUPPRIMER</string>
     <string name="delete_pro">Supprimer</string>
     <string name="delete_pro_message">Ses idées seront supprimées aussi</string>
     <string name="do_later">Faire plus tard</string>
     <string name="done">Terminé</string>
-    <string name="done_caps">TERMINE</string>
+    <string name="done_caps">TERMINÉ</string>
     <string name="dont_forget">N\'oubliez pas d\'entrer votre idée</string>
     <string name="drawer_close">Fermer le volet de navigation</string>
     <string name="drawer_open">Ouvrir le volet de navigation</string>
@@ -27,7 +27,7 @@
     <string name="from">De</string>
     <string name="functions">Fonctions</string>
     <string name="functions_label">Fonctions</string>
-    <string name="get_started">Commencez par créer un nouveau projet\nCliquez n\'importe où</string>
+    <string name="get_started">Créez un nouveau projet\nCliquez n\'importe où</string>
     <string name="handle_idea_content">Essayez de cliquer, maintenir et faire glisser vos idées</string>
     <string name="handle_idea_title">Interagir sur vos idées</string>
     <string name="help">Aide</string>
@@ -61,7 +61,7 @@
     <string name="select_sec_col">Choisissez la couleur secondaire</string>
     <string name="select_text_col">Choisissez la couleur du texte</string>
     <string name="settings">Options</string>
-    <string name="show_cheer_msg">Afficher messages quand tâche finie</string>
+    <string name="show_cheer_msg">Messages tâche finie</string>
     <string name="show_done_msg">Afficher TERMINE onglet</string>
     <string name="source_code">Code source</string>
     <string name="text_col">Couleur du texte</string>
