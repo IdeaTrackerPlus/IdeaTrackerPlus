@@ -60,7 +60,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                 .setMessage(note)
                 .setPositiveButtonColorRes(R.color.md_pink_a200)
                 .setPositiveButton(R.string.ok, null)
-                .setNeutralButton("DELETE", new View.OnClickListener() {
+                .setNeutralButton(R.string.delete, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mRecyclerView.sendCellToDelete();
@@ -70,7 +70,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                     }
                 })
                 .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton("EDIT", new View.OnClickListener() {
+                .setNegativeButton(R.string.edit, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mOtherListener.editIdeaDialog(mTextView.getContext());

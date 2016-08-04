@@ -1,6 +1,7 @@
 package appbox.ideastracker;
 
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -311,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
                         if (drawerItem != null) {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
-                                case 1:
+                                case 1: //Rename project
                                     if (!mNoProject) {
                                         renameProjectDialog();
                                     } else {
@@ -319,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
 
-                                case 2:
+                                case 2: //Delete project
                                     if (!mNoProject) {
                                         deleteProjectDialog();
                                     } else {
@@ -327,11 +328,11 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
 
-                                case 3:
+                                case 3: //New project
                                     newProjectDialog();
                                     break;
 
-                                case 4:
+                                case 4: //My projects
                                     if (!mNoProject) {
                                         header.toggleSelectionList(getApplicationContext());
                                     } else {
@@ -339,11 +340,11 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
 
-                                case 8:
+                                case 8: //See intro again
                                     forceIntro();
                                     break;
 
-                                case 9:
+                                case 9: //Tutorial mode
                                     leftDrawer.closeDrawer();
                                     Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
                                             .setCallback(new Snackbar.Callback() {
@@ -365,8 +366,19 @@ public class MainActivity extends AppCompatActivity {
 
                                 case 11:
                                     // Rate
-                                    Intent browserRate = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=appbox.gameideas#details-reviews"));
-                                    startActivity(browserRate);
+                                    Uri uri = Uri.parse("market://details?id=" + getPackageName());
+                                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                                    // To count with Play market backstack, After pressing back button,
+                                    // to taken back to our application, we need to add following flags to intent.
+                                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                                    try {
+                                        startActivity(goToMarket);
+                                    } catch (ActivityNotFoundException e) {
+                                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                                Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
+                                    }
                                     break;
 
                                 case 12:
@@ -557,7 +569,7 @@ public class MainActivity extends AppCompatActivity {
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle("New idea")
+                .setTitle(R.string.new_idea)
                 .setIcon(R.drawable.ic_bulb)
                 .setListener(R.id.doneButton, new View.OnClickListener() {
                     @Override
@@ -620,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle("New idea")
+                .setTitle(R.string.new_idea)
                 .setIcon(R.drawable.ic_bulb)
                 .setListener(R.id.doneButton, new View.OnClickListener() {
                     @Override
@@ -687,7 +699,7 @@ public class MainActivity extends AppCompatActivity {
         mMoveDialog = new LovelyCustomDialog(this)
                 .setView(R.layout.move_dialog)
                 .setTopColor(mPrimaryColor)
-                .setTitle("Move all ideas")
+                .setTitle(R.string.move_all_title)
                 .setIcon(R.drawable.ic_transfer)
                 .setListener(R.id.move_button, new View.OnClickListener() {
                     @Override
@@ -701,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
                         boolean success = false;
                         if (from.equals(to)) errorText = getString(R.string.must_diff);
                         else if (mDbHelper.moveAllFromTo(from, to)) {
-                            snackText = "All ideas from " + from + " moved to " + to;
+                            snackText = getString(R.string.moved_all_1) + from + getString(R.string.moved_all_2) + to;
                             success = true;
                             displayIdeasCount();
                         }
@@ -714,7 +726,7 @@ public class MainActivity extends AppCompatActivity {
                                     if (to.equals(getString(R.string.trash))) {//undo temp deleting
                                         mDbHelper.recoverAllFromTemp();
                                     } else {
-                                        mDbHelper.moveAllFromTo(to, from);
+                                        mDbHelper.moveBackFrom(from);
                                     }
                                     displayIdeasCount();
                                 }
@@ -807,7 +819,7 @@ public class MainActivity extends AppCompatActivity {
         new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
                 .setTopColor(mPrimaryColor)
                 .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
-                .setTitle("Rename " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
+                .setTitle(getString(R.string.rename_lower) + " " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
                 .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
                 .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
@@ -842,7 +854,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
-                .setTitle("Delete project '" + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "'")
+                .setTitle(getString(R.string.delete_pro_title) + ((Project) mProjects.get(mSelectedProfileIndex)).getName() + "'")
                 .setMessage(R.string.delete_pro_message)
                 .setPositiveButton(R.string.delete, new View.OnClickListener() {
                     @Override
@@ -1116,7 +1128,7 @@ public class MainActivity extends AppCompatActivity {
         int count = tabLayout.getTabCount();
 
         for (int i = 0; i < count; i++) {
-            if (tabLayout.getTabAt(i).getText().equals("Done")) {
+            if (tabLayout.getTabAt(i).getText().equals(getString(R.string.done))) {
                 tabLayout.removeTabAt(i);
                 mSectionsPagerAdapter.setTabCount(2);
                 mViewPager.setAdapter(null);
@@ -1206,9 +1218,9 @@ public class MainActivity extends AppCompatActivity {
         if (count == 0) {
             header.setSelectionSecondLine(getString(R.string.no_ideas));
         } else if (count == 1) {
-            header.setSelectionSecondLine(count + " idea");
+            header.setSelectionSecondLine(count + " " + getString(R.string.idea));
         } else {
-            header.setSelectionSecondLine(count + " ideas");
+            header.setSelectionSecondLine(count + " " + getString(R.string.ideas));
         }
 
     }
@@ -1269,37 +1281,33 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
-            switch (this.getTabName()) {
-                case "Ideas": //IDEAS
-                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                    AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
-                    //sets the adapter that provides data to the list
-                    MyExandableListAdapter adapter = new MyExandableListAdapter(getContext());
-                    DatabaseHelper.setAdapterIdea(adapter);
-                    list.setAdapter(adapter);
-                    list.expandGroup(0);
-                    list.expandGroup(1);
-                    list.expandGroup(2);
-                    setListeners(list);
 
-                    break;
+            if (getTabName().equals(getString(R.string.first_tab))) { //IDEAS
 
-                case "Later": //LATER
-                    rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                    ListView list2 = (ListView) rootView.findViewById(R.id.list);
-                    MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
-                    DatabaseHelper.setAdapterLater(adapter2);
-                    list2.setAdapter(adapter2);
-                    break;
+                rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
+                //sets the adapter that provides data to the list
+                MyExandableListAdapter adapter = new MyExandableListAdapter(getContext());
+                DatabaseHelper.setAdapterIdea(adapter);
+                list.setAdapter(adapter);
+                list.expandGroup(0);
+                list.expandGroup(1);
+                list.expandGroup(2);
+                setListeners(list);
+            } else if (getTabName().equals(getString(R.string.second_tab))) {
 
-                case "Done": //DONE
-                    rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                    ListView list3 = (ListView) rootView.findViewById(R.id.list);
-                    MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
-                    DatabaseHelper.setAdapterDone(adapter3);
-                    list3.setAdapter(adapter3);
-                    break;
+                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
+                ListView list2 = (ListView) rootView.findViewById(R.id.list);
+                MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
+                DatabaseHelper.setAdapterLater(adapter2);
+                list2.setAdapter(adapter2);
+            } else if (getTabName().equals(getString(R.string.third_tab))) {
 
+                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
+                ListView list3 = (ListView) rootView.findViewById(R.id.list);
+                MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
+                DatabaseHelper.setAdapterDone(adapter3);
+                list3.setAdapter(adapter3);
             }
 
 

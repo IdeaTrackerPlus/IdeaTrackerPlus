@@ -14,6 +14,7 @@ import android.widget.BaseExpandableListAdapter;
 import java.util.ArrayList;
 
 import appbox.ideastracker.MainActivity;
+import appbox.ideastracker.R;
 
 /**
  * This class takes care of the interaction with the database
@@ -30,6 +31,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Needs to display the number of ideas at all time
     private static MainActivity mainActivity;
 
+    // Keeps the ideas which have just been moved with "move all" to undo the action
+    private static ArrayList<Pair<Integer, String>> movedIdeas;
+
     // If the database schema change, must increment the database version.
     public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "MyIdeas.db";
@@ -45,6 +49,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * This methods is used to get an instance of the class and ensure
      * uniqueness (singleton)
+     *
      * @param context
      * @return the helper object
      */
@@ -56,10 +61,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sInstance;
     }
 
-    public static void setMainActivity(MainActivity act){
+    public static void setMainActivity(MainActivity act) {
         mainActivity = act;
 
     }
+
 
     // SET ADAPTERS
 
@@ -81,6 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Nothing is created at first
+     *
      * @param db
      */
     public void onCreate(SQLiteDatabase db) {
@@ -90,6 +97,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Called when newer version of the database
      * so users don't their data
+     *
      * @param db
      * @param oldVersion
      * @param newVersion
@@ -113,10 +121,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (mAdapterDone != null) mAdapterDone.notifyDataSetChanged();
     }
 
+
     //TABLE OPERATIONS
 
     /**
      * Creates a new table (project) in the database
+     *
      * @param tableName
      */
     public void newTable(String tableName) {
@@ -139,6 +149,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Select another table (project)
+     *
      * @param tableName
      */
     public void switchTable(String tableName) {
@@ -148,6 +159,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Rename the current table
+     *
      * @param newName
      */
     public void renameTable(String newName) {
@@ -165,14 +177,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         getWritableDatabase().execSQL(SQL_DELETE);
     }
 
+
     //ENTRY OPERATIONS
 
     /**
      * Create an entry (idea) in the current table (project)
+     *
      * @param text
      * @param note
      * @param priority range from 1 (high) to 3 (low)
-     * @param later if the idea should be in the "LATER" tab
+     * @param later    if the idea should be in the "LATER" tab
      */
     public void newEntry(String text, String note, int priority, boolean later) {
 
@@ -194,6 +208,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Find an entry cursor with its id
+     *
      * @param id
      * @return a Cursor object containing the idea's information
      */
@@ -246,13 +261,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Modify an entry's values
+     *
      * @param id
      * @param new_text
      * @param new_note
      * @param new_priority
      * @param later
      */
-    public void editEntry(int id, String new_text,String new_note, int new_priority, boolean later) {
+    public void editEntry(int id, String new_text, String new_note, int new_priority, boolean later) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -268,6 +284,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
         notifyAllLists();
     }
+
 
     //MOVING ENTRIES
 
@@ -288,8 +305,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         moveToTemp(id);
 
-        Snackbar snackbar = Snackbar.make(view, "Idea deleted", Snackbar.LENGTH_LONG)
-                .setAction("UNDO", new View.OnClickListener() {
+        Snackbar snackbar = Snackbar.make(view, R.string.idea_deleted, Snackbar.LENGTH_LONG)
+                .setAction(R.string.undo, new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         recoverFromTemp(id);
@@ -347,6 +364,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Move an idea to another tab
+     *
      * @param tabNumber
      * @param id
      */
@@ -410,45 +428,70 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean moveAllFromTo(String from, String to) {
 
         ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-        switch (from) {
-            case "Ideas": //get all the ideas from NOW tab
-                ideas = readIdeas(-1);
-                break;
+        Context c = mainActivity.getApplicationContext();
 
-            case "Later": //get all the ideas from LATER tab
-                ideas = readIdeas(true);
-                break;
-
-            case "Done": //get all the ideas from LATER tab
-                ideas = readIdeas(false);
-                break;
+        if (from.equals(c.getString(R.string.first_tab))) { //get all the ideas from NOW tab
+            ideas = readIdeas(-1);
+        } else if (from.equals(c.getString(R.string.second_tab))) {//get all the ideas from LATER tab
+            ideas = readIdeas(true);
+        } else if (from.equals(c.getString(R.string.third_tab))) {//get all the ideas from DONE tab
+            ideas = readIdeas(false);
         }
+
+
         if (ideas.size() == 0) return false; //nothing to move
+        movedIdeas = ideas; //store the ideas for UNDO action
 
-        switch (to) {
-            case "Ideas":
-                moveAllToTab(1, ideas);
-                break;
 
-            case "Later":
-                moveAllToTab(2, ideas);
-                break;
-
-            case "Done":
-                moveAllToTab(3, ideas);
-                break;
-
-            case "Trash":
-                moveAllToTemp(ideas);
-                break;
+        if (to.equals(c.getString(R.string.first_tab))) {
+            moveAllToTab(1, ideas);
+        } else if (to.equals(c.getString(R.string.second_tab))) {
+            moveAllToTab(2, ideas);
+        } else if (to.equals(c.getString(R.string.third_tab))) {
+            moveAllToTab(3, ideas);
+        } else if (to.equals(c.getString(R.string.trash))) {
+            moveAllToTemp(ideas);
         }
         return true;
     }
+
+    /**
+     * Move back the most recently moved ideas with the method moveAllFromTo
+     *
+     * @param from The tab's name where the ideas were from
+     */
+    public void moveBackFrom(String from) {
+
+        Context c = mainActivity.getApplicationContext();
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        if (from.equals(c.getString(R.string.first_tab))) {
+
+            values.put(DataEntry.COLUMN_NAME_DONE, false);
+            values.put(DataEntry.COLUMN_NAME_LATER, false);
+        } else if (from.equals(c.getString(R.string.second_tab))) {
+
+            values.put(DataEntry.COLUMN_NAME_DONE, false);
+            values.put(DataEntry.COLUMN_NAME_LATER, true);
+        } else if (from.equals(c.getString(R.string.third_tab))) {
+
+            values.put(DataEntry.COLUMN_NAME_LATER, false);
+            values.put(DataEntry.COLUMN_NAME_DONE, true);
+        }
+
+        for (Pair<Integer, String> idea : movedIdeas) {
+            db.update(DataEntry.TABLE_NAME, values, "_id=" + idea.first, null);
+        }
+        notifyAllLists();
+    }
+
 
     //READING OPERATIONS
 
     /**
      * Retrieve the ideas of the NOW tab with the desired priority
+     *
      * @param priority 0,1,2 for priority 1,2,3 respectively (-1 for all of them)
      * @return a list of the ideas paired with their id in the database
      */
@@ -503,6 +546,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Retrieve the ideas of the LATER or DONE tab with the desired priority
+     *
      * @param later true for LATER tab
      * @return a list of the ideas paired with their id in the database
      */
@@ -572,6 +616,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Get the temporary ideas (temp = 1)
+     *
      * @return a list of their ids
      */
     public ArrayList<Integer> readTempIdeas() {

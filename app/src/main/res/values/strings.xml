@@ -1,15 +1,14 @@
 <resources>
     <string name="app_name">Ideas Tracker</string>
     <string name="action_settings">Settings</string>
-    <string name="radio_1">1</string>
-    <string name="radio_2">2</string>
-    <string name="radio_3">3</string>
+    <string name="radio_1" translatable="false">1</string>
+    <string name="radio_2" translatable="false">2</string>
+    <string name="radio_3" translatable="false">3</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="from">From</string>
     <string name="to">to</string>
     <string name="functions_label">Functions</string>
-    <string name="options_label">Options</string>
     <string name="rename_pro">Rename project</string>
     <string name="delete_pro">Delete project</string>
     <string name="delete">DELETE</string>
@@ -55,17 +54,17 @@
     <string name="error_empty_taken">Name is empty or already taken</string>
     <string name="help">Help</string>
     <string name="tuto_mode">Tutorial mode is now active</string>
-    <string name="show_done_pref">showDone</string>
-    <string name="show_cheer_pref">cheerSwitch</string>
+    <string name="show_done_pref" translatable="false">showDone</string>
+    <string name="show_cheer_pref" translatable="false">cheerSwitch</string>
     <string name="show_done_msg">Show DONE tab</string>
     <string name="show_cheer_msg">Show message on task done</string>
-    <string name="big_text_pref">bigTextSwitch</string>
+    <string name="big_text_pref" translatable="false">bigTextSwitch</string>
     <string name="big_text_msg">Bigger text for ideas</string>
     <string name="first_project_title">Your projects are in this drawer</string>
     <string name="first_project_content">Click on the header to switch to the menu</string>
-    <string name="first_project_pref">firstProject</string>
-    <string name="handle_idea_pref">handleIdea</string>
-    <string name="first_idea_pref">firstIdea</string>
+    <string name="first_project_pref" translatable="false">firstProject</string>
+    <string name="handle_idea_pref" translatable="false">handleIdea</string>
+    <string name="first_idea_pref" translatable="false">firstIdea</string>
     <string name="first_idea_title">Add your first idea</string>
     <string name="handle_idea_title">Manage your ideas</string>
     <string name="handle_idea_content">Try clicking, holding and swiping on the ideas</string>
@@ -81,6 +80,26 @@
     <string name="rate">"Rate "</string>
     <string name="feedback">Send feedback</string>
     <string name="source_code">Source code</string>
+    <string name="welcome">Welcome to\nIdeas Tracker</string>
+    <string name="welcome_content">All your ideas and tasks\nin one place</string>
+    <string name="simple">Keep it simple</string>
+    <string name="simple_content">Capture ideas faster\nwith little information required</string>
+    <string name="organized">Stay organized</string>
+    <string name="organized_content">Class your ideas in projects\nto stay on focus</string>
+    <string name="things_done">Get things done</string>
+    <string name="things_done_content">Your ideas become tasks\nwith different priorities</string>
+    <string name="edit">EDIT</string>
+    <string name="idea">idea</string>
+    <string name="ideas">ideas</string>
+    <string name="rename_lower">Rename</string>
+    <string name="delete_pro_title">Delete project \'</string>
+    <string name="new_idea">New idea</string>
+    <string name="move_all_title">Move all ideas</string>
+    <string name="moved_all_1">"All ideas from "</string>
+    <string name="moved_all_2">" moved to "</string>
+    <string name="idea_deleted">Idea deleted</string>
+    <string name="priority_group">"Priority "</string>
+    <string name="edit_idea">Edit idea</string>
 
     <string-array name="array_from">
         <item>Done</item>

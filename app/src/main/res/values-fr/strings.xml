@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ideas Tracker</string>
+    <string name="action_settings">Options</string>
+    <string name="activate_tuto">Activer tutoriel</string>
+    <string name="all_pro">Mes projets</string>
+    <string name="big_text_msg">Texte grand format</string>
+    <string name="cancel">Annuler</string>
+    <string name="close">FERMER</string>
+    <string name="create">CREER</string>
+    <string name="delete">SUPPRIMER</string>
+    <string name="delete_pro">Supprimer</string>
+    <string name="delete_pro_message">Ses idées seront supprimées aussi</string>
+    <string name="do_later">Faire plus tard</string>
+    <string name="done">Terminé</string>
+    <string name="done_caps">TERMINE</string>
+    <string name="dont_forget">N\'oubliez pas d\'entrer votre idée</string>
+    <string name="drawer_close">Fermer le volet de navigation</string>
+    <string name="drawer_open">Ouvrir le volet de navigation</string>
+    <string name="error_empty_taken">Le nom est vide ou déjà pris</string>
+    <string name="expand_collapse">Etendre/rétracter les priorités</string>
+    <string name="feedback">Envoyer un commentaire</string>
+    <string name="first_idea_title">Ajouter une première idée</string>
+    <string name="first_project_content">Cliquer sur l\'en-tête pour accéder au menu</string>
+    <string name="first_project_title">Vos projets sont dans ce volet</string>
+    <string name="first_tab">Idées</string>
+    <string name="from">De</string>
+    <string name="functions">Fonctions</string>
+    <string name="functions_label">Fonctions</string>
+    <string name="get_started">Commencez par créer un nouveau projet\nCliquez n\'importe où</string>
+    <string name="handle_idea_content">Essayez de cliquer, maintenir et faire glisser vos idées</string>
+    <string name="handle_idea_title">Interagir sur vos idées</string>
+    <string name="help">Aide</string>
+    <string name="help_feedback"><![CDATA[Aide & contact]]></string>
+    <string name="hint_edit_idea">Une brillante idée</string>
+    <string name="hint_edit_note">Un commentaire ou note</string>
+    <string name="later">PLUS TARD</string>
+    <string name="move_all_ideas">Déplacer les idées d\'un onglet</string>
+    <string name="must_diff">Les onglets doivent êtres différents</string>
+    <string name="name_taken">Ce projet existe déjà</string>
+    <string name="new_pro">Nouveau projet</string>
+    <string name="new_pro_message">Donnez lui un nom unique</string>
+    <string name="no_ideas">Aucune idée</string>
+    <string name="no_project">Aucun projet</string>
+    <string name="no_project_snack_message">Créez un projet avant cela</string>
+    <string name="now">MAINTENANT</string>
+    <string name="ok">OK</string>
+    <string name="primary_col">Couleur principal</string>
+    <string name="priority">Priorité</string>
+    <string name="rate">"Noter "</string>
+    <string name="recover">RESTAURER</string>
+    <string name="rename">RENOMMER</string>
+    <string name="rename_pro">Renommer</string>
+    <string name="rename_pro_message">Donnez lui un nouveau nom</string>
+    <string name="reset_color_pref_message">Pour ce projet seulement</string>
+    <string name="reset_color_prefs">Rétablir les couleurs par défaut</string>
+    <string name="second_tab">Plus tard</string>
+    <string name="secondary_col">Couleur secondaire</string>
+    <string name="see_app_intro">Revoir l\'introduction</string>
+    <string name="select_prim_col">Choisissez la couleur principale</string>
+    <string name="select_sec_col">Choisissez la couleur secondaire</string>
+    <string name="select_text_col">Choisissez la couleur du texte</string>
+    <string name="settings">Options</string>
+    <string name="show_cheer_msg">Afficher messages quand tâche finie</string>
+    <string name="show_done_msg">Afficher TERMINE onglet</string>
+    <string name="source_code">Code source</string>
+    <string name="text_col">Couleur du texte</string>
+    <string name="third_tab">Terminé</string>
+    <string name="to">vers</string>
+    <string name="trash">Corbeille</string>
+    <string name="tuto_mode">Le tutoriel est maintenant actif</string>
+    <string name="undo">ANNULER</string>
+    <string name="organized">Restez organisé</string>
+    <string name="simple">Restez simple</string>
+    <string name="organized_content">Classez vos idées en projets\npour rester concentré</string>
+    <string name="simple_content">Saisissez vos idées rapidement\navec peu d\'informations requises</string>
+    <string name="things_done">Accomplissez plus</string>
+    <string name="things_done_content">Vos idées deviennent des tâches\navec des priorités différentes</string>
+    <string name="welcome">Bienvenue sur\nIdeas Tracker</string>
+    <string name="welcome_content">Toutes vos idées et tâches\nréunies en une app</string>
+    <string name="edit">MODIFIER</string>
+
+    <string-array name="array_from">
+        <item>Terminé</item>
+        <item>Plus tard</item>
+        <item>Idées</item>
+    </string-array>
+
+    <string-array name="array_to">
+        <item>Corbeille</item>
+        <item>Idées</item>
+        <item>Plus tard</item>
+        <item>Terminé</item>
+    </string-array>
+
+    <string-array name="done_cheers">
+        <item>Du bon travail</item>
+        <item>Et une autre de terminée</item>
+        <item>Ce projet avance bien</item>
+        <item>Un pas de plus</item>
+        <item>Vraiment incroyable</item>
+        <item>Excellent!</item>
+    </string-array>
+
+    <string name="idea">idée</string>
+    <string name="ideas">idées</string>
+    <string name="nothing_move">"Rien à déplacer de l\'onglet "</string>
+    <string name="color_prefs">Couleurs de l\'interface</string>
+    <string name="delete_pro_title">Supprimer le projet \'</string>
+    <string name="move_all_title">Déplacer toutes les idées</string>
+    <string name="moved_all_1">"Idées de "</string>
+    <string name="moved_all_2">" déplacées vers "</string>
+    <string name="new_idea">Nouvelle idée</string>
+    <string name="rename_lower">Renommer</string>
+    <string name="idea_deleted">Idée supprimée</string>
+    <string name="priority_group">"Priorité "</string>
+    <string name="edit_idea">Modifier l\'idée</string>
+
+</resources>

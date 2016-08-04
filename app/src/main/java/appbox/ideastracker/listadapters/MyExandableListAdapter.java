@@ -83,7 +83,7 @@ public class MyExandableListAdapter extends AnimatedExpandableListView.AnimatedE
         }
 
         TextView textView = (TextView) view.findViewById(R.id.textViewParent);
-        textView.setText("Priority " + Integer.toString(groupPosition + 1));
+        textView.setText(textView.getContext().getResources().getString(R.string.priority_group) + Integer.toString(groupPosition + 1));
         LinearLayout parent = (LinearLayout) view.findViewById(R.id.parentPriority);
         switch (groupPosition) {
             case 0:

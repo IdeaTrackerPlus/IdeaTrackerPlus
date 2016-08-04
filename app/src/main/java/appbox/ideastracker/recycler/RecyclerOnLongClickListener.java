@@ -63,7 +63,7 @@ public class RecyclerOnLongClickListener implements View.OnLongClickListener{
         mEditIdeaDialog = new LovelyCustomDialog(context, R.style.EditTextTintTheme)
                 .setView(R.layout.edit_idea_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle("Edit idea")
+                .setTitle(R.string.edit_idea)
                 .setIcon(R.drawable.ic_edit)
                 .setListener(R.id.doneEditButton, new View.OnClickListener() {
                     @Override
