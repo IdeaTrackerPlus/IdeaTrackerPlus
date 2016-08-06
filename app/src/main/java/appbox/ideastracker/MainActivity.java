@@ -45,8 +45,6 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -83,6 +81,11 @@ import appbox.ideastracker.listadapters.MyListAdapter;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
 import appbox.ideastracker.recycler.RecyclerOnLongClickListener;
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.prefs.PreferencesManager;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
+import co.mobiwise.materialintro.view.MaterialIntroView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     private int defaultTextColor;
 
     // Tutorial element
-    private ShowcaseView mFirstIdeaguide;
+    private View mSettingsButton;
 
 
     // STATIC METHODS //
@@ -207,10 +210,6 @@ public class MainActivity extends AppCompatActivity {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mFirstIdeaguide != null) {
-                    mFirstIdeaguide.hide();
-                    mFirstIdeaguide = null;
-                }
                 newIdeaDialog();
             }
         });
@@ -300,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
-                                new SecondaryDrawerItem().withName(getString(R.string.rate) + getString(R.string.app_name)).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.rate_app).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.feedback).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.source_code).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false))
 
@@ -352,7 +351,8 @@ public class MainActivity extends AppCompatActivity {
                                                 public void onDismissed(Snackbar snackbar, int event) {
                                                     mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
                                                     mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
-                                                    firstIdeaGuide();
+                                                    mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
+                                                    mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
                                                 }
                                             });
                                     snackbar.show();
@@ -510,7 +510,6 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 })
-                .withOnDrawerListener(new MyDrawerListener())
                 .withSavedInstance(savedInstanceState)
                 .append(leftDrawer);
 
@@ -977,29 +976,43 @@ public class MainActivity extends AppCompatActivity {
     // Shows the tutorial for the first project creation
     private void firstProjectGuide() {
 
-        new ShowcaseView.Builder(this)
-                .setTarget(new ViewTarget(header.getView()))
-                .setContentTitle(getString(R.string.first_project_title))
-                .setStyle(R.style.CustomShowcaseTheme2)
-                .replaceEndButton(R.layout.got_it)
-                .setContentText(getString(R.string.first_project_content))
-                .blockAllTouches()
-                .build()
+        new PreferencesManager(this).reset("first_project");
+
+        new MaterialIntroView.Builder(this)
+                .enableIcon(true)
+                .enableDotAnimation(true)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setFocusType(Focus.NORMAL)
+                .setDelayMillis(100)
+                .enableFadeAnimation(true)
+                .performClick(true)
+                .setInfoText(getString(R.string.first_project_content))
+                .setInfoTextSize(13)
+                .setTarget(header.getView())
+                .setUsageId("first_project") //THIS SHOULD BE UNIQUE ID
                 .show();
+
         mTinyDB.putBoolean(getString(R.string.first_project_pref), false);
     }
 
     // Shows the tutorial for the first idea creation
     private void firstIdeaGuide() {
 
-        mFirstIdeaguide = new ShowcaseView.Builder(this)
-                .setTarget(new ViewTarget(mFab))
-                .setContentTitle(getString(R.string.first_idea_title))
-                .setStyle(R.style.CustomShowcaseTheme2)
-                .replaceEndButton(R.layout.empty_layout)
-                .build();
+        new PreferencesManager(this).reset("first");
 
-        mFirstIdeaguide.show();
+        new MaterialIntroView.Builder(this)
+                .enableIcon(true)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setFocusType(Focus.NORMAL)
+                .setTargetPadding(30)
+                .setDelayMillis(100)
+                .enableFadeAnimation(true)
+                .performClick(true)
+                .setInfoText(getString(R.string.first_idea_title))
+                .setInfoTextSize(13)
+                .setTarget(mFab)
+                .setUsageId("first") //THIS SHOULD BE UNIQUE ID
+                .show();
 
         rightDrawer.closeDrawer();
         leftDrawer.closeDrawer();
@@ -1010,18 +1023,45 @@ public class MainActivity extends AppCompatActivity {
     private void handleIdeaGuide() {
 
         View firstIdea = findViewById(R.id.firstIdea);
+        new PreferencesManager(this).reset("handle");
+        new MaterialIntroView.Builder(this)
+                .enableDotAnimation(true)
+                .enableIcon(true)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setFocusType(Focus.NORMAL)
+                .enableFadeAnimation(true)
+                .setInfoText(getString(R.string.handle_idea_content))
+                .setInfoTextSize(13)
+                .setTarget(firstIdea)
+                .setUsageId("handle") //THIS SHOULD BE UNIQUE ID
+                .show();
 
-        mFirstIdeaguide = new ShowcaseView.Builder(this)
-                .setTarget(new ViewTarget(firstIdea))
-                .setContentTitle(getString(R.string.handle_idea_title))
-                .setContentText(getString(R.string.handle_idea_content))
-                .setStyle(R.style.CustomShowcaseTheme2)
-                .replaceEndButton(R.layout.got_it)
-                .blockAllTouches()
-                .build();
-
-        mFirstIdeaguide.show();
         mTinyDB.putBoolean(getString(R.string.handle_idea_pref), false);
+    }
+
+
+    private void rightDrawerGuide() {
+
+        new PreferencesManager(this).reset("right_drawer");
+        new MaterialIntroView.Builder(MainActivity.this)
+                .enableIcon(true)
+                .enableFadeAnimation(true)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setFocusType(Focus.NORMAL)
+                .setInfoText(getString(R.string.right_drawer_guide))
+                .setInfoTextSize(13)
+                .performClick(true)
+                .setTarget(mToolbar.getChildAt(2))
+                .setListener(new MaterialIntroListener() {
+                    @Override
+                    public void onUserClicked(String materialIntroViewId) {
+                        rightDrawer.openDrawer();
+                    }
+                })
+                .setUsageId("right_drawer") //THIS SHOULD BE UNIQUE ID
+                .show();
+
+        mTinyDB.putBoolean(getString(R.string.right_drawer_pref), false);
     }
 
 
@@ -1450,15 +1490,23 @@ public class MainActivity extends AppCompatActivity {
     // Listener to trigger tutorial when drawer is closed
     private class MyDrawerListener implements Drawer.OnDrawerListener {
 
+        private boolean mHandleFilter;
+
         @Override
         public void onDrawerOpened(View drawerView) {
+            if (rightDrawer.isDrawerOpen())
+                mHandleFilter = true;
+            else
+                mHandleFilter = false;
 
         }
 
         @Override
         public void onDrawerClosed(View drawerView) {
 
-            if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject) {
+            if (mTinyDB.getBoolean(getString(R.string.right_drawer_pref)) && !mNoProject && !mHandleFilter) {//Left drawer closed
+                rightDrawerGuide();
+            } else if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject && mHandleFilter) {
                 firstIdeaGuide();
             }
         }

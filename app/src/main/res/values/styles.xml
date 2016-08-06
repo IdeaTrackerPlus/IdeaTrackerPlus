@@ -29,22 +29,6 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="CustomShowcaseTheme2" parent="ShowcaseView">
-        <item name="sv_backgroundColor">#e51249d9</item>
-        <item name="sv_showcaseColor">#25467A</item>
-        <item name="sv_buttonText">Close</item>
-        <item name="sv_titleTextAppearance">@style/CustomTitle2</item>
-        <item name="sv_detailTextAppearance">@style/CustomText2</item>
-    </style>
-
-    <style name="CustomTitle2" parent="TextAppearance.ShowcaseView.Title.Light">
-        <item name="android:textColor">#deffffff</item>
-    </style>
-
-    <style name="CustomText2" parent="TextAppearance.ShowcaseView.Detail.Light">
-        <item name="android:textColor">#8affffff</item>
-    </style>
-
     <style name="ListItemBigtext">
         <item name="android:textColor">#25467A</item>
         <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>

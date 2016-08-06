@@ -119,14 +119,14 @@ public class MyRecyclerView extends RecyclerView {
             int last = mManager.findLastVisibleItemPosition();
             int left, right;
 
-            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards LATER
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards DONE
                 right = child.getRight();
                 if (right > limLeft) {
                     isActivated = true;
                     smoothScrollToPosition(0);
                 } else smoothScrollToPosition(1);
 
-            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards DONE
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards LATER
                 left = child.getLeft();
                 if (left < limRight) {
                     isActivated = true;
@@ -135,11 +135,11 @@ public class MyRecyclerView extends RecyclerView {
             }
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
-            if ((mManager.getChildAt(0)) != null && first == 0) { //move to LATER
-                sendCellToLater();
-            } else { //move to DONE
+            if ((mManager.getChildAt(0)) != null && first == 0) { //move to DONE
                 cheerSnackmessage();
                 sendCellToDone();
+            } else { //move to LATER
+                sendCellToLater();
             }
         }
     }
@@ -162,14 +162,14 @@ public class MyRecyclerView extends RecyclerView {
             int last = mManager.findLastVisibleItemPosition();
             int left, right;
 
-            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards DELETE
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards NOW
                 right = child.getRight();
                 if (right > limLeft) {
                     isActivated = true;
                     smoothScrollToPosition(0);
                 } else smoothScrollToPosition(1);
 
-            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards NOW
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards DELETE
                 left = child.getLeft();
                 if (left < limRight) {
                     isActivated = true;
@@ -178,10 +178,10 @@ public class MyRecyclerView extends RecyclerView {
             }
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Wait for animation to finish
             int first = mManager.findFirstVisibleItemPosition();
-            if ((mManager.getChildAt(0)) != null && first == 0) { //DELETE
-                sendCellToDelete();
-            } else { //NOW
+            if ((mManager.getChildAt(0)) != null && first == 0) { //NOW
                 sendCellToNow();
+            } else { //DELETE
+                sendCellToDelete();
             }
         }
     }

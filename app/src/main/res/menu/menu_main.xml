@@ -4,7 +4,6 @@
     tools:context="appbox.ideastracker.MainActivity">
     <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
         android:icon="@drawable/ic_action_name"
         android:title="@string/action_settings"
         app:showAsAction="ifRoom" />

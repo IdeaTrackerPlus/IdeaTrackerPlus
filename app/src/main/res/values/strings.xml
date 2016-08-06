@@ -29,27 +29,27 @@
     <string name="select_sec_col">Select secondary color</string>
     <string name="select_text_col">Select text color</string>
     <string name="nothing_move">"Nothing to move from "</string>
-    <string name="must_diff">Locations must be different</string>
+    <string name="must_diff">Tabs must be different</string>
     <string name="undo">UNDO</string>
     <string name="trash">Trash</string>
     <string name="new_pro_message">Give it a unique name</string>
-    <string name="name_taken">Project name already exists</string>
-    <string name="rename_pro_message">Give it a better name</string>
+    <string name="name_taken">This project already exists</string>
+    <string name="rename_pro_message">Give it a new name</string>
     <string name="delete_pro_message">And its ideas too</string>
     <string name="no_project">No project</string>
     <string name="reset_color_pref_message">For this project only</string>
     <string name="no_ideas">No ideas</string>
-    <string name="no_project_snack_message">Create a project first</string>
+    <string name="no_project_snack_message">You should create a project first</string>
     <string name="first_tab">Ideas</string>
     <string name="second_tab">Later</string>
     <string name="third_tab">Done</string>
     <string name="priority">Priority</string>
     <string name="do_later">Do later</string>
     <string name="ok">OK</string>
-    <string name="get_started">Get started with a new project\nClick anywhere</string>
+    <string name="get_started">Get started with a new project\nTap anywhere</string>
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
-    <string name="hint_edit_idea">A great new idea</string>
+    <string name="hint_edit_idea">Your idea or task</string>
     <string name="hint_edit_note">Some note or comment</string>
     <string name="error_empty_taken">Name is empty or already taken</string>
     <string name="help">Help</string>
@@ -60,14 +60,12 @@
     <string name="show_cheer_msg">Show message on task done</string>
     <string name="big_text_pref" translatable="false">bigTextSwitch</string>
     <string name="big_text_msg">Bigger text for ideas</string>
-    <string name="first_project_title">Your projects are in this drawer</string>
-    <string name="first_project_content">Click on the header to switch to the menu</string>
+    <string name="first_project_content">Hi there! Your projects are in this drawer.\nTap on the header to switch to the menu.</string>
     <string name="first_project_pref" translatable="false">firstProject</string>
     <string name="handle_idea_pref" translatable="false">handleIdea</string>
     <string name="first_idea_pref" translatable="false">firstIdea</string>
-    <string name="first_idea_title">Add your first idea</string>
-    <string name="handle_idea_title">Manage your ideas</string>
-    <string name="handle_idea_content">Try clicking, holding and swiping on the ideas</string>
+    <string name="first_idea_title">Awesome! Now, your ideas and tasks for this project will be shown there.\nTap the button over here to add one.</string>
+    <string name="handle_idea_content">Now try to interact with your idea:\n- Tap for a detailed view\n- Hold to edit the idea\n- Swipe right to mark it done\n- Swipe left to save it for later</string>
     <string name="dont_forget">Don\'t forget to type out your idea</string>
     <string name="later">LATER</string>
     <string name="done_caps">DONE</string>
@@ -77,7 +75,6 @@
     <string name="help_feedback"><![CDATA[Help & feedback]]></string>
     <string name="see_app_intro">See app intro again</string>
     <string name="activate_tuto">Activate tutorial again</string>
-    <string name="rate">"Rate "</string>
     <string name="feedback">Send feedback</string>
     <string name="source_code">Source code</string>
     <string name="welcome">Welcome to\nIdeas Tracker</string>
@@ -87,7 +84,7 @@
     <string name="organized">Stay organized</string>
     <string name="organized_content">Class your ideas in projects\nto stay on focus</string>
     <string name="things_done">Get things done</string>
-    <string name="things_done_content">Your ideas become tasks\nwith different priorities</string>
+    <string name="things_done_content">And keep track of your progress</string>
     <string name="edit">EDIT</string>
     <string name="idea">idea</string>
     <string name="ideas">ideas</string>
@@ -100,6 +97,9 @@
     <string name="idea_deleted">Idea deleted</string>
     <string name="priority_group">"Priority "</string>
     <string name="edit_idea">Edit idea</string>
+    <string name="rate_app">Rate Ideas Tracker</string>
+    <string name="right_drawer_guide">By the way, tap here to change the colors of your project interface and access some functions!</string>
+    <string name="right_drawer_pref" translatable="false">rightDrawer</string>
 
     <string-array name="array_from">
         <item>Done</item>

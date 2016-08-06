@@ -2,14 +2,14 @@
 <resources>
     <string name="app_name">Ideas Tracker</string>
     <string name="action_settings">Options</string>
-    <string name="activate_tuto">Activer tutoriel</string>
+    <string name="activate_tuto">Activer le tutoriel</string>
     <string name="all_pro">Mes projets</string>
-    <string name="big_text_msg">Texte grand format</string>
+    <string name="big_text_msg">Grande police de texte</string>
     <string name="cancel">Annuler</string>
     <string name="close">FERMER</string>
     <string name="create">CRÉER</string>
     <string name="delete">SUPPRIMER</string>
-    <string name="delete_pro">Supprimer</string>
+    <string name="delete_pro">Supprimer le projet</string>
     <string name="delete_pro_message">Ses idées seront supprimées aussi</string>
     <string name="do_later">Faire plus tard</string>
     <string name="done">Terminé</string>
@@ -20,20 +20,18 @@
     <string name="error_empty_taken">Le nom est vide ou déjà pris</string>
     <string name="expand_collapse">Etendre/rétracter les priorités</string>
     <string name="feedback">Envoyer un commentaire</string>
-    <string name="first_idea_title">Ajouter une première idée</string>
-    <string name="first_project_content">Cliquer sur l\'en-tête pour accéder au menu</string>
-    <string name="first_project_title">Vos projets sont dans ce volet</string>
+    <string name="first_idea_title">Très bien ! Vos idées et tâches pour ce projet s\'affichent sur cette page.\nAppuyez sur ce bouton pour en créer une.</string>
+    <string name="first_project_content">Besoin d\'aide ? Vos projets sont dans ce volet.\nCliquez sur la partie supèrieure pour basculer vers le menu</string>
     <string name="first_tab">Idées</string>
     <string name="from">De</string>
     <string name="functions">Fonctions</string>
     <string name="functions_label">Fonctions</string>
-    <string name="get_started">Créez un nouveau projet\nCliquez n\'importe où</string>
-    <string name="handle_idea_content">Essayez de cliquer, maintenir et faire glisser vos idées</string>
-    <string name="handle_idea_title">Interagir sur vos idées</string>
+    <string name="get_started">Créez un nouveau projet\nTouchez n\'importe où</string>
+    <string name="handle_idea_content">Plusieurs actions sont disponibles sur vos idées:\n- Touchez pour une vue détailée\n- Maintenez enfoncé pour la modifier\n- Faîtes glisser vers la droite lorsque vous avez terminé\n- Faîtes glisser vers la gauche pour remettre à plus tard</string>
     <string name="help">Aide</string>
     <string name="help_feedback"><![CDATA[Aide & contact]]></string>
-    <string name="hint_edit_idea">Une brillante idée</string>
-    <string name="hint_edit_note">Un commentaire ou note</string>
+    <string name="hint_edit_idea">Une idée ou une tâche</string>
+    <string name="hint_edit_note">Un commentaire ou une note</string>
     <string name="later">PLUS TARD</string>
     <string name="move_all_ideas">Déplacer les idées d\'un onglet</string>
     <string name="must_diff">Les onglets doivent êtres différents</string>
@@ -47,10 +45,9 @@
     <string name="ok">OK</string>
     <string name="primary_col">Couleur principal</string>
     <string name="priority">Priorité</string>
-    <string name="rate">"Noter "</string>
     <string name="recover">RESTAURER</string>
     <string name="rename">RENOMMER</string>
-    <string name="rename_pro">Renommer</string>
+    <string name="rename_pro">Renommer le projet</string>
     <string name="rename_pro_message">Donnez lui un nouveau nom</string>
     <string name="reset_color_pref_message">Pour ce projet seulement</string>
     <string name="reset_color_prefs">Rétablir les couleurs par défaut</string>
@@ -61,23 +58,23 @@
     <string name="select_sec_col">Choisissez la couleur secondaire</string>
     <string name="select_text_col">Choisissez la couleur du texte</string>
     <string name="settings">Options</string>
-    <string name="show_cheer_msg">Messages tâche finie</string>
-    <string name="show_done_msg">Afficher TERMINE onglet</string>
-    <string name="source_code">Code source</string>
+    <string name="show_cheer_msg">Messages d\'encouragement</string>
+    <string name="show_done_msg">Afficher l\'onglet \'terminé\'</string>
+    <string name="source_code">Voir le code source</string>
     <string name="text_col">Couleur du texte</string>
     <string name="third_tab">Terminé</string>
     <string name="to">vers</string>
     <string name="trash">Corbeille</string>
     <string name="tuto_mode">Le tutoriel est maintenant actif</string>
     <string name="undo">ANNULER</string>
-    <string name="organized">Restez organisé</string>
-    <string name="simple">Restez simple</string>
+    <string name="organized">Soyez organisé</string>
+    <string name="simple">Gagnez du temps</string>
     <string name="organized_content">Classez vos idées en projets\npour rester concentré</string>
-    <string name="simple_content">Saisissez vos idées rapidement\navec peu d\'informations requises</string>
-    <string name="things_done">Accomplissez plus</string>
-    <string name="things_done_content">Vos idées deviennent des tâches\navec des priorités différentes</string>
+    <string name="simple_content">Saisissez vos idées\nplus rapidement</string>
+    <string name="things_done">Soyez productif</string>
+    <string name="things_done_content">Et suivez vos progrès\ndans l\'onglet prévu à cet effet</string>
     <string name="welcome">Bienvenue sur\nIdeas Tracker</string>
-    <string name="welcome_content">Toutes vos idées et tâches\nréunies en une app</string>
+    <string name="welcome_content">Toutes vos idées et tâches\nréunies en une seule app</string>
     <string name="edit">MODIFIER</string>
 
     <string-array name="array_from">
@@ -115,5 +112,7 @@
     <string name="idea_deleted">Idée supprimée</string>
     <string name="priority_group">"Priorité "</string>
     <string name="edit_idea">Modifier l\'idée</string>
+    <string name="rate_app">Noter l\'application</string>
+    <string name="right_drawer_guide">Par ici ! Ce bouton vous permet de modifier les couleurs de l\'interface, mais aussi d\'accéder à quelques fonctions.</string>
 
 </resources>
