@@ -115,5 +115,6 @@
     <string name="rate_app">Noter l\'application</string>
     <string name="right_drawer_guide">Par ici ! Ce bouton vous permet de modifier les couleurs de l\'interface, mais aussi d\'accéder à quelques fonctions.</string>
     <string name="next">Suivant</string>
+    <string name="idea_moved_snack">"Idée déplacée vers "</string>
 
 </resources>

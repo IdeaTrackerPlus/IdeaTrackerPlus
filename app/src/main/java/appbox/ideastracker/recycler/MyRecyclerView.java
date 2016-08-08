@@ -136,7 +136,7 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to DONE
-                cheerSnackmessage();
+                //cheerSnackmessage();
                 sendCellToDone();
             } else { //move to LATER
                 sendCellToLater();
@@ -206,7 +206,7 @@ public class MyRecyclerView extends RecyclerView {
             @Override
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
-                mDbHelper.moveToTab(1, tagId);
+                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 1, tagId);
                 DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
@@ -256,7 +256,7 @@ public class MyRecyclerView extends RecyclerView {
             @Override
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
-                mDbHelper.moveToTab(2, tagId);
+                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
                 DatabaseHelper.notifyAllLists();
             }
 
@@ -280,7 +280,7 @@ public class MyRecyclerView extends RecyclerView {
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
 
-                mDbHelper.moveToTab(3, tagId);
+                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
                 DatabaseHelper.notifyAllLists();
                 mainActivity.displayIdeasCount();
             }

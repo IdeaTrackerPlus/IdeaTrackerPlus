@@ -2,6 +2,7 @@ package appbox.ideastracker.database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -33,6 +34,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Keeps the ideas which have just been moved with "move all" to undo the action
     private static ArrayList<Pair<Integer, String>> movedIdeas;
+    // Keep the idea last moved with "moveToTab" to undo the action
+    private static Pair<Integer, Integer> lastMoved;
 
     // If the database schema change, must increment the database version.
     public static final int DATABASE_VERSION = 2;
@@ -363,16 +366,69 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Move an idea to another tab displaying a snackbar allowing to undo the action
+     *
+     * @param view a reference view to display to snackbar
+     * @param from tab numer the idea comes from
+     * @param to   tab number where to move the idea
+     * @param id   unique id of the idea in database
+     */
+    public void moveToTabWithSnack(View view, int from, int to, int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        Resources res = mainActivity.getResources();
+        String destination = "";
+
+        switch (to) {
+            case 1: //NOW
+                destination = res.getString(R.string.first_tab);
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                break;
+
+            case 2: //LATER
+                destination = res.getString(R.string.second_tab);
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                values.put(DataEntry.COLUMN_NAME_LATER, true);
+                break;
+
+            case 3: //DONE
+                destination = res.getString(R.string.third_tab);
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                values.put(DataEntry.COLUMN_NAME_DONE, true);
+                break;
+        }
+
+        db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+
+        //Keeps the idea info if action has to be undone
+        lastMoved = new Pair<>(from, id);
+
+        //Show snackbar allowing undo action
+        Snackbar snackbar = Snackbar.make(view, res.getString(R.string.idea_moved_snack) + destination, Snackbar.LENGTH_LONG)
+                .setAction(R.string.undo, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        undoLastMove();
+                        mainActivity.displayIdeasCount();
+                    }
+                });
+        snackbar.show();
+    }
+
+    /**
      * Move an idea to another tab
      *
-     * @param tabNumber
+     * @param to
      * @param id
      */
-    public void moveToTab(int tabNumber, int id) {
+    public void moveToTab(int to, int id) {
+
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        switch (tabNumber) {
+        switch (to) {
             case 1: //NOW
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
@@ -390,6 +446,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         db.update(DataEntry.TABLE_NAME, values, "_id=" + id, null);
+    }
+
+    // Move back the last idea moved with moveToTab method
+    private void undoLastMove() {
+        moveToTab(lastMoved.first, lastMoved.second);
+        notifyAllLists();
     }
 
     public void moveAllToTab(int tabNumber, ArrayList<Pair<Integer, String>> ideas) {

@@ -101,6 +101,7 @@
     <string name="right_drawer_guide">By the way, tap here to change the colors of your project interface and access some functions!</string>
     <string name="right_drawer_pref" translatable="false">rightDrawer</string>
     <string name="next">Next</string>
+    <string name="idea_moved_snack">"Idea moved to "</string>
 
     <string-array name="array_from">
         <item>Done</item>
