@@ -28,11 +28,13 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mIdeaError;
     private TextView mMoveError;
     private EditText mIdeaField;
+    private EditText mNoteField;
     private Spinner mFromSpinner, mToSpinner;
 
     // Preferences
@@ -136,9 +139,6 @@ public class MainActivity extends AppCompatActivity {
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
-
-    // Tutorial element
-    private View mSettingsButton;
 
 
     // STATIC METHODS //
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Default colors
         defaultPrimaryColor = ContextCompat.getColor(this, R.color.md_blue_grey_800);
-        defaultSecondaryColor = ContextCompat.getColor(this, R.color.md_green_a400);
+        defaultSecondaryColor = ContextCompat.getColor(this, R.color.md_teal_a400);
         defaultTextColor = ContextCompat.getColor(this, R.color.md_white);
 
         // Toolbar
@@ -568,60 +568,68 @@ public class MainActivity extends AppCompatActivity {
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle(R.string.new_idea)
                 .setIcon(R.drawable.ic_bulb)
                 .setListener(R.id.doneButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
-                        RadioGroup radioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-                        EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-                        String text = mIdeaField.getText().toString();
-                        if (!text.equals("")) {
-
-                            boolean later = doLater.isChecked();
-
-                            if (radioGroup.getCheckedRadioButtonId() != -1) {
-                                View radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
-                                RadioButton btn = (RadioButton) radioGroup.getChildAt(radioGroup.indexOfChild(radioButton));
-                                String selection = (String) btn.getText();
-
-                                String note = noteField.getText().toString();
-                                int priority = Integer.parseInt(selection);
-
-                                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
-                                displayIdeasCount();
-
-                                DatabaseHelper.notifyAllLists();
-
-                            }
-
-                            mNewIdeaDialog.dismiss();
-
-                            if (mTinyDB.getBoolean(getString(R.string.handle_idea_pref))) {
-                                //move tab where idea was created
-                                int index = 0;
-                                if (later) index = 1;
-
-                                tabLayout.setScrollPosition(index, 0f, true);
-                                mViewPager.setCurrentItem(index);
-
-                                //start the handle idea guide
-                                handleIdeaGuide();
-                            }
-
-                        } else {
-                            mIdeaError.setVisibility(View.VISIBLE);
-                        }
+                        sendIdeaFromDialog();
                     }
                 })
                 .show();
 
+        //get the view items
+        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
         mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
         mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
+        //set up listener for "ENTER" and text changed
+        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+        mIdeaField.setOnEditorActionListener(ideaFieldListener);
+        mNoteField.setOnEditorActionListener(noteFieldListener);
+
+    }
+
+    private void sendIdeaFromDialog() {
+        Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
+
+        String text = mIdeaField.getText().toString();
+        if (!text.equals("")) {
+
+            boolean later = doLater.isChecked();
+
+            if (mRadioGroup.getCheckedRadioButtonId() != -1) {
+                View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
+                RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
+                String selection = (String) btn.getText();
+
+                String note = mNoteField.getText().toString();
+                int priority = Integer.parseInt(selection);
+
+                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
+                displayIdeasCount();
+
+                DatabaseHelper.notifyAllLists();
+
+            }
+
+            mNewIdeaDialog.dismiss();
+
+            if (mTinyDB.getBoolean(getString(R.string.handle_idea_pref))) {
+                //move tab where idea was created
+                int index = 0;
+                if (later) index = 1;
+
+                tabLayout.setScrollPosition(index, 0f, true);
+                mViewPager.setCurrentItem(index);
+
+                //start the handle idea guide
+                handleIdeaGuide();
+            }
+
+        } else {
+            mIdeaError.setVisibility(View.VISIBLE);
+        }
     }
 
     // Shows and idea creation dialog
@@ -631,37 +639,11 @@ public class MainActivity extends AppCompatActivity {
         mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle(R.string.new_idea)
                 .setIcon(R.drawable.ic_bulb)
                 .setListener(R.id.doneButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Switch doLater = (Switch) mNewIdeaDialog.findViewById(R.id.doLater);
-                        EditText noteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-                        String text = mIdeaField.getText().toString();
-                        if (!text.equals("")) {
-
-                            if (mRadioGroup.getCheckedRadioButtonId() != -1) {
-                                View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
-                                RadioButton btn = (RadioButton) mRadioGroup.getChildAt(mRadioGroup.indexOfChild(radioButton));
-                                String selection = (String) btn.getText();
-
-                                String note = noteField.getText().toString();
-                                boolean later = doLater.isChecked();
-                                int priority = Integer.parseInt(selection);
-
-                                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
-
-                                DatabaseHelper.notifyAllLists();
-                                displayIdeasCount();
-
-                            }
-
-                            mNewIdeaDialog.dismiss();
-                        } else {
-                            mIdeaError.setVisibility(View.VISIBLE);
-                        }
+                        sendIdeaFromDialog();
                     }
                 })
                 .show();
@@ -669,7 +651,12 @@ public class MainActivity extends AppCompatActivity {
         //set up the error message
         mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
         mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
         mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //set up "ENTER" listeners
+        mIdeaField.setOnEditorActionListener(ideaFieldListener);
+        mNoteField.setOnEditorActionListener(noteFieldListener);
 
         //check the right priority radio button
         mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
@@ -1439,6 +1426,28 @@ public class MainActivity extends AppCompatActivity {
 
     // LISTENERS //
 
+    private TextView.OnEditorActionListener ideaFieldListener = new TextView.OnEditorActionListener() {
+
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                mNoteField.requestFocus();
+            }
+            return true;
+        }
+    };
+
+    private TextView.OnEditorActionListener noteFieldListener = new TextView.OnEditorActionListener() {
+
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                sendIdeaFromDialog();
+            }
+            return true;
+        }
+    };
+
     private class HideErrorOnTextChanged implements TextWatcher {
 
         @Override
@@ -1494,10 +1503,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onDrawerOpened(View drawerView) {
-            if (rightDrawer.isDrawerOpen())
-                mHandleFilter = true;
-            else
-                mHandleFilter = false;
+            mHandleFilter = rightDrawer.isDrawerOpen();
 
         }
 
