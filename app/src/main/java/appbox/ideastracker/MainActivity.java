@@ -1,5 +1,6 @@
 package appbox.ideastracker;
 
+import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -24,6 +25,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -38,9 +40,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -64,6 +64,7 @@ import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.thebluealliance.spectrum.SpectrumDialog;
+import com.woxthebox.draglistview.DragListView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
@@ -71,18 +72,14 @@ import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 import java.util.ArrayList;
 import java.util.List;
 
-import appbox.ideastracker.customviews.AnimatedExpandableListView;
 import appbox.ideastracker.customviews.NonSwipeableViewPager;
 import appbox.ideastracker.customviews.ToolbarColorizeHelper;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
-import appbox.ideastracker.listadapters.MyExandableListAdapter;
-import appbox.ideastracker.listadapters.MyListAdapter;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
-import appbox.ideastracker.recycler.RecyclerOnLongClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.prefs.PreferencesManager;
 import co.mobiwise.materialintro.shape.Focus;
@@ -98,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
     private Drawer rightDrawer = null;
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
-    private SwitchDrawerItem cheerSwitch;
     private SwitchDrawerItem bigTextSwitch;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
@@ -139,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
+
 
 
     // STATIC METHODS //
@@ -203,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         // Set up the tab layout
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         tabLayout.setupWithViewPager(mViewPager);
-        tabLayout.setSelectedTabIndicatorHeight(10);
+        tabLayout.setSelectedTabIndicatorHeight(8);
 
         // Wire the floating button
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -295,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, cheerSwitch, bigTextSwitch),
+                                doneSwitch, bigTextSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -411,8 +408,8 @@ public class MainActivity extends AppCompatActivity {
                         mColorItem3,
                         new PrimaryDrawerItem().withIdentifier(6).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
                         new SectionDrawerItem().withName(R.string.functions),
-                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.move_all_ideas).withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.expand_collapse).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withStickyFooter(R.layout.footer)
@@ -493,11 +490,13 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 4:
-                                    newMoveDialog();
+                                    mDbHelper.clearDoneWithSnack(mViewPager);
+                                    rightDrawer.closeDrawer();
                                     break;
 
                                 case 5:
-                                    AnimatedExpandableListView.getInstance().collapseExpandAll();
+                                    mDbHelper.sortByAscPriority();
+                                    rightDrawer.closeDrawer();
                                     break;
 
                                 case 6:
@@ -547,9 +546,6 @@ public class MainActivity extends AppCompatActivity {
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
         else toggleDoneTab();
-
-        cheerSwitch = new SwitchDrawerItem().withName(R.string.show_cheer_msg).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if (mTinyDB.getBoolean(getString(R.string.show_cheer_pref))) cheerSwitch.withChecked(true);
 
         bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
@@ -674,74 +670,6 @@ public class MainActivity extends AppCompatActivity {
         }
         radio.setChecked(true);
 
-
-    }
-
-    // Shows a dialog allowing to move ideas from tab to tab
-    private void newMoveDialog() {
-
-        final View root = findViewById(R.id.main_content);
-
-        mMoveDialog = new LovelyCustomDialog(this)
-                .setView(R.layout.move_dialog)
-                .setTopColor(mPrimaryColor)
-                .setTitle(R.string.move_all_title)
-                .setIcon(R.drawable.ic_transfer)
-                .setListener(R.id.move_button, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        final String from = mFromSpinner.getSelectedItem().toString();
-                        final String to = mToSpinner.getSelectedItem().toString();
-
-                        String snackText = "";
-                        String errorText = getString(R.string.nothing_move) + from;
-                        boolean success = false;
-                        if (from.equals(to)) errorText = getString(R.string.must_diff);
-                        else if (mDbHelper.moveAllFromTo(from, to)) {
-                            snackText = getString(R.string.moved_all_1) + from + getString(R.string.moved_all_2) + to;
-                            success = true;
-                            displayIdeasCount();
-                        }
-
-                        Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
-                        if (success) {
-                            snackbar.setAction(R.string.undo, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    if (to.equals(getString(R.string.trash))) {//undo temp deleting
-                                        mDbHelper.recoverAllFromTemp();
-                                    } else {
-                                        mDbHelper.moveBackFrom(from);
-                                    }
-                                    displayIdeasCount();
-                                }
-                            }).setCallback(new Snackbar.Callback() {
-                                @Override
-                                public void onDismissed(Snackbar snackbar, int event) {
-                                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals(getString(R.string.trash))) {
-                                        //delete for real ideas in temp
-                                        mDbHelper.deleteAllFromTemp();
-                                    }
-                                }
-                            });
-                            mMoveDialog.dismiss();
-                            rightDrawer.closeDrawer();
-                            snackbar.show();
-                        } else {
-                            mMoveError.setText(errorText);
-                            mMoveError.setVisibility(View.VISIBLE);
-                        }
-                    }
-                })
-                .show();
-
-        mMoveError = (TextView) mMoveDialog.findViewById(R.id.move_error_message);
-        mFromSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_from);
-        mToSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_to);
-
-        mFromSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
-        mToSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
 
     }
 
@@ -1074,7 +1002,6 @@ public class MainActivity extends AppCompatActivity {
         rightDrawer.updateItem(mColorItem1);
 
         RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
-        RecyclerOnLongClickListener.setPrimaryColor(mPrimaryColor);
     }
 
     private void changeSecondaryColor() {
@@ -1241,7 +1168,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayIdeasCount() {
-        int count = mDbHelper.getIdeasCount();
+        int count = mDbHelper.getIdeasCount(0);
+
         if (count == 0) {
             header.setSelectionSecondLine(getString(R.string.no_ideas));
         } else if (count == 1) {
@@ -1295,7 +1223,7 @@ public class MainActivity extends AppCompatActivity {
 
             mainActivity = MainActivity.getActivity(container);
 
-            View rootView = null;
+            View rootView;
             if (DataEntry.TABLE_NAME.equals("[]")) {
                 rootView = inflater.inflate(R.layout.no_project_layout, container, false);
                 LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.noProject);
@@ -1308,77 +1236,51 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
+            //Inflate the list view
+            rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
+            DragListView mDragListView = (DragListView) rootView.findViewById(R.id.list);
+            mDragListView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+            //Determine tab number
+            int tabNumber = 0;
             if (getTabName().equals(getString(R.string.first_tab))) { //IDEAS
-
-                rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
-                //sets the adapter that provides data to the list
-                MyExandableListAdapter adapter = new MyExandableListAdapter(getContext());
-                DatabaseHelper.setAdapterIdea(adapter);
-                list.setAdapter(adapter);
-                list.expandGroup(0);
-                list.expandGroup(1);
-                list.expandGroup(2);
-                setListeners(list);
+                tabNumber = 1;
             } else if (getTabName().equals(getString(R.string.second_tab))) {
-
-                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                ListView list2 = (ListView) rootView.findViewById(R.id.list);
-                MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
-                DatabaseHelper.setAdapterLater(adapter2);
-                list2.setAdapter(adapter2);
+                tabNumber = 2;
             } else if (getTabName().equals(getString(R.string.third_tab))) {
-
-                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                ListView list3 = (ListView) rootView.findViewById(R.id.list);
-                MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
-                DatabaseHelper.setAdapterDone(adapter3);
-                list3.setAdapter(adapter3);
+                tabNumber = 3;
             }
 
+            //Set reorder listener
+            final int finalTabNumber = tabNumber;
+            mDragListView.setDragListListener(new DragListView.DragListListener() {
+
+                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                @Override
+                public void onItemDragStarted(int position) {
+                }
+
+                @Override
+                public void onItemDragEnded(int fromPosition, int toPosition) {
+                    if (fromPosition != toPosition) {
+                        DatabaseHelper.getInstance(getContext()).resetEntriesOrderAt(finalTabNumber);
+                    }
+                }
+
+                @Override
+                public void onItemDragging(int itemPosition, float x, float y) {
+                }
+            });
+
+            //Set adapter
+            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
+            mDragListView.setAdapter(itemAdapter, false);
+            mDragListView.setCanDragHorizontally(false);
+
+            DatabaseHelper.setAdapterAtTab(tabNumber, itemAdapter);
+            DatabaseHelper.notifyAllLists();
 
             return rootView;
-        }
-
-        void setListeners(final AnimatedExpandableListView listView) {
-            listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-
-                @Override
-                public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-
-                    if (listView.getExpandableListAdapter().getChildrenCount(groupPosition) != 0) { //group is not empty
-                        if (listView.isGroupExpanded(groupPosition)) {
-                            listView.collapseGroupWithAnimation(groupPosition);
-                        } else {
-                            listView.expandGroupWithAnimation(groupPosition);
-                        }
-                    } else { //group is empty
-                        mainActivity.newIdeaDialog(groupPosition + 1);
-
-                    }
-                    return true;
-                }
-
-            });
-
-            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    int itemType = ExpandableListView.getPackedPositionType(id);
-
-                    if (itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-                        int groupPosition = ExpandableListView.getPackedPositionGroup(id);
-                        mainActivity.newIdeaDialog(groupPosition + 1);
-                        return true;
-
-                    } else {
-                        // null item; we don't consume the click
-                        return false;
-                    }
-                }
-            });
-
         }
 
     }
@@ -1489,6 +1391,7 @@ public class MainActivity extends AppCompatActivity {
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
                 mToolbar.setTitle(tableName);
                 mDbHelper.switchTable(tableName);
+                DatabaseHelper.notifyAllLists();
                 displayIdeasCount();
                 switchToProjectColors();
             }
@@ -1535,14 +1438,6 @@ public class MainActivity extends AppCompatActivity {
 
                 case 6:
                     toggleDoneTab();
-                    break;
-
-                case 7:
-                    if (isChecked) {
-                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), true);
-                    } else {
-                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), false);
-                    }
                     break;
 
                 case 20:

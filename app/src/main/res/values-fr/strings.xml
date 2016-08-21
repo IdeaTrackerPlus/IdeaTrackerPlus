@@ -33,7 +33,6 @@
     <string name="hint_edit_idea">Une idée ou une tâche</string>
     <string name="hint_edit_note">Un commentaire ou une note</string>
     <string name="later">PLUS TARD</string>
-    <string name="move_all_ideas">Déplacer les idées d\'un onglet</string>
     <string name="must_diff">Les onglets doivent êtres différents</string>
     <string name="name_taken">Ce projet existe déjà</string>
     <string name="new_pro">Nouveau projet</string>
@@ -58,8 +57,7 @@
     <string name="select_sec_col">Choisissez la couleur secondaire</string>
     <string name="select_text_col">Choisissez la couleur du texte</string>
     <string name="settings">Options</string>
-    <string name="show_cheer_msg">Messages d\'encouragement</string>
-    <string name="show_done_msg">Afficher l\'onglet \'terminé\'</string>
+    <string name="show_done_msg">Afficher l\'onglet \'Terminé\'</string>
     <string name="source_code">Voir le code source</string>
     <string name="text_col">Couleur du texte</string>
     <string name="third_tab">Terminé</string>
@@ -88,15 +86,6 @@
         <item>Idées</item>
         <item>Plus tard</item>
         <item>Terminé</item>
-    </string-array>
-
-    <string-array name="done_cheers">
-        <item>Du bon travail</item>
-        <item>Et une autre de terminée</item>
-        <item>Ce projet avance bien</item>
-        <item>Un pas de plus</item>
-        <item>Vraiment incroyable</item>
-        <item>Excellent!</item>
     </string-array>
 
     <string name="idea">idée</string>

@@ -1,5 +1,6 @@
 package appbox.ideastracker.recycler;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import appbox.ideastracker.R;
+import appbox.ideastracker.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 13/07/2016.
@@ -22,8 +24,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     private int mTabNumber;
 
 
-    private int mIdRecycler; //RecylerView tag, also idea's id in database
+    private View mLayout;
     private MyRecyclerView mRecyclerView;
+    private View.OnLongClickListener mListener;
 
     // same text size for all ideas
     private static boolean mBigtext = false;
@@ -31,38 +34,53 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView txtView;
+        public View priorityTag;
 
         public MyViewHolder(View view) {
             super(view);
             txtView = (TextView) view.findViewById(R.id.txtView);
+            priorityTag = view.findViewById(R.id.priorityTag);
         }
     }
 
 
-    public HorizontalAdapter(String text, int tabNumber) {
+    public HorizontalAdapter(Context context, String text, int tabNumber) {
         mIdea = text;
         mTabNumber = tabNumber;
+        if (mBigtext) {
+            mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view_big, null, false);
+        } else {
+            mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
+        }
     }
 
     public static void setBigText(boolean b) {
         mBigtext = b;
     }
 
+    public void setLongClickListener(View.OnLongClickListener l) {
+        mListener = l;
+    }
+
+    public void setIdeaText(String ideaText) {
+        mIdea = ideaText;
+    }
+
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView;
         if (mBigtext) {
-            itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view_big, parent, false);
+            mLayout = LayoutInflater.from(mRecyclerView.getContext()).inflate(R.layout.horizontal_item_view_big, mRecyclerView, false);
         } else {
-            itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.horizontal_item_view, parent, false);
+            mLayout = LayoutInflater.from(mRecyclerView.getContext()).inflate(R.layout.horizontal_item_view, mRecyclerView, false);
         }
-        return new MyViewHolder(itemView);
+        return new MyViewHolder(mLayout);
     }
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
 
-        RecyclerOnClickListener onClickListener = new RecyclerOnClickListener(mRecyclerView);
+        holder.priorityTag.setVisibility(View.GONE);
+        DatabaseHelper helper = DatabaseHelper.getInstance(mRecyclerView.getContext());
 
         //Fill the textView with the right content
         switch (mTabNumber) {
@@ -79,16 +97,20 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //Idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             holder.txtView.setBackgroundResource(R.drawable.white_ripple);
                         } else {
                             holder.txtView.setBackgroundResource(R.color.white);
                         }
                         holder.txtView.setTextColor(Color.BLACK);
-                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(1, mIdRecycler);
-                        onClickListener.setOtherListener(onLongClickListener);
-                        holder.txtView.setOnLongClickListener(onLongClickListener);
-                        holder.txtView.setOnClickListener(onClickListener);
+                        //Listeners
+                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
+                        holder.txtView.setOnClickListener(listener);
+                        holder.txtView.setOnLongClickListener(mListener);
+                        //Priority tag
+                        holder.priorityTag.setVisibility(View.VISIBLE);
+                        holder.priorityTag.setBackgroundResource(helper.getPriorityColorById((int) mRecyclerView.getTag()));
                         break;
 
                     case 2: //Quick action send to LATER
@@ -113,16 +135,19 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //Idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             holder.txtView.setBackgroundResource(R.drawable.white_ripple);
                         } else {
                             holder.txtView.setBackgroundResource(R.color.white);
                         }
                         holder.txtView.setTextColor(Color.DKGRAY);
-                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(2, mIdRecycler);
-                        onClickListener.setOtherListener(onLongClickListener);
-                        holder.txtView.setOnLongClickListener(onLongClickListener);
-                        holder.txtView.setOnClickListener(onClickListener);
+                        //Listeners
+                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
+                        holder.txtView.setOnClickListener(listener);
+                        holder.txtView.setOnLongClickListener(mListener);
+                        holder.priorityTag.setVisibility(View.VISIBLE);
+                        holder.priorityTag.setBackgroundResource(helper.getPriorityColorById((int) mRecyclerView.getTag()));
                         break;
 
                     case 2: //Quick action send to DELETE
@@ -147,16 +172,17 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     case 1: //idea text
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
+                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             holder.txtView.setBackgroundResource(R.drawable.white_ripple);
                         } else {
                             holder.txtView.setBackgroundResource(R.color.white);
                         }
                         holder.txtView.setTextColor(Color.GRAY);
-                        RecyclerOnLongClickListener onLongClickListener = new RecyclerOnLongClickListener(3, mIdRecycler);
-                        onClickListener.setOtherListener(onLongClickListener);
-                        holder.txtView.setOnLongClickListener(onLongClickListener);
-                        holder.txtView.setOnClickListener(onClickListener);
+                        //Listeners
+                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
+                        holder.txtView.setOnClickListener(listener);
+                        holder.txtView.setOnLongClickListener(mListener);
                         break;
 
                     case 2: //Quick action send to DELETE
@@ -175,7 +201,6 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        mIdRecycler = (Integer) recyclerView.getTag();
         mRecyclerView = (MyRecyclerView) recyclerView;
 
     }
@@ -188,4 +213,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     public int getTabNumber() {
         return mTabNumber;
     }
+
+    public View getLayout() {
+        return mLayout;
+    }
+
 }

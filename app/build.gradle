@@ -41,5 +41,6 @@ dependencies {
     compile 'com.yarolegovich:lovely-dialog:1.0.4'
     compile 'com.github.paolorotolo:appintro:4.0.0'
     compile 'com.github.iammert:MaterialIntroView:1.5.2'
+    compile 'com.github.woxthebox:draglistview:1.2.8'
     compile files('libs/gson-2.4.jar')
 }

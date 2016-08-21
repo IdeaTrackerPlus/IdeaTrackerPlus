@@ -1,15 +1,12 @@
 package appbox.ideastracker.recycler;
 
 import android.content.Context;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-
-import java.util.Random;
 
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
@@ -18,7 +15,7 @@ import appbox.ideastracker.database.TinyDB;
 
 /**
  * Created by Nicklos on 13/07/2016.
- *
+ * <p/>
  * Custom RecyclerView to handle swipe left and right
  * for quick actions.
  * Every MyRecyclerView holds an idea's text.
@@ -56,22 +53,29 @@ public class MyRecyclerView extends RecyclerView {
 
     /**
      * Common code to all constructors
+     *
      * @param c
      */
-    public void constructor(Context c){
+    public void constructor(Context c) {
         isActivated = false;
         mTinyDb = new TinyDB(c);
         mainActivity = MainActivity.getActivity(c);
         mDbHelper = DatabaseHelper.getInstance(c);
     }
 
-    public void reboot(){
+    public void reboot() {
         isActivated = false;
     }
 
     public void setUp() {
         mManager = (LinearLayoutManager) this.getLayoutManager();
         mAdapter = (HorizontalAdapter) this.getAdapter();
+    }
+
+    public void changeIdeaText(String ideaText) {
+        ((HorizontalAdapter) getAdapter()).setIdeaText(ideaText);
+        getAdapter().notifyDataSetChanged();
+
     }
 
     @Override
@@ -103,6 +107,7 @@ public class MyRecyclerView extends RecyclerView {
 
     /**
      * Call when state changed in the "Idea" tab
+     *
      * @param state
      */
     private void stateChangedIdea(int state) {
@@ -136,7 +141,6 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to DONE
-                //cheerSnackmessage();
                 sendCellToDone();
             } else { //move to LATER
                 sendCellToLater();
@@ -146,6 +150,7 @@ public class MyRecyclerView extends RecyclerView {
 
     /**
      * Call when state changed in the "Later" or "Done" tab
+     *
      * @param state
      */
     private void stateChangeOther(int state) {
@@ -186,19 +191,6 @@ public class MyRecyclerView extends RecyclerView {
         }
     }
 
-    /**
-     * Display a message in a snackbar when a task
-     * has been completed
-     */
-    private void cheerSnackmessage() {
-
-        if (mTinyDb.getBoolean("cheerSwitch")) {
-            String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
-            String randomStr = array[new Random().nextInt(array.length)];
-            Snackbar.make(mainActivity.findViewById(R.id.main_content), randomStr, Snackbar.LENGTH_LONG).show();
-        }
-    }
-
     public void sendCellToNow() {
 
         final View v = this;
@@ -210,6 +202,8 @@ public class MyRecyclerView extends RecyclerView {
                 DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
+                scrollToPosition(1);
+                isActivated = false;
             }
 
             @Override
@@ -235,6 +229,8 @@ public class MyRecyclerView extends RecyclerView {
                 DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
+                scrollToPosition(1);
+                isActivated = false;
             }
 
             @Override
@@ -258,6 +254,8 @@ public class MyRecyclerView extends RecyclerView {
                 int tagId = (int) v.getTag();
                 mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
                 DatabaseHelper.notifyAllLists();
+                scrollToPosition(1);
+                isActivated = false;
             }
 
             @Override
@@ -283,6 +281,8 @@ public class MyRecyclerView extends RecyclerView {
                 mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
                 DatabaseHelper.notifyAllLists();
                 mainActivity.displayIdeasCount();
+                scrollToPosition(1);
+                isActivated = false;
             }
 
             @Override
@@ -299,6 +299,7 @@ public class MyRecyclerView extends RecyclerView {
 
     /**
      * Animate the view to shrink vertically
+     *
      * @param v
      * @param al
      */
@@ -330,8 +331,11 @@ public class MyRecyclerView extends RecyclerView {
         v.startAnimation(anim);
     }
 
-
-
+    @Override
+    public void setOnLongClickListener(OnLongClickListener l) {
+        HorizontalAdapter adapter = (HorizontalAdapter) getAdapter();
+        adapter.setLongClickListener(l);
+    }
 
 }
 
