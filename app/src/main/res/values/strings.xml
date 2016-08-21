@@ -62,7 +62,7 @@
     <string name="handle_idea_pref" translatable="false">handleIdea</string>
     <string name="first_idea_pref" translatable="false">firstIdea</string>
     <string name="first_idea_title">Awesome! Now, your ideas and tasks for this project will be shown there.\nTap the button over here to add one.</string>
-    <string name="handle_idea_content">Now try to interact with your idea:\n- Tap for a detailed view\n- Hold to edit the idea\n- Swipe right to mark it done\n- Swipe left to save it for later</string>
+    <string name="handle_idea_content">Now try to interact with your idea:\n- Tap for a detailed view and to edit idea\n- Hold and drag to reorder ideas\n- Swipe right to mark it done\n- Swipe left to save it for later</string>
     <string name="dont_forget">Don\'t forget to type out your idea</string>
     <string name="later">LATER</string>
     <string name="done_caps">DONE</string>
@@ -100,8 +100,9 @@
     <string name="next">Next</string>
     <string name="idea_moved_snack">"Idea moved to "</string>
     <string name="sort_priority">Sort by priority</string>
-    <string name="clear_done">Clear DONE tab</string>
+    <string name="clear_done">Clear Done tab</string>
     <string name="done_cleared">Done tab cleared</string>
+    <string name="favorite_project">favorite_project</string>
 
     <string-array name="array_from">
         <item>Done</item>

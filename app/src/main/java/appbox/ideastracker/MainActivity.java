@@ -37,16 +37,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -58,6 +57,7 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
@@ -99,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
+    private ProfileSettingDrawerItem mAddProject;
+    private MaterialFavoriteButton mFavoriteButton;
 
     // UI elements
     private Toolbar mToolbar;
@@ -109,16 +111,13 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
 
     // Dialogs
-    private Dialog mMoveDialog;
     private Dialog mNewIdeaDialog;
 
     // Dialogs views
     private RadioGroup mRadioGroup;
     private TextView mIdeaError;
-    private TextView mMoveError;
     private EditText mIdeaField;
     private EditText mNoteField;
-    private Spinner mFromSpinner, mToSpinner;
 
     // Preferences
     private TinyDB mTinyDB;
@@ -135,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
     private int defaultPrimaryColor;
     private int defaultSecondaryColor;
     private int defaultTextColor;
-
 
 
     // STATIC METHODS //
@@ -266,11 +264,14 @@ public class MainActivity extends AppCompatActivity {
     // Creates and fill the right and left drawers
     private void setUpDrawers(Bundle savedInstanceState) {
 
+        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(profile_listener);
+
         //HEADER
         header = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .withProfiles(mProfiles)
+                .addProfiles(mAddProject)
                 .withProfileImagesVisible(false)
                 .withSavedInstance(savedInstanceState)
                 .build();
@@ -393,6 +394,21 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
+        //FAVORITE BUTTON
+        mFavoriteButton = (MaterialFavoriteButton) header.getView().findViewById(R.id.favorite_button);
+        mFavoriteButton.setOnFavoriteChangeListener(
+                new MaterialFavoriteButton.OnFavoriteChangeListener() {
+                    @Override
+                    public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                        if (favorite) {
+                            mTinyDB.putInt(getString(R.string.favorite_project), getProjectId());
+                        } else if (mTinyDB.getInt(getString(R.string.favorite_project)) == mSelectedProfileIndex) {
+                            mTinyDB.putInt(getString(R.string.favorite_project), -1); //no favorite
+                        }
+                    }
+                });
+
+        //COLORS BUTTONS
         mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
         mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
         mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
@@ -408,8 +424,8 @@ public class MainActivity extends AppCompatActivity {
                         mColorItem3,
                         new PrimaryDrawerItem().withIdentifier(6).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
                         new SectionDrawerItem().withName(R.string.functions),
-                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withStickyFooter(R.layout.footer)
@@ -512,9 +528,10 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .append(leftDrawer);
 
-        //Select first project if there is any
+        //Select favorite project if there is any
         if (!mNoProject) {
-            mSelectedProfileIndex = 0;
+            //TODO
+            mSelectedProfileIndex = getIndexOfFavorite();
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
             String activeProfileName = activeProfile.getName().getText();
             header.setActiveProfile(activeProfile);
@@ -528,6 +545,7 @@ public class MainActivity extends AppCompatActivity {
             displayIdeasCount();
 
             switchToProjectColors();
+            refreshStar();
         } else { // No project
 
             header.setProfiles(mProfiles);
@@ -537,6 +555,7 @@ public class MainActivity extends AppCompatActivity {
             mSecondaryColor = defaultSecondaryColor;
             mTextColor = defaultTextColor;
             updateColors();
+            refreshStar();
         }
     }
 
@@ -703,8 +722,12 @@ public class MainActivity extends AppCompatActivity {
                         saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
 
                         //open the profile drawer and select the new profile
+
+
+                        header.removeProfile(mAddProject);
+                        header.addProfile(mAddProject, mProfiles.size());
                         header.setActiveProfile(newProfile);
-                        mSelectedProfileIndex = mProfiles.size() - 1;
+                        mSelectedProfileIndex = mProfiles.size() - 2;
                         switchToProjectColors();
 
                         leftDrawer.openDrawer();
@@ -722,6 +745,8 @@ public class MainActivity extends AppCompatActivity {
 
                         if (mTinyDB.getBoolean(getString(R.string.first_project_pref)))
                             firstProjectGuide();
+
+                        refreshStar();
                     }
                 })
                 .show();
@@ -764,6 +789,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
+
         new LovelyStandardDialog(this)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
@@ -793,6 +819,9 @@ public class MainActivity extends AppCompatActivity {
                             mSecondaryColor = defaultSecondaryColor;
                             mTextColor = defaultTextColor;
                             updateColors();
+
+                            //favorite star
+                            refreshStar();
                         }
                         switchToExistingProject(mSelectedProfileIndex);
                     }
@@ -839,7 +868,7 @@ public class MainActivity extends AppCompatActivity {
         index -= 1;
         boolean inBounds = (index >= 0) && (index < mProfiles.size());
 
-        if (!mProfiles.isEmpty()) {
+        if (!mNoProject) {
 
             if (inBounds) mSelectedProfileIndex = index;
             else mSelectedProfileIndex = 0;
@@ -1149,11 +1178,15 @@ public class MainActivity extends AppCompatActivity {
     private void loadProjects() {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
+
         if (mProjects.size() == 0) {
             DataEntry.setTableName("");
             mToolbar.setTitle(R.string.app_name);
             mFab.setVisibility(View.INVISIBLE);
             mNoProject = true;
+        } else { //Start counter where we stopped
+            int lastId = ((Project) mProjects.get(mProjects.size() - 1)).getId();
+            Project.setCounter(lastId + 1);
         }
 
         mProfiles = new ArrayList<>();
@@ -1185,6 +1218,44 @@ public class MainActivity extends AppCompatActivity {
         leftDrawer.closeDrawer();
         rightDrawer.closeDrawer();
         Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
+    }
+
+    // Get selected project toString
+    private int getProjectId() {
+        return ((Project) mProjects.get(mSelectedProfileIndex)).getId();
+    }
+
+    // Fill or empty star depending is the current project is favorite
+    private void refreshStar() {
+
+        if (!mNoProject) {
+            int id = getProjectId();
+            mFavoriteButton.setVisibility(View.VISIBLE);
+            if (mTinyDB.getInt(getString(R.string.favorite_project)) == getProjectId()) {
+                mFavoriteButton.setFavorite(true, false);
+            } else {
+                mFavoriteButton.setFavorite(false, false);
+            }
+        } else {
+            mFavoriteButton.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    // Get index of favorite project in any
+    private int getIndexOfFavorite() {
+
+        int favoriteId = mTinyDB.getInt(getString(R.string.favorite_project)); //id of fav or -1 if no fav
+        Project p;
+        int index = 0;
+        for (Object o : mProjects) {
+            p = (Project) o;
+            if (p.getId() == favoriteId) {
+                return index;
+            }
+            index++;
+        }
+
+        return 0;
     }
 
 
@@ -1368,23 +1439,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class HideErrorOnSpinnerChanged implements AdapterView.OnItemSelectedListener {
-
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            mMoveError.setVisibility(View.GONE);
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-
-        }
-    }
 
     // Click listener for drawer profiles
     private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
         @Override
         public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+
+            if (drawerItem.getIdentifier() == 30) {//Add project
+                leftDrawer.openDrawer();
+                newProjectDialog();
+                return true;
+            }
 
             if (drawerItem != null && drawerItem instanceof IProfile) {
                 mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
@@ -1394,6 +1459,9 @@ public class MainActivity extends AppCompatActivity {
                 DatabaseHelper.notifyAllLists();
                 displayIdeasCount();
                 switchToProjectColors();
+
+                //favorite star
+                refreshStar();
             }
             return false;
         }
@@ -1432,9 +1500,6 @@ public class MainActivity extends AppCompatActivity {
 
             int id = (int) drawerItem.getIdentifier();
             switch (id) {
-                case 5:
-                    toggleDoneTab();
-                    break;
 
                 case 6:
                     toggleDoneTab();

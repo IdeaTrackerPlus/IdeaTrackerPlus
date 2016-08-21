@@ -47,11 +47,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     public HorizontalAdapter(Context context, String text, int tabNumber) {
         mIdea = text;
         mTabNumber = tabNumber;
-        if (mBigtext) {
-            mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view_big, null, false);
-        } else {
-            mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
-        }
+        mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
+
     }
 
     public static void setBigText(boolean b) {
@@ -68,11 +65,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (mBigtext) {
-            mLayout = LayoutInflater.from(mRecyclerView.getContext()).inflate(R.layout.horizontal_item_view_big, mRecyclerView, false);
-        } else {
-            mLayout = LayoutInflater.from(mRecyclerView.getContext()).inflate(R.layout.horizontal_item_view, mRecyclerView, false);
-        }
+        mLayout = LayoutInflater.from(mRecyclerView.getContext()).inflate(R.layout.horizontal_item_view, mRecyclerView, false);
         return new MyViewHolder(mLayout);
     }
 
@@ -81,6 +74,12 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
         holder.priorityTag.setVisibility(View.GONE);
         DatabaseHelper helper = DatabaseHelper.getInstance(mRecyclerView.getContext());
+
+        if (mBigtext) {
+            holder.txtView.setTextSize(22);
+        } else {
+            holder.txtView.setTextSize(18);
+        }
 
         //Fill the textView with the right content
         switch (mTabNumber) {

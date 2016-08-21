@@ -27,7 +27,7 @@
     <string name="functions">Fonctions</string>
     <string name="functions_label">Fonctions</string>
     <string name="get_started">Créez un nouveau projet\nTouchez n\'importe où</string>
-    <string name="handle_idea_content">Plusieurs actions sont disponibles sur vos idées:\n- Touchez pour une vue détailée\n- Maintenez enfoncé pour la modifier\n- Faîtes glisser vers la droite lorsque vous avez terminé\n- Faîtes glisser vers la gauche pour remettre à plus tard</string>
+    <string name="handle_idea_content">Plusieurs actions sont disponibles sur vos idées:\n- Touchez pour une vue détailée de l\'idée et pouvoir la modifier\n- Maintenez enfoncé pour réordonner dans la liste\n- Faîtes glisser vers la droite lorsque vous avez terminé\n- Faîtes glisser vers la gauche pour remettre à plus tard</string>
     <string name="help">Aide</string>
     <string name="help_feedback"><![CDATA[Aide & contact]]></string>
     <string name="hint_edit_idea">Une idée ou une tâche</string>
@@ -105,5 +105,8 @@
     <string name="right_drawer_guide">Par ici ! Ce bouton vous permet de modifier les couleurs de l\'interface, mais aussi d\'accéder à quelques fonctions.</string>
     <string name="next">Suivant</string>
     <string name="idea_moved_snack">"Idée déplacée vers "</string>
+    <string name="clear_done">Vider l\'onglet Terminé</string>
+    <string name="sort_priority">Classer par priorité</string>
+    <string name="done_cleared">Onglet Terminé vidé</string>
 
 </resources>
