@@ -776,6 +776,63 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return temps;
     }
 
+    /**
+     * Search for ideas using a substring,
+     * match can occur in the title or the note of the idea
+     *
+     * @param sub
+     * @return
+     */
+    public ArrayList<Pair<Integer, String>> searchIdeas(String sub) {
+        if (!DataEntry.TABLE_NAME.equals("[]")) {
+
+            SQLiteDatabase db = this.getReadableDatabase();
+
+            // Only the text and id will be read
+            String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_NOTE};
+
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder = DataEntry.COLUMN_NAME_ENTRY_ID + " ASC";
+
+            //Define the where condition, all not temps ideas
+            String where = "temp=?";
+            String[] values = new String[]{"0"};
+
+            Cursor cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    where,                                   // The columns for the WHERE clause
+                    values,                      // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
+
+            ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
+            Pair<Integer, String> pair;
+
+            //Scan the ideas and return everything
+            if (cursor.moveToFirst()) {
+
+                while (!cursor.isAfterLast()) {
+                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                    String note = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+
+                    if (text.contains(sub) || note.contains(sub)) {
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                    }
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            return ideas;
+        }
+
+        return new ArrayList<>();
+    }
+
 
     //ORDER OPERATIONS
 

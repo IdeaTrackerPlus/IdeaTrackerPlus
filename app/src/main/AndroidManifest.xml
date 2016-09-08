@@ -21,8 +21,8 @@
         </activity>
         <activity
             android:name=".MyIntro"
-            android:theme = "@style/FullscreenTheme">
-        </activity>
+            android:theme="@style/FullscreenTheme" />
+
     </application>
 
 </manifest>

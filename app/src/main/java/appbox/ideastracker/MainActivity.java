@@ -40,12 +40,14 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
+import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -109,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
     private NonSwipeableViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
+    private MaterialSearchBar mSearchBar;
+    private static TextView mSearchLabel;
+    private static boolean searchMode;
 
     // Dialogs
     private Dialog mNewIdeaDialog;
@@ -187,6 +192,11 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
+        // Searchbar
+        mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
+        mSearchBar.setHint(getString(R.string.search));
+        mSearchBar.setOnSearchActionListener(searchListener);
+
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
         mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
@@ -240,6 +250,20 @@ public class MainActivity extends AppCompatActivity {
         //handle the back press :D close the drawer first and if the drawer is closed close the activity
         if (leftDrawer != null && leftDrawer.isDrawerOpen()) {
             leftDrawer.closeDrawer();
+
+        } else if (searchMode) {
+            searchMode = false;
+
+            //display tabs again
+            AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+            appbar.addView(tabLayout);
+
+            //hide searchbar
+            mSearchBar.setVisibility(View.GONE);
+
+            //refresh the fragment display
+            mViewPager.setAdapter(null);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
         } else {
             super.onBackPressed();
         }
@@ -254,8 +278,31 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (!mNoProject) rightDrawer.openDrawer();
-        return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.action_search:
+                //TODO search open
+                searchMode = true;
+
+                //hide tabs
+                AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+                appbar.removeView(tabLayout);
+
+                //display search bar
+                mSearchBar.setVisibility(View.VISIBLE);
+
+                //refresh the fragment display
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                return true;
+
+            case R.id.action_settings:
+                if (!mNoProject) rightDrawer.openDrawer();
+                return true;
+        }
+
+        return false;
     }
 
 
@@ -530,7 +577,6 @@ public class MainActivity extends AppCompatActivity {
 
         //Select favorite project if there is any
         if (!mNoProject) {
-            //TODO
             mSelectedProfileIndex = getIndexOfFavorite();
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
             String activeProfileName = activeProfile.getName().getText();
@@ -811,6 +857,7 @@ public class MainActivity extends AppCompatActivity {
                             header.setSelectionSecondLine(getString(R.string.no_project));
                             mNoProject = true;
 
+                            //refresh the fragment display
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -1014,11 +1061,17 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("ConstantConditions")
     private void changePrimaryColor() {
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        if (searchMode) {
+            searchMode = false;
+            appbar.addView(tabLayout);
 
-        toolbar.setBackgroundColor(mPrimaryColor);
+            //refresh the fragment display
+            mViewPager.setAdapter(null);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+        }
+
+        mToolbar.setBackgroundColor(mPrimaryColor);
         tabLayout.setBackgroundColor(mPrimaryColor);
         appbar.setBackgroundColor(mPrimaryColor);
 
@@ -1307,6 +1360,21 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
+            //TODO: search list display
+            if (MainActivity.searchMode) {
+                rootView = inflater.inflate(R.layout.search_view, container, false);
+                ListView list = (ListView) rootView.findViewById(R.id.search_list);
+                if (mSearchLabel == null) {
+                    mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
+                }
+
+
+                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
+                list.setAdapter(adapter);
+                mSearchLabel.setText("Search for...");
+                return rootView;
+            }
+
             //Inflate the list view
             rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
             DragListView mDragListView = (DragListView) rootView.findViewById(R.id.list);
@@ -1452,6 +1520,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (drawerItem != null && drawerItem instanceof IProfile) {
+
                 mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
                 String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
                 mToolbar.setTitle(tableName);
@@ -1519,6 +1588,26 @@ public class MainActivity extends AppCompatActivity {
                     }
             }
 
+
+        }
+    };
+
+    private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
+        @Override
+        public void onSearchStateChanged(boolean b) {
+
+        }
+
+        @Override
+        public void onSearchConfirmed(CharSequence text) {
+            SearchListAdapter.changeSearch(text.toString());
+            if (mSearchLabel != null) {
+                mSearchLabel.setText("Search for " + text.toString());
+            }
+        }
+
+        @Override
+        public void onButtonClicked(int i) {
 
         }
     };
