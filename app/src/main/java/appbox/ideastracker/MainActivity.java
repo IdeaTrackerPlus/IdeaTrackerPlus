@@ -3,8 +3,6 @@ package appbox.ideastracker;
 import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -90,6 +88,10 @@ import co.mobiwise.materialintro.view.MaterialIntroView;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Singleton
+    private static MainActivity sInstance;
+
+    // Database
     private DatabaseHelper mDbHelper;
 
     // Drawers items
@@ -143,29 +145,9 @@ public class MainActivity extends AppCompatActivity {
 
     // STATIC METHODS //
 
-    public static MainActivity getActivity(View v) {
-
-        Context context = v.getContext();
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
+    public static synchronized MainActivity getInstance() {
+        return sInstance;
     }
-
-    public static MainActivity getActivity(Context context) {
-
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
-    }
-
 
     // OVERRODE METHODS //
 
@@ -175,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DatabaseHelper.setMainActivity(this);
+        sInstance = this;
 
         // Databases
         mTinyDB = new TinyDB(this);
@@ -252,18 +234,8 @@ public class MainActivity extends AppCompatActivity {
             leftDrawer.closeDrawer();
 
         } else if (searchMode) {
-            searchMode = false;
+            disableSearchMode();
 
-            //display tabs again
-            AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-            appbar.addView(tabLayout);
-
-            //hide searchbar
-            mSearchBar.setVisibility(View.GONE);
-
-            //refresh the fragment display
-            mViewPager.setAdapter(null);
-            mViewPager.setAdapter(mSectionsPagerAdapter);
         } else {
             super.onBackPressed();
         }
@@ -282,15 +254,17 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case R.id.action_search:
-                //TODO search open
                 searchMode = true;
 
                 //hide tabs
                 AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
                 appbar.removeView(tabLayout);
+                //hide floating button
+                mFab.setVisibility(View.INVISIBLE);
 
                 //display search bar
                 mSearchBar.setVisibility(View.VISIBLE);
+                mSearchBar.enableSearch();
 
                 //refresh the fragment display
                 mViewPager.setAdapter(null);
@@ -869,6 +843,8 @@ public class MainActivity extends AppCompatActivity {
 
                             //favorite star
                             refreshStar();
+                            //search mode
+                            disableSearchMode();
                         }
                         switchToExistingProject(mSelectedProfileIndex);
                     }
@@ -1061,15 +1037,10 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("ConstantConditions")
     private void changePrimaryColor() {
 
-        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-        if (searchMode) {
-            searchMode = false;
-            appbar.addView(tabLayout);
+        //disable search mode for tabLayout
+        disableSearchMode();
 
-            //refresh the fragment display
-            mViewPager.setAdapter(null);
-            mViewPager.setAdapter(mSectionsPagerAdapter);
-        }
+        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
 
         mToolbar.setBackgroundColor(mPrimaryColor);
         tabLayout.setBackgroundColor(mPrimaryColor);
@@ -1088,6 +1059,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void changeSecondaryColor() {
 
+        //disable search mode for tabLayout
+        disableSearchMode();
+
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
         tabLayout.setSelectedTabIndicatorColor(mSecondaryColor);
@@ -1098,6 +1072,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeTextColor() {
+
+        //disable search mode for tabLayout
+        disableSearchMode();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -1120,6 +1097,10 @@ public class MainActivity extends AppCompatActivity {
 
     // Change all UI colors to match the selected project preferences
     private void switchToProjectColors() {
+
+        //Disable search mode
+        disableSearchMode();
+
         Project selectedProject = (Project) mProjects.get(mSelectedProfileIndex);
         mPrimaryColor = selectedProject.getPrimaryColor();
         mSecondaryColor = selectedProject.getSecondaryColor();
@@ -1180,6 +1161,26 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB.putBoolean(getString(R.string.show_done_pref), true);
 
 
+    }
+
+    // Disable the search mode, go back to standard mode
+    private void disableSearchMode() {
+        if (searchMode) {
+            searchMode = false;
+
+            //display tabs again
+            AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+            appbar.addView(tabLayout);
+            //display floating button
+            mFab.setVisibility(View.VISIBLE);
+
+            //hide searchbar
+            mSearchBar.setVisibility(View.GONE);
+
+            //refresh the fragment display
+            mViewPager.setAdapter(null);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+        }
     }
 
 
@@ -1345,7 +1346,7 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            mainActivity = MainActivity.getActivity(container);
+            mainActivity = MainActivity.getInstance();
 
             View rootView;
             if (DataEntry.TABLE_NAME.equals("[]")) {
@@ -1360,7 +1361,6 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
-            //TODO: search list display
             if (MainActivity.searchMode) {
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
@@ -1531,6 +1531,9 @@ public class MainActivity extends AppCompatActivity {
 
                 //favorite star
                 refreshStar();
+
+                //search mode
+                disableSearchMode();
             }
             return false;
         }
@@ -1594,8 +1597,10 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
         @Override
-        public void onSearchStateChanged(boolean b) {
-
+        public void onSearchStateChanged(boolean enabled) {
+            if (!enabled) {
+                disableSearchMode();
+            }
         }
 
         @Override
@@ -1607,8 +1612,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onButtonClicked(int i) {
-
+        public void onButtonClicked(int buttonCode) {
         }
     };
 

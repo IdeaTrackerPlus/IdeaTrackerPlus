@@ -11,7 +11,6 @@ import android.view.animation.Transformation;
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
 import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.database.TinyDB;
 
 /**
  * Created by Nicklos on 13/07/2016.
@@ -30,8 +29,6 @@ public class MyRecyclerView extends RecyclerView {
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
     private DatabaseHelper mDbHelper;
-
-    private TinyDB mTinyDb;
 
     private MainActivity mainActivity;
 
@@ -58,8 +55,7 @@ public class MyRecyclerView extends RecyclerView {
      */
     public void constructor(Context c) {
         isActivated = false;
-        mTinyDb = new TinyDB(c);
-        mainActivity = MainActivity.getActivity(c);
+        mainActivity = MainActivity.getInstance();
         mDbHelper = DatabaseHelper.getInstance(c);
     }
 

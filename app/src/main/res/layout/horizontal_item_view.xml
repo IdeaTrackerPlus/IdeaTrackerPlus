@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
 
     <View
         android:id="@+id/priorityTag"
@@ -11,11 +11,31 @@
         android:background="@color/md_black"
         android:visibility="gone" />
 
-    <TextView
-        android:textColor="#787878"
-        android:textSize="18sp"
-        android:padding="16dp"
-        android:id="@+id/txtView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:clickable="true"
+        android:paddingBottom="16dp">
+
+
+        <TextView
+            android:id="@+id/txtView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp" />
+
+        <TextView
+            android:id="@+id/tabTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:paddingRight="16dp"
+            android:text="@string/ideas"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
 </LinearLayout>

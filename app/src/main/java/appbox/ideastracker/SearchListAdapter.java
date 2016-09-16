@@ -71,10 +71,10 @@ public class SearchListAdapter extends BaseAdapter {
 
         // Create the right adapter for the recycler view
         HorizontalAdapter horizontalAdapter;
-        horizontalAdapter = new HorizontalAdapter(parent.getContext(), pair.second, 1);
+        horizontalAdapter = new HorizontalAdapter(horizontal_recycler_view.getContext(), pair.second, 4);
 
         // Set up the manager and adapter of the recycler view
-        LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(inflater.getContext(), LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(horizontal_recycler_view.getContext(), LinearLayoutManager.HORIZONTAL, false);
         horizontalLayoutManager.scrollToPositionWithOffset(1, 0);
         horizontal_recycler_view.setTag(pair.first);
         horizontal_recycler_view.setLayoutManager(horizontalLayoutManager);

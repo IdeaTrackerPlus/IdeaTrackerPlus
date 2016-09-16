@@ -64,11 +64,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sInstance;
     }
 
-    public static void setMainActivity(MainActivity act) {
-        mainActivity = act;
-
-    }
-
 
     // SET ADAPTERS
 
@@ -80,6 +75,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        mainActivity = MainActivity.getInstance();
     }
 
     /**
@@ -218,10 +214,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public Cursor getEntryById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] projection = {DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_PRIORITY, DataEntry.COLUMN_NAME_NOTE, DataEntry.COLUMN_NAME_ENTRY_ID};
         return db.query(
                 DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
+                null,                               // The columns to return
                 "_id=?",                    // The columns for the WHERE clause
                 new String[]{Integer.toString(id)},                  // The values for the WHERE clause
                 null,                                     // don't group the rows
@@ -290,6 +285,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return 0;
+    }
+
+    public int getTabById(int id) {
+
+        Cursor cursor = getEntryById(id);
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                boolean later = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_LATER)) > 0;
+                boolean done = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_DONE)) > 0;
+
+                if (done) {
+                    return 3;
+                } else if (later) {
+                    return 2;
+                }
+                return 1;
+            }
+        }
+        cursor.close();
+        return 1;
     }
 
     /**

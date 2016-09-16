@@ -1,7 +1,6 @@
 package appbox.ideastracker.recycler;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -74,7 +73,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         String text = mDbHelper.getTextById(mIdRecycler);
         String note = mDbHelper.getNoteById(mIdRecycler);
 
-        new LovelyStandardDialog(mRecyclerView.getContext())
+        new LovelyStandardDialog(MainActivity.getInstance())
                 .setTopColorRes(getPriorityColor())
                 .setIcon(R.drawable.ic_bulb)
                 .setTitle(text)
@@ -86,7 +85,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                     public void onClick(View v) {
                         mRecyclerView.sendCellToDelete();
 
-                        MainActivity mainActivity = MainActivity.getActivity(mRecyclerView);
+                        MainActivity mainActivity = MainActivity.getInstance();
                         mainActivity.displayIdeasCount();
                     }
                 })
@@ -94,7 +93,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                 .setNegativeButton(R.string.edit, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        editIdeaDialog(mRecyclerView.getContext());
+                        editIdeaDialog();
                     }
                 })
                 .setNegativeButtonColorRes(R.color.md_pink_a200)
@@ -106,9 +105,9 @@ public class RecyclerOnClickListener implements View.OnClickListener {
      * Show a dialog allwing to edit all the attributes
      * of the idea and showing the original ones.
      */
-    public void editIdeaDialog(Context context) {
+    public void editIdeaDialog() {
 
-        mEditIdeaDialog = new LovelyCustomDialog(context, R.style.EditTextTintTheme)
+        mEditIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
