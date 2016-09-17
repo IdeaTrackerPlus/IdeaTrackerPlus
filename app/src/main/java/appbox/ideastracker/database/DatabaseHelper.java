@@ -807,7 +807,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String[] projection = {DataEntry._ID, DataEntry.COLUMN_NAME_TEXT, DataEntry.COLUMN_NAME_NOTE};
 
             // How you want the results sorted in the resulting Cursor
-            String sortOrder = DataEntry.COLUMN_NAME_ENTRY_ID + " ASC";
+            String sortOrder = DataEntry.COLUMN_NAME_TEXT + " ASC";
 
             //Define the where condition, all not temps ideas
             String where = "temp=?";

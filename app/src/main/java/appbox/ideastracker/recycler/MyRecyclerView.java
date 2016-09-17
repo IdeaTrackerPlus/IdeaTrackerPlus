@@ -1,6 +1,7 @@
 package appbox.ideastracker.recycler;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
@@ -10,6 +11,7 @@ import android.view.animation.Transformation;
 
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
+import appbox.ideastracker.SearchListAdapter;
 import appbox.ideastracker.database.DatabaseHelper;
 
 /**
@@ -25,6 +27,7 @@ public class MyRecyclerView extends RecyclerView {
     static final int ANIMATION_DURATION = 200; // For the deletion animation
 
     private boolean isActivated; // If we activated one of the quick actions
+    private boolean needSearchNotify; //If we need to notify the search tab that data changed
 
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
@@ -84,19 +87,28 @@ public class MyRecyclerView extends RecyclerView {
     public void onScrollStateChanged(int state) {
 
         int tab = mAdapter.getTabNumber();
-
         switch (tab) {
             case 1: //Tab NOW
                 stateChangedIdea(state);
                 break;
 
             case 2: //Tab LATER
-                stateChangeOther(state);
+                stateChangedOther(state);
                 break;
 
             case 3: //Tab DONE
-                stateChangeOther(state);
+                stateChangedOther(state);
                 break;
+
+            case 4: //Tab SEARCH
+
+                //Notify search tab if necessary
+                if (state == RecyclerView.SCROLL_STATE_IDLE && needSearchNotify) {
+                    SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
+                    needSearchNotify = false;
+                    return;
+                }
+                stateChangedSearch(state);
         }
 
     }
@@ -149,7 +161,7 @@ public class MyRecyclerView extends RecyclerView {
      *
      * @param state
      */
-    private void stateChangeOther(int state) {
+    private void stateChangedOther(int state) {
 
         // Define limits to trigger quick action
         int width = mManager.getChildAt(0).getWidth();
@@ -187,6 +199,69 @@ public class MyRecyclerView extends RecyclerView {
         }
     }
 
+    /**
+     * Call when state changed in the "Search" tab
+     *
+     * @param state
+     */
+    private void stateChangedSearch(int state) {
+
+        // Define limits to trigger quick action
+        int width = mManager.getChildAt(0).getWidth();
+        double limLeft = 0.4d * width;
+        double limRight = 0.6d * width;
+
+        if (state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated) {
+
+            View child;
+            int first = mManager.findFirstVisibleItemPosition();
+            int last = mManager.findLastVisibleItemPosition();
+            int left, right;
+
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards DONE
+                right = child.getRight();
+                if (right > limLeft) {
+                    isActivated = true;
+                    smoothScrollToPosition(0);
+                } else smoothScrollToPosition(1);
+
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards LATER
+                left = child.getLeft();
+                if (left < limRight) {
+                    isActivated = true;
+                    smoothScrollToPosition(2);
+                } else smoothScrollToPosition(1);
+            }
+        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
+
+            int first = mManager.findFirstVisibleItemPosition();
+            int myTab = mDbHelper.getTabById((int) getTag()); //Tab number the idea belongs to
+
+            if ((mManager.getChildAt(0)) != null && first == 0) { //move to LEFT ACTION
+                switch (myTab) {
+                    case 1: //Tab "Ideas"
+                        muteCellToDone();
+                        break;
+
+                    default: //Tab "Later" and "Done"
+                        muteCellToNow();
+                        break;
+                }
+            } else { //move to RIGHT ACTION
+                switch (myTab) {
+                    case 1: //Tab "Ideas"
+                        muteCellToLater();
+                        break;
+
+                    default: //Tab "Later" and "Done"
+                        muteCellToDelete();
+                        break;
+                }
+            }
+        }
+    }
+
+    //SEND TAB TO ANOTHER TAB
     public void sendCellToNow() {
 
         final View v = this;
@@ -291,6 +366,64 @@ public class MyRecyclerView extends RecyclerView {
         };
 
         collapse(v, al);
+    }
+
+    //CHANGE THE TAB INDICATOR OF THE IDEA INSIDE THE SEARCH TAB
+    Runnable scrollBack = new Runnable() {
+        @Override
+        public void run() {
+            needSearchNotify = true;
+            smoothScrollToPosition(1);
+        }
+    };
+    final Handler handler = new Handler();
+    final int PAUSE_TIME = 500;
+
+    public void muteCellToNow() {
+        int tagId = (int) getTag();
+        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 1, tagId);
+
+        mainActivity.displayIdeasCount();
+        handler.postDelayed(scrollBack, PAUSE_TIME);
+    }
+
+    public void muteCellToDelete() {
+        final View v = this;
+        Animation.AnimationListener al = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                int tagId = (int) v.getTag();
+                mDbHelper.deleteEntryWithSnack(v, tagId);
+
+                mainActivity.displayIdeasCount();
+                SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+        };
+
+        collapse(v, al);
+    }
+
+    public void muteCellToLater() {
+        int tagId = (int) getTag();
+        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
+
+        handler.postDelayed(scrollBack, PAUSE_TIME);
+    }
+
+    public void muteCellToDone() {
+        int tagId = (int) getTag();
+        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
+
+        mainActivity.displayIdeasCount();
+        handler.postDelayed(scrollBack, PAUSE_TIME);
     }
 
     /**
