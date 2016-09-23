@@ -136,7 +136,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String SQL_NEW_TABLE =
                 "CREATE TABLE " + DataEntry.TABLE_NAME + " (" +
                         DataEntry._ID + " INTEGER PRIMARY KEY," +
-                        DataEntry.COLUMN_NAME_ENTRY_ID + TEXT_TYPE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_ENTRY_ID + INT_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_NOTE + TEXT_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
