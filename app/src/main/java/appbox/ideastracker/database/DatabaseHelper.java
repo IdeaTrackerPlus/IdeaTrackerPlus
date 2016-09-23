@@ -16,6 +16,7 @@ import java.util.List;
 import appbox.ideastracker.ItemAdapter;
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
+import appbox.ideastracker.SearchListAdapter;
 
 /**
  * This class takes care of the interaction with the database
@@ -111,9 +112,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         DatabaseHelper helper = DatabaseHelper.getInstance(mainActivity);
 
+        //Notify all 3 tabs
         for (int tab = 1; tab <= 3; tab++) {
             if (adapters[tab] != null) adapters[tab].setItemList(helper.readIdeas(tab));
         }
+
+        //Notify search tab
+        SearchListAdapter.getInstance(mainActivity).notifyDataSetChanged();
 
     }
 
@@ -793,7 +798,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * Search for ideas using a substring,
-     * match can occur in the title or the note of the idea
+     * match can occur in the title or the note of the idea,
+     * search is case insensitive
      *
      * @param sub
      * @return
@@ -834,7 +840,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     String note = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
                     int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
 
-                    if (text.contains(sub) || note.contains(sub)) {
+                    if (text.toLowerCase().contains(sub.toLowerCase()) || note.toLowerCase().contains(sub.toLowerCase())) {
                         pair = new Pair<>(id, text);
                         ideas.add(pair);
                     }

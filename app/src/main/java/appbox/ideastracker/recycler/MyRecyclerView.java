@@ -149,9 +149,9 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to DONE
-                sendCellToDone();
+                sendCellToTab(3);
             } else { //move to LATER
-                sendCellToLater();
+                sendCellToTab(2);
             }
         }
     }
@@ -192,9 +192,9 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Wait for animation to finish
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //NOW
-                sendCellToNow();
+                sendCellToTab(1);
             } else { //DELETE
-                sendCellToDelete();
+                sendCellToTab(-1);
             }
         }
     }
@@ -240,17 +240,17 @@ public class MyRecyclerView extends RecyclerView {
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to LEFT ACTION
                 switch (myTab) {
                     case 1: //Tab "Ideas"
-                        muteCellToDone();
+                        muteCellToTab(3);
                         break;
 
                     default: //Tab "Later" and "Done"
-                        muteCellToNow();
+                        muteCellToTab(1);
                         break;
                 }
             } else { //move to RIGHT ACTION
                 switch (myTab) {
                     case 1: //Tab "Ideas"
-                        muteCellToLater();
+                        muteCellToTab(2);
                         break;
 
                     default: //Tab "Later" and "Done"
@@ -262,14 +262,24 @@ public class MyRecyclerView extends RecyclerView {
     }
 
     //SEND TAB TO ANOTHER TAB
-    public void sendCellToNow() {
+    public void sendCellToTab(final int tabNumber) {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 1, tagId);
+
+                switch (tabNumber) {
+                    case -1: //Send to deletion
+                        mDbHelper.deleteEntryWithSnack(v, tagId);
+                        break;
+
+                    default: //Send to other tab
+                        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), tabNumber, tagId);
+                        break;
+                }
+
                 DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
@@ -289,85 +299,7 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    public void sendCellToDelete() {
-
-        final View v = this;
-        Animation.AnimationListener al = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                int tagId = (int) v.getTag();
-                mDbHelper.deleteEntryWithSnack(v, tagId);
-                DatabaseHelper.notifyAllLists();
-
-                mainActivity.displayIdeasCount();
-                scrollToPosition(1);
-                isActivated = false;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-        };
-
-        collapse(v, al);
-    }
-
-    public void sendCellToLater() {
-
-        final View v = this;
-        Animation.AnimationListener al = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                int tagId = (int) v.getTag();
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
-                DatabaseHelper.notifyAllLists();
-                scrollToPosition(1);
-                isActivated = false;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-        };
-
-        collapse(v, al);
-    }
-
-    public void sendCellToDone() {
-
-        final View v = this;
-        Animation.AnimationListener al = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                int tagId = (int) v.getTag();
-
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
-                DatabaseHelper.notifyAllLists();
-                mainActivity.displayIdeasCount();
-                scrollToPosition(1);
-                isActivated = false;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-        };
-
-        collapse(v, al);
-    }
-
+    //SEND TAB TO ANOTHER TAB WHILE STAYING IN THE SEARCH TAB
     //CHANGE THE TAB INDICATOR OF THE IDEA INSIDE THE SEARCH TAB
     Runnable scrollBack = new Runnable() {
         @Override
@@ -378,14 +310,6 @@ public class MyRecyclerView extends RecyclerView {
     };
     final Handler handler = new Handler();
     final int PAUSE_TIME = 500;
-
-    public void muteCellToNow() {
-        int tagId = (int) getTag();
-        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 1, tagId);
-
-        mainActivity.displayIdeasCount();
-        handler.postDelayed(scrollBack, PAUSE_TIME);
-    }
 
     public void muteCellToDelete() {
         final View v = this;
@@ -411,16 +335,9 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    public void muteCellToLater() {
+    public void muteCellToTab(int tabNumber) {
         int tagId = (int) getTag();
-        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
-
-        handler.postDelayed(scrollBack, PAUSE_TIME);
-    }
-
-    public void muteCellToDone() {
-        int tagId = (int) getTag();
-        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
+        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mDbHelper.getTabById(tagId), tabNumber, tagId);
 
         mainActivity.displayIdeasCount();
         handler.postDelayed(scrollBack, PAUSE_TIME);

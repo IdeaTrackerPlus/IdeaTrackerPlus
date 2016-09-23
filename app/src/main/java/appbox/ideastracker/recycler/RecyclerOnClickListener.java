@@ -83,10 +83,12 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                 .setNeutralButton(R.string.delete, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mRecyclerView.sendCellToDelete();
+                        if (mTabNumber == 4) {//Search tab
+                            mRecyclerView.muteCellToDelete();
 
-                        MainActivity mainActivity = MainActivity.getInstance();
-                        mainActivity.displayIdeasCount();
+                        } else { //Other tabs
+                            mRecyclerView.sendCellToTab(-1);
+                        }
                     }
                 })
                 .setNeutralButtonColorRes(R.color.md_pink_a200)
@@ -143,7 +145,8 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         //Get the values from the idea and set them
         mIdeaField.setText(mDbHelper.getTextById(mIdRecycler));
         mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
-        if (mTabNumber == 2) mDoLater.toggle();
+        int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
+        if (fromTab == 2) mDoLater.toggle();
 
         RadioButton radio = null;
         switch (mPriority) {

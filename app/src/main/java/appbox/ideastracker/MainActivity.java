@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -1170,6 +1171,7 @@ public class MainActivity extends AppCompatActivity {
 
             //display tabs again
             AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+            appbar.removeView(tabLayout); //make sure we're not adding the tabLayout while it's already there
             appbar.addView(tabLayout);
             //display floating button
             mFab.setVisibility(View.VISIBLE);
@@ -1364,14 +1366,11 @@ public class MainActivity extends AppCompatActivity {
             if (MainActivity.searchMode) {
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
-                if (mSearchLabel == null) {
-                    mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
-                }
-
+                mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
 
                 SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
                 list.setAdapter(adapter);
-                mSearchLabel.setText("Search for...");
+                mSearchLabel.setText("Search for ...");
                 return rootView;
             }
 
@@ -1595,6 +1594,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private Handler mHandler = new Handler(); //Handle modification made outside of the UI thread
     private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
         @Override
         public void onSearchStateChanged(boolean enabled) {
@@ -1604,11 +1604,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onSearchConfirmed(CharSequence text) {
+        public void onSearchConfirmed(final CharSequence text) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSearchLabel.setText("Search for " + text.toString());
+                    mSearchLabel.invalidate();
+                }
+            });
             SearchListAdapter.changeSearch(text.toString());
-            if (mSearchLabel != null) {
-                mSearchLabel.setText("Search for " + text.toString());
-            }
         }
 
         @Override
