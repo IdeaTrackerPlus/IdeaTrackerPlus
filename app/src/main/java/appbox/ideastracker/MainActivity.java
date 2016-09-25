@@ -35,6 +35,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -624,6 +625,11 @@ public class MainActivity extends AppCompatActivity {
         mIdeaField.setOnEditorActionListener(ideaFieldListener);
         mNoteField.setOnEditorActionListener(noteFieldListener);
 
+        //request focus on the edit text
+        if (mIdeaField.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+
     }
 
     private void sendIdeaFromDialog() {
@@ -825,6 +831,7 @@ public class MainActivity extends AppCompatActivity {
                         deleteProject();
                         mDbHelper.deleteTable();
                         if (mProjects.isEmpty()) {
+
                             DataEntry.setTableName("");
                             mToolbar.setTitle(R.string.app_name);
                             mFab.setVisibility(View.INVISIBLE);
@@ -842,12 +849,13 @@ public class MainActivity extends AppCompatActivity {
                             mTextColor = defaultTextColor;
                             updateColors();
 
-                            //favorite star
-                            refreshStar();
-                            //search mode
-                            disableSearchMode();
                         }
                         switchToExistingProject(mSelectedProfileIndex);
+
+                        //favorite star
+                        refreshStar();
+                        //search mode
+                        disableSearchMode();
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)

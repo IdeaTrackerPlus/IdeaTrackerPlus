@@ -5,6 +5,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -143,7 +144,11 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         mNoteField.setOnEditorActionListener(noteFieldListener);
 
         //Get the values from the idea and set them
-        mIdeaField.setText(mDbHelper.getTextById(mIdRecycler));
+        String ideaText = mDbHelper.getTextById(mIdRecycler);
+        mIdeaField.append(ideaText);
+        if (mIdeaField.requestFocus()) {
+            mEditIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
         mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
         int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
         if (fromTab == 2) mDoLater.toggle();
