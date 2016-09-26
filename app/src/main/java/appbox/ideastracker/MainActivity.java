@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
     private MaterialSearchBar mSearchBar;
-    private static TextView mSearchLabel;
+    public TextView mSearchLabel;
     private static boolean searchMode;
 
     // Dialogs
@@ -184,6 +184,8 @@ public class MainActivity extends AppCompatActivity {
         mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
         mSearchBar.setHint(getString(R.string.search));
         mSearchBar.setOnSearchActionListener(searchListener);
+        EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
+        searchEdit.addTextChangedListener(editSearchWatcher);
 
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
@@ -1420,11 +1422,11 @@ public class MainActivity extends AppCompatActivity {
             if (MainActivity.searchMode) {
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
-                mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
+                mainActivity.mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
 
                 SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
                 list.setAdapter(adapter);
-                mSearchLabel.setText("Search for ...");
+                mainActivity.mSearchLabel.setText("Search for ...");
                 return rootView;
             }
 
@@ -1663,6 +1665,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // Listeners and watcher for the search tab
     private Handler mHandler = new Handler(); //Handle modification made outside of the UI thread
     private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
         @Override
@@ -1687,6 +1690,35 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onButtonClicked(int buttonCode) {
         }
+
     };
+
+    private TextWatcher editSearchWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(final CharSequence s, int start, int before, int count) {
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSearchLabel.setText("Search for " + s);
+                    mSearchLabel.invalidate();
+                }
+            });
+            SearchListAdapter.changeSearch(s.toString());
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+
+
+
 
 }
