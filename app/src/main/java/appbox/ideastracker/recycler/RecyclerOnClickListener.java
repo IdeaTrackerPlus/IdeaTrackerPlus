@@ -232,7 +232,12 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 mNoteField.requestFocus();
             }
             return true;
@@ -243,7 +248,12 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 sendEditIdea();
             }
             return true;

@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:text="@string/dont_forget"
+        android:text="@string/error_empty_taken"
         android:textColor="@color/md_red_500"
         android:visibility="gone" />
 

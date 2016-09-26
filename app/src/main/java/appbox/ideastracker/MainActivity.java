@@ -37,6 +37,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -69,7 +70,6 @@ import com.thebluealliance.spectrum.SpectrumDialog;
 import com.woxthebox.draglistview.DragListView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
-import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,12 +121,16 @@ public class MainActivity extends AppCompatActivity {
 
     // Dialogs
     private Dialog mNewIdeaDialog;
+    private Dialog mProjectDialog;
 
     // Dialogs views
     private RadioGroup mRadioGroup;
     private TextView mIdeaError;
     private EditText mIdeaField;
     private EditText mNoteField;
+
+    private TextView mProjectError;
+    private EditText mProjectField;
 
     // Preferences
     private TinyDB mTinyDB;
@@ -627,7 +631,7 @@ public class MainActivity extends AppCompatActivity {
 
         //request focus on the edit text
         if (mIdeaField.requestFocus()) {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
 
     }
@@ -719,99 +723,141 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    // Shows a project creation dialog
     private void newProjectDialog() {
 
-        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
-                .setTitle(R.string.new_pro)
-                .setMessage(R.string.new_pro_message)
                 .setIcon(R.drawable.ic_notepad)
-                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
+                .setListener(R.id.projectDoneButton, new View.OnClickListener() {
                     @Override
-                    public boolean check(String text) {
-                        return isProjectNameAvailable(text) && !text.equals("");
-                    }
-                })
-                .setConfirmButton(R.string.create, new LovelyTextInputDialog.OnTextInputConfirmListener() {
-                    @Override
-                    public void onTextInputConfirmed(String tableName) {
-
-                        mDbHelper.newTable(tableName);
-
-                        //create the profile with its colored icon
-                        Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
-                        disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
-                        IProfile newProfile = new ProfileDrawerItem().withName(tableName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
-                        mProfiles.add(newProfile);
-
-                        saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
-
-                        //open the profile drawer and select the new profile
-
-
-                        header.removeProfile(mAddProject);
-                        header.addProfile(mAddProject, mProfiles.size());
-                        header.setActiveProfile(newProfile);
-                        mSelectedProfileIndex = mProfiles.size() - 2;
-                        switchToProjectColors();
-
-                        leftDrawer.openDrawer();
-                        header.toggleSelectionList(getApplicationContext());
-                        mToolbar.setTitle(tableName);
-                        displayIdeasCount();
-
-                        if (mNoProject) {
-                            mFab.setVisibility(View.VISIBLE);
-                            mNoProject = false;
-
-                            mViewPager.setAdapter(null);
-                            mViewPager.setAdapter(mSectionsPagerAdapter);
-                        }
-
-                        if (mTinyDB.getBoolean(getString(R.string.first_project_pref)))
-                            firstProjectGuide();
-
-                        refreshStar();
+                    public void onClick(View v) {
+                        createProjectFromDialog();
                     }
                 })
                 .show();
+
+        //get the views
+        mProjectError = (TextView) mProjectDialog.findViewById(R.id.project_error_message);
+        mProjectField = (EditText) mProjectDialog.findViewById(R.id.editProjectName);
+
+        //hide error when text change
+        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //request focus on the edit text
+        if (mProjectField.requestFocus()) {
+            mProjectDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+
+    }
+
+    private void createProjectFromDialog() {
+
+        String projectName = mProjectField.getText().toString();
+
+        if (isProjectNameAvailable(projectName) && !projectName.equals("")) {
+
+            mDbHelper.newTable(projectName);
+
+            //create the profile with its colored icon
+            Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
+            disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+            IProfile newProfile = new ProfileDrawerItem().withName(projectName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
+            mProfiles.add(newProfile);
+
+            saveProject(new Project(projectName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
+
+            //open the profile drawer and select the new profile
+
+
+            header.removeProfile(mAddProject);
+            header.addProfile(mAddProject, mProfiles.size());
+            header.setActiveProfile(newProfile);
+            mSelectedProfileIndex = mProfiles.size() - 2;
+            switchToProjectColors();
+
+            mToolbar.setTitle(projectName);
+            displayIdeasCount();
+
+            if (mNoProject) {
+                mFab.setVisibility(View.VISIBLE);
+                mNoProject = false;
+
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+            }
+
+            //If first project ever
+            if (mTinyDB.getBoolean(getString(R.string.first_project_pref))) {
+                leftDrawer.openDrawer();
+                header.toggleSelectionList(getApplicationContext());
+                firstProjectGuide();
+            }
+
+            refreshStar();
+
+            mProjectDialog.dismiss();
+
+
+        } else { //Error - project name is taken or empty, show the error
+            mProjectError.setVisibility(View.VISIBLE);
+        }
+
     }
 
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
-                .setTitle(getString(R.string.rename_lower) + " " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
-                .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
-                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
+                .setListener(R.id.projectDoneButton, new View.OnClickListener() {
                     @Override
-                    public boolean check(String text) {
-                        return !text.equals("") && isProjectNameAvailable(text);
-                    }
-                })
-                .setConfirmButton(R.string.rename, new LovelyTextInputDialog.OnTextInputConfirmListener() {
-                    @Override
-                    public void onTextInputConfirmed(String tableName) {
-                        //update table's name is the list and the database
-                        renameProject(tableName);
-                        mDbHelper.renameTable(tableName);
+                    public void onClick(View v) {
 
-                        //update profile's name
-                        IProfile profile = mProfiles.get(mSelectedProfileIndex);
-                        profile.withName(tableName);
-                        header.updateProfile(profile);
-                        mProfiles.remove(mSelectedProfileIndex);
-                        mProfiles.add(mSelectedProfileIndex, profile);
+                        String projectName = mProjectField.getText().toString();
+                        if (!projectName.equals("") && isProjectNameAvailable(projectName)) {
 
-                        mToolbar.setTitle(tableName);
+                            //update table's name is the list and the database
+                            renameProject(projectName);
+                            mDbHelper.renameTable(projectName);
+
+                            //update profile's name
+                            IProfile profile = mProfiles.get(mSelectedProfileIndex);
+                            profile.withName(projectName);
+                            header.updateProfile(profile);
+                            mProfiles.remove(mSelectedProfileIndex);
+                            mProfiles.add(mSelectedProfileIndex, profile);
+
+                            mToolbar.setTitle(projectName);
+
+                            mProjectDialog.dismiss();
+
+                        } else { //Error - project name taken or empty, show message
+                            mProjectError.setVisibility(View.VISIBLE);
+                        }
                     }
                 })
                 .show();
+
+        //get the views
+        mProjectError = (TextView) mProjectDialog.findViewById(R.id.project_error_message);
+        mProjectField = (EditText) mProjectDialog.findViewById(R.id.editProjectName);
+        Button projectButton = (Button) mProjectDialog.findViewById(R.id.projectDoneButton);
+        TextView projectTitle = (TextView) mProjectDialog.findViewById(R.id.projectTitle);
+
+        //change title and button label
+        projectButton.setText(R.string.rename);
+        projectTitle.setText(R.string.rename_pro);
+
+        //hide error when text change
+        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //request focus on the edit text
+        if (mProjectField.requestFocus()) {
+            mProjectDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
     }
 
     // Shows a dialog to delete the current project
@@ -1478,10 +1524,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 mNoteField.requestFocus();
+                return true;
             }
-            return true;
+            return false;
         }
     };
 
@@ -1489,10 +1542,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 sendIdeaFromDialog();
+                return true;
             }
-            return true;
+            return false;
         }
     };
 
@@ -1505,7 +1565,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            mIdeaError.setVisibility(View.GONE);
+            if (mIdeaError != null) mIdeaError.setVisibility(View.GONE);
+            if (mProjectError != null) mProjectError.setVisibility(View.GONE);
         }
 
         @Override
