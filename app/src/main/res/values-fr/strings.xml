@@ -108,5 +108,7 @@
     <string name="clear_done">Vider l\'onglet Terminé</string>
     <string name="sort_priority">Classer par priorité</string>
     <string name="done_cleared">Onglet Terminé vidé</string>
+    <string name="search">Rechercher</string>
+    <string name="search_tab">Rechercher</string>
 
 </resources>
