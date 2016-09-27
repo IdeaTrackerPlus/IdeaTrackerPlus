@@ -66,6 +66,10 @@ import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+import com.shehabic.droppy.DroppyClickCallbackInterface;
+import com.shehabic.droppy.DroppyMenuItem;
+import com.shehabic.droppy.DroppyMenuPopup;
+import com.shehabic.droppy.animations.DroppyFadeInAnimation;
 import com.thebluealliance.spectrum.SpectrumDialog;
 import com.woxthebox.draglistview.DragListView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
@@ -118,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialSearchBar mSearchBar;
     public TextView mSearchLabel;
     private static boolean searchMode;
+    private DroppyMenuPopup.Builder mDroppyBuilder;
 
     // Dialogs
     private Dialog mNewIdeaDialog;
@@ -179,6 +184,11 @@ public class MainActivity extends AppCompatActivity {
         // Toolbar
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+
+        // Drop down menu - droppy
+        mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+        mDroppyBuilder.triggerOnAnchorClick(false);
+        mToolbar.setOnClickListener(toolBarProjectListener);
 
         // Searchbar
         mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
@@ -939,31 +949,6 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * After project deletion, selects another project
-     *
-     * @param index the index of the deleted project
-     */
-    private void switchToExistingProject(int index) {
-        index -= 1;
-        boolean inBounds = (index >= 0) && (index < mProfiles.size());
-
-        if (!mNoProject) {
-
-            if (inBounds) mSelectedProfileIndex = index;
-            else mSelectedProfileIndex = 0;
-
-            IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
-            String tableToSelect = profileToSelect.getName().getText();
-            header.setActiveProfile(profileToSelect);
-            mToolbar.setTitle(tableToSelect);
-            mDbHelper.switchTable(tableToSelect);
-            displayIdeasCount();
-
-            switchToProjectColors();
-        }
-
-    }
 
 
     // TUTORIAL AND INTRO METHODS //
@@ -1353,7 +1338,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Get index of favorite project in any
+    // Get index of favorite project if any
     private int getIndexOfFavorite() {
 
         int favoriteId = mTinyDB.getInt(getString(R.string.favorite_project)); //id of fav or -1 if no fav
@@ -1368,6 +1353,84 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return 0;
+    }
+
+    // Get index of project with a given name
+    private int getIndexOfProject(String projectName) {
+        Project p;
+        int index = 0;
+        for (Object o : mProjects) {
+            p = (Project) o;
+            if (p.getName().equals(projectName)) {
+                return index;
+            }
+            index++;
+        }
+
+        return 0;
+    }
+
+    // Get the list of the other projects, excluding the current one
+    private Project[] getOtherProjects() {
+
+        int size = mProjects.size() - 1;
+        Project[] otherProjects = new Project[size];
+        Object currentProject = mProjects.remove(mSelectedProfileIndex);
+
+        int index = 0;
+        for (Object o : mProjects) {
+            otherProjects[index] = (Project) o;
+            index++;
+        }
+
+        mProjects.add(mSelectedProfileIndex, currentProject);
+        return otherProjects;
+    }
+
+    // Switch to another project, project name has to be a valid project
+    private void switchToProject(String projectName) {
+
+        mSelectedProfileIndex = getIndexOfProject(projectName);
+        IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
+        header.setActiveProfile(profileToSelect);
+
+        mToolbar.setTitle(projectName);
+        mDbHelper.switchTable(projectName);
+        DatabaseHelper.notifyAllLists();
+        displayIdeasCount();
+        switchToProjectColors();
+
+        //favorite star
+        refreshStar();
+
+        //search mode
+        disableSearchMode();
+    }
+
+    /**
+     * After project deletion, selects another project
+     *
+     * @param index the index of the deleted project
+     */
+    private void switchToExistingProject(int index) {
+        index -= 1;
+        boolean inBounds = (index >= 0) && (index < mProfiles.size());
+
+        if (!mNoProject) {
+
+            if (inBounds) mSelectedProfileIndex = index;
+            else mSelectedProfileIndex = 0;
+
+            IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
+            String tableToSelect = profileToSelect.getName().getText();
+            header.setActiveProfile(profileToSelect);
+            mToolbar.setTitle(tableToSelect);
+            mDbHelper.switchTable(tableToSelect);
+            displayIdeasCount();
+
+            switchToProjectColors();
+        }
+
     }
 
 
@@ -1591,19 +1654,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (drawerItem != null && drawerItem instanceof IProfile) {
 
-                mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
-                String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
-                mToolbar.setTitle(tableName);
-                mDbHelper.switchTable(tableName);
-                DatabaseHelper.notifyAllLists();
-                displayIdeasCount();
-                switchToProjectColors();
-
-                //favorite star
-                refreshStar();
-
-                //search mode
-                disableSearchMode();
+                String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
+                switchToProject(projectName);
             }
             return false;
         }
@@ -1715,6 +1767,37 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
 
+        }
+    };
+
+    // Listener for the toolbar project name
+
+    private View.OnClickListener toolBarProjectListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            final Project[] otherProjects = getOtherProjects();
+            mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+            mDroppyBuilder.triggerOnAnchorClick(false);
+            if (otherProjects.length > 0) {
+                for (Project p : otherProjects) {
+                    mDroppyBuilder.addMenuItem(new DroppyMenuItem(p.getName()));
+                }
+
+
+                mDroppyBuilder.setOnClick(new DroppyClickCallbackInterface() {
+                    @Override
+                    public void call(View v, int id) {
+                        switchToProject(otherProjects[id].getName());
+                    }
+                });
+
+                mDroppyBuilder.setPopupAnimation(new DroppyFadeInAnimation())
+                        .setXOffset(150);
+
+                DroppyMenuPopup droppyMenu = mDroppyBuilder.build();
+                droppyMenu.show();
+            }
         }
     };
 

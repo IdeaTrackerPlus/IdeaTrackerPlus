@@ -44,5 +44,6 @@ dependencies {
     compile 'com.github.woxthebox:draglistview:1.2.8'
     compile 'com.github.ivbaranov:materialfavoritebutton:0.1.2'
     compile 'com.github.mancj:MaterialSearchBar:0.3.1'
+    compile 'com.shehabic.droppy:Droppy:0.5.1@aar'
     compile files('libs/gson-2.4.jar')
 }
