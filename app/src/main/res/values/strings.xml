@@ -23,7 +23,6 @@
     <string name="color_prefs">Color preferences</string>
     <string name="reset_color_prefs">Reset color preferences</string>
     <string name="functions">Functions</string>
-    <string name="move_all_ideas">Move all ideas from a tab</string>
     <string name="expand_collapse">Expand/collapse all</string>
     <string name="select_prim_col">Select primary color</string>
     <string name="select_sec_col">Select secondary color</string>
@@ -55,9 +54,7 @@
     <string name="help">Help</string>
     <string name="tuto_mode">Tutorial mode is now active</string>
     <string name="show_done_pref" translatable="false">showDone</string>
-    <string name="show_cheer_pref" translatable="false">cheerSwitch</string>
-    <string name="show_done_msg">Show DONE tab</string>
-    <string name="show_cheer_msg">Show message on task done</string>
+    <string name="show_done_msg">Show Done tab</string>
     <string name="big_text_pref" translatable="false">bigTextSwitch</string>
     <string name="big_text_msg">Bigger text for ideas</string>
     <string name="first_project_content">Hi there! Your projects are in this drawer.\nTap on the header to switch to the menu.</string>
@@ -65,7 +62,7 @@
     <string name="handle_idea_pref" translatable="false">handleIdea</string>
     <string name="first_idea_pref" translatable="false">firstIdea</string>
     <string name="first_idea_title">Awesome! Now, your ideas and tasks for this project will be shown there.\nTap the button over here to add one.</string>
-    <string name="handle_idea_content">Now try to interact with your idea:\n- Tap for a detailed view\n- Hold to edit the idea\n- Swipe right to mark it done\n- Swipe left to save it for later</string>
+    <string name="handle_idea_content">Now try to interact with your idea:\n- Tap for a detailed view and to edit idea\n- Hold and drag to reorder ideas\n- Swipe right to mark it done\n- Swipe left to save it for later</string>
     <string name="dont_forget">Don\'t forget to type out your idea</string>
     <string name="later">LATER</string>
     <string name="done_caps">DONE</string>
@@ -102,6 +99,12 @@
     <string name="right_drawer_pref" translatable="false">rightDrawer</string>
     <string name="next">Next</string>
     <string name="idea_moved_snack">"Idea moved to "</string>
+    <string name="sort_priority">Sort by priority</string>
+    <string name="clear_done">Clear Done tab</string>
+    <string name="done_cleared">Done tab cleared</string>
+    <string name="favorite_project">favorite_project</string>
+    <string name="search_tab">Search</string>
+    <string name="search">Search</string>
 
     <string-array name="array_from">
         <item>Done</item>
@@ -116,13 +119,5 @@
         <item>Done</item>
     </string-array>
 
-    <string-array name="done_cheers">
-        <item>Nice one</item>
-        <item>Another finished</item>
-        <item>This project looks great</item>
-        <item>One step closer</item>
-        <item>Truly amazing</item>
-        <item>Awesome!</item>
-    </string-array>
 
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorControlHighlight"> <!-- ripple color -->
+    android:color="@color/md_grey_400"> <!-- ripple color -->
 
     <item android:drawable="@android:color/white"/> <!-- normal color -->
 

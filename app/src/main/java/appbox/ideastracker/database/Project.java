@@ -15,12 +15,16 @@ public class Project {
     private int mPrimaryColor;
     private int mSecondaryColor;
     private int mTextColor;
+    private int mId;
+
+    private static int counter = 0; //increment the id for new projects
 
     public Project(String name, int primaryColor, int secondaryColor, int textColor) {
         mName = name;
         mPrimaryColor = primaryColor;
         mSecondaryColor = secondaryColor;
         mTextColor = textColor;
+        mId = counter++;
     }
 
     // GETTERs AND SETTERS //
@@ -55,5 +59,13 @@ public class Project {
 
     public void setSecondaryColor(int secondaryColor) {
         this.mSecondaryColor = secondaryColor;
+    }
+
+    public int getId() {
+        return mId;
+    }
+
+    public static void setCounter(int c) {
+        counter = c;
     }
 }

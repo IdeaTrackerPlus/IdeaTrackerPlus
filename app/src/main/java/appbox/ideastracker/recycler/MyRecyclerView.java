@@ -1,7 +1,7 @@
 package appbox.ideastracker.recycler;
 
 import android.content.Context;
-import android.support.design.widget.Snackbar;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
@@ -9,16 +9,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 
-import java.util.Random;
-
 import appbox.ideastracker.MainActivity;
 import appbox.ideastracker.R;
+import appbox.ideastracker.SearchListAdapter;
 import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.database.TinyDB;
 
 /**
  * Created by Nicklos on 13/07/2016.
- *
+ * <p/>
  * Custom RecyclerView to handle swipe left and right
  * for quick actions.
  * Every MyRecyclerView holds an idea's text.
@@ -29,12 +27,11 @@ public class MyRecyclerView extends RecyclerView {
     static final int ANIMATION_DURATION = 200; // For the deletion animation
 
     private boolean isActivated; // If we activated one of the quick actions
+    private boolean needSearchNotify; //If we need to notify the search tab that data changed
 
     private HorizontalAdapter mAdapter;
     private LinearLayoutManager mManager;
     private DatabaseHelper mDbHelper;
-
-    private TinyDB mTinyDb;
 
     private MainActivity mainActivity;
 
@@ -56,22 +53,28 @@ public class MyRecyclerView extends RecyclerView {
 
     /**
      * Common code to all constructors
+     *
      * @param c
      */
-    public void constructor(Context c){
+    public void constructor(Context c) {
         isActivated = false;
-        mTinyDb = new TinyDB(c);
-        mainActivity = MainActivity.getActivity(c);
+        mainActivity = MainActivity.getInstance();
         mDbHelper = DatabaseHelper.getInstance(c);
     }
 
-    public void reboot(){
+    public void reboot() {
         isActivated = false;
     }
 
     public void setUp() {
         mManager = (LinearLayoutManager) this.getLayoutManager();
         mAdapter = (HorizontalAdapter) this.getAdapter();
+    }
+
+    public void changeIdeaText(String ideaText) {
+        ((HorizontalAdapter) getAdapter()).setIdeaText(ideaText);
+        getAdapter().notifyDataSetChanged();
+
     }
 
     @Override
@@ -84,25 +87,35 @@ public class MyRecyclerView extends RecyclerView {
     public void onScrollStateChanged(int state) {
 
         int tab = mAdapter.getTabNumber();
-
         switch (tab) {
             case 1: //Tab NOW
                 stateChangedIdea(state);
                 break;
 
             case 2: //Tab LATER
-                stateChangeOther(state);
+                stateChangedOther(state);
                 break;
 
             case 3: //Tab DONE
-                stateChangeOther(state);
+                stateChangedOther(state);
                 break;
+
+            case 4: //Tab SEARCH
+
+                //Notify search tab if necessary
+                if (state == RecyclerView.SCROLL_STATE_IDLE && needSearchNotify) {
+                    SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
+                    needSearchNotify = false;
+                    return;
+                }
+                stateChangedSearch(state);
         }
 
     }
 
     /**
      * Call when state changed in the "Idea" tab
+     *
      * @param state
      */
     private void stateChangedIdea(int state) {
@@ -136,19 +149,19 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to DONE
-                //cheerSnackmessage();
-                sendCellToDone();
+                sendCellToTab(3);
             } else { //move to LATER
-                sendCellToLater();
+                sendCellToTab(2);
             }
         }
     }
 
     /**
      * Call when state changed in the "Later" or "Done" tab
+     *
      * @param state
      */
-    private void stateChangeOther(int state) {
+    private void stateChangedOther(int state) {
 
         // Define limits to trigger quick action
         int width = mManager.getChildAt(0).getWidth();
@@ -179,37 +192,99 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Wait for animation to finish
             int first = mManager.findFirstVisibleItemPosition();
             if ((mManager.getChildAt(0)) != null && first == 0) { //NOW
-                sendCellToNow();
+                sendCellToTab(1);
             } else { //DELETE
-                sendCellToDelete();
+                sendCellToTab(-1);
             }
         }
     }
 
     /**
-     * Display a message in a snackbar when a task
-     * has been completed
+     * Call when state changed in the "Search" tab
+     *
+     * @param state
      */
-    private void cheerSnackmessage() {
+    private void stateChangedSearch(int state) {
 
-        if (mTinyDb.getBoolean("cheerSwitch")) {
-            String[] array = getContext().getResources().getStringArray(R.array.done_cheers);
-            String randomStr = array[new Random().nextInt(array.length)];
-            Snackbar.make(mainActivity.findViewById(R.id.main_content), randomStr, Snackbar.LENGTH_LONG).show();
+        // Define limits to trigger quick action
+        int width = mManager.getChildAt(0).getWidth();
+        double limLeft = 0.4d * width;
+        double limRight = 0.6d * width;
+
+        if (state != RecyclerView.SCROLL_STATE_DRAGGING && !isActivated) {
+
+            View child;
+            int first = mManager.findFirstVisibleItemPosition();
+            int last = mManager.findLastVisibleItemPosition();
+            int left, right;
+
+            if ((child = mManager.getChildAt(0)) != null && first == 0) {//We are going towards DONE
+                right = child.getRight();
+                if (right > limLeft) {
+                    isActivated = true;
+                    smoothScrollToPosition(0);
+                } else smoothScrollToPosition(1);
+
+            } else if ((child = mManager.getChildAt(1)) != null && last == 2) {//We are going towards LATER
+                left = child.getLeft();
+                if (left < limRight) {
+                    isActivated = true;
+                    smoothScrollToPosition(2);
+                } else smoothScrollToPosition(1);
+            }
+        } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
+
+            int first = mManager.findFirstVisibleItemPosition();
+            int myTab = mDbHelper.getTabById((int) getTag()); //Tab number the idea belongs to
+
+            if ((mManager.getChildAt(0)) != null && first == 0) { //move to LEFT ACTION
+                switch (myTab) {
+                    case 1: //Tab "Ideas"
+                        muteCellToTab(3);
+                        break;
+
+                    default: //Tab "Later" and "Done"
+                        muteCellToTab(1);
+                        break;
+                }
+            } else { //move to RIGHT ACTION
+                switch (myTab) {
+                    case 1: //Tab "Ideas"
+                        muteCellToTab(2);
+                        break;
+
+                    default: //Tab "Later" and "Done"
+                        muteCellToDelete();
+                        break;
+                }
+            }
         }
     }
 
-    public void sendCellToNow() {
+    //SEND TAB TO ANOTHER TAB
+    public void sendCellToTab(final int tabNumber) {
 
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 1, tagId);
+
+                switch (tabNumber) {
+                    case -1: //Send to deletion
+                        mDbHelper.deleteEntryWithSnack(v, tagId);
+                        break;
+
+                    default: //Send to other tab
+                        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), tabNumber, tagId);
+                        break;
+                }
+
                 DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
+                scrollToPosition(1);
+                isActivated = false;
             }
 
             @Override
@@ -224,17 +299,28 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    public void sendCellToDelete() {
+    //SEND TAB TO ANOTHER TAB WHILE STAYING IN THE SEARCH TAB
+    //CHANGE THE TAB INDICATOR OF THE IDEA INSIDE THE SEARCH TAB
+    Runnable scrollBack = new Runnable() {
+        @Override
+        public void run() {
+            needSearchNotify = true;
+            smoothScrollToPosition(1);
+        }
+    };
+    final Handler handler = new Handler();
+    final int PAUSE_TIME = 500;
 
+    public void muteCellToDelete() {
         final View v = this;
         Animation.AnimationListener al = new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation arg0) {
                 int tagId = (int) v.getTag();
                 mDbHelper.deleteEntryWithSnack(v, tagId);
-                DatabaseHelper.notifyAllLists();
 
                 mainActivity.displayIdeasCount();
+                SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
             }
 
             @Override
@@ -249,56 +335,17 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    public void sendCellToLater() {
+    public void muteCellToTab(int tabNumber) {
+        int tagId = (int) getTag();
+        mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mDbHelper.getTabById(tagId), tabNumber, tagId);
 
-        final View v = this;
-        Animation.AnimationListener al = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                int tagId = (int) v.getTag();
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 2, tagId);
-                DatabaseHelper.notifyAllLists();
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-        };
-
-        collapse(v, al);
-    }
-
-    public void sendCellToDone() {
-
-        final View v = this;
-        Animation.AnimationListener al = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                int tagId = (int) v.getTag();
-
-                mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mAdapter.getTabNumber(), 3, tagId);
-                DatabaseHelper.notifyAllLists();
-                mainActivity.displayIdeasCount();
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-        };
-
-        collapse(v, al);
+        mainActivity.displayIdeasCount();
+        handler.postDelayed(scrollBack, PAUSE_TIME);
     }
 
     /**
      * Animate the view to shrink vertically
+     *
      * @param v
      * @param al
      */
@@ -330,8 +377,11 @@ public class MyRecyclerView extends RecyclerView {
         v.startAnimation(anim);
     }
 
-
-
+    @Override
+    public void setOnLongClickListener(OnLongClickListener l) {
+        HorizontalAdapter adapter = (HorizontalAdapter) getAdapter();
+        adapter.setLongClickListener(l);
+    }
 
 }
 

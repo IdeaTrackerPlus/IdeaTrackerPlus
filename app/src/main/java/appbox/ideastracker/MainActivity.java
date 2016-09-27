@@ -1,9 +1,8 @@
 package appbox.ideastracker;
 
+import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -13,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -24,6 +24,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -34,19 +35,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
+import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -58,31 +60,32 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.ExpandableDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
+import com.shehabic.droppy.DroppyClickCallbackInterface;
+import com.shehabic.droppy.DroppyMenuItem;
+import com.shehabic.droppy.DroppyMenuPopup;
+import com.shehabic.droppy.animations.DroppyFadeInAnimation;
 import com.thebluealliance.spectrum.SpectrumDialog;
+import com.woxthebox.draglistview.DragListView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
-import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import appbox.ideastracker.customviews.AnimatedExpandableListView;
 import appbox.ideastracker.customviews.NonSwipeableViewPager;
 import appbox.ideastracker.customviews.ToolbarColorizeHelper;
 import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
-import appbox.ideastracker.listadapters.MyExandableListAdapter;
-import appbox.ideastracker.listadapters.MyListAdapter;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
-import appbox.ideastracker.recycler.RecyclerOnLongClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.prefs.PreferencesManager;
 import co.mobiwise.materialintro.shape.Focus;
@@ -91,6 +94,10 @@ import co.mobiwise.materialintro.view.MaterialIntroView;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Singleton
+    private static MainActivity sInstance;
+
+    // Database
     private DatabaseHelper mDbHelper;
 
     // Drawers items
@@ -98,11 +105,12 @@ public class MainActivity extends AppCompatActivity {
     private Drawer rightDrawer = null;
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
-    private SwitchDrawerItem cheerSwitch;
     private SwitchDrawerItem bigTextSwitch;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
+    private ProfileSettingDrawerItem mAddProject;
+    private MaterialFavoriteButton mFavoriteButton;
 
     // UI elements
     private Toolbar mToolbar;
@@ -111,18 +119,23 @@ public class MainActivity extends AppCompatActivity {
     private NonSwipeableViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
+    private MaterialSearchBar mSearchBar;
+    public TextView mSearchLabel;
+    private static boolean searchMode;
+    private DroppyMenuPopup.Builder mDroppyBuilder;
 
     // Dialogs
-    private Dialog mMoveDialog;
     private Dialog mNewIdeaDialog;
+    private Dialog mProjectDialog;
 
     // Dialogs views
     private RadioGroup mRadioGroup;
     private TextView mIdeaError;
-    private TextView mMoveError;
     private EditText mIdeaField;
     private EditText mNoteField;
-    private Spinner mFromSpinner, mToSpinner;
+
+    private TextView mProjectError;
+    private EditText mProjectField;
 
     // Preferences
     private TinyDB mTinyDB;
@@ -143,29 +156,9 @@ public class MainActivity extends AppCompatActivity {
 
     // STATIC METHODS //
 
-    public static MainActivity getActivity(View v) {
-
-        Context context = v.getContext();
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
+    public static synchronized MainActivity getInstance() {
+        return sInstance;
     }
-
-    public static MainActivity getActivity(Context context) {
-
-        while (context instanceof ContextWrapper) {
-            if (context instanceof MainActivity) {
-                return (MainActivity) context;
-            }
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
-    }
-
 
     // OVERRODE METHODS //
 
@@ -175,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DatabaseHelper.setMainActivity(this);
+        sInstance = this;
 
         // Databases
         mTinyDB = new TinyDB(this);
@@ -192,6 +185,18 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
+        // Drop down menu - droppy
+        mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+        mDroppyBuilder.triggerOnAnchorClick(false);
+        mToolbar.setOnClickListener(toolBarProjectListener);
+
+        // Searchbar
+        mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
+        mSearchBar.setHint(getString(R.string.search));
+        mSearchBar.setOnSearchActionListener(searchListener);
+        EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
+        searchEdit.addTextChangedListener(editSearchWatcher);
+
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
         mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
@@ -203,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         // Set up the tab layout
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
         tabLayout.setupWithViewPager(mViewPager);
-        tabLayout.setSelectedTabIndicatorHeight(10);
+        tabLayout.setSelectedTabIndicatorHeight(8);
 
         // Wire the floating button
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -245,6 +250,10 @@ public class MainActivity extends AppCompatActivity {
         //handle the back press :D close the drawer first and if the drawer is closed close the activity
         if (leftDrawer != null && leftDrawer.isDrawerOpen()) {
             leftDrawer.closeDrawer();
+
+        } else if (searchMode) {
+            disableSearchMode();
+
         } else {
             super.onBackPressed();
         }
@@ -259,8 +268,33 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (!mNoProject) rightDrawer.openDrawer();
-        return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.action_search:
+                searchMode = true;
+
+                //hide tabs
+                AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+                appbar.removeView(tabLayout);
+                //hide floating button
+                mFab.setVisibility(View.INVISIBLE);
+
+                //display search bar
+                mSearchBar.setVisibility(View.VISIBLE);
+                mSearchBar.enableSearch();
+
+                //refresh the fragment display
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                return true;
+
+            case R.id.action_settings:
+                if (!mNoProject) rightDrawer.openDrawer();
+                return true;
+        }
+
+        return false;
     }
 
 
@@ -269,11 +303,14 @@ public class MainActivity extends AppCompatActivity {
     // Creates and fill the right and left drawers
     private void setUpDrawers(Bundle savedInstanceState) {
 
+        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(profile_listener);
+
         //HEADER
         header = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .withProfiles(mProfiles)
+                .addProfiles(mAddProject)
                 .withProfileImagesVisible(false)
                 .withSavedInstance(savedInstanceState)
                 .build();
@@ -295,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, cheerSwitch, bigTextSwitch),
+                                doneSwitch, bigTextSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -396,6 +433,21 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
+        //FAVORITE BUTTON
+        mFavoriteButton = (MaterialFavoriteButton) header.getView().findViewById(R.id.favorite_button);
+        mFavoriteButton.setOnFavoriteChangeListener(
+                new MaterialFavoriteButton.OnFavoriteChangeListener() {
+                    @Override
+                    public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                        if (favorite) {
+                            mTinyDB.putInt(getString(R.string.favorite_project), getProjectId());
+                        } else if (mTinyDB.getInt(getString(R.string.favorite_project)) == mSelectedProfileIndex) {
+                            mTinyDB.putInt(getString(R.string.favorite_project), -1); //no favorite
+                        }
+                    }
+                });
+
+        //COLORS BUTTONS
         mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
         mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
         mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
@@ -411,8 +463,8 @@ public class MainActivity extends AppCompatActivity {
                         mColorItem3,
                         new PrimaryDrawerItem().withIdentifier(6).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
                         new SectionDrawerItem().withName(R.string.functions),
-                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.move_all_ideas).withIcon(FontAwesome.Icon.faw_exchange).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.expand_collapse).withIcon(FontAwesome.Icon.faw_arrows_v).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withStickyFooter(R.layout.footer)
@@ -493,11 +545,13 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 4:
-                                    newMoveDialog();
+                                    mDbHelper.clearDoneWithSnack(mViewPager);
+                                    rightDrawer.closeDrawer();
                                     break;
 
                                 case 5:
-                                    AnimatedExpandableListView.getInstance().collapseExpandAll();
+                                    mDbHelper.sortByAscPriority();
+                                    rightDrawer.closeDrawer();
                                     break;
 
                                 case 6:
@@ -513,9 +567,9 @@ public class MainActivity extends AppCompatActivity {
                 .withSavedInstance(savedInstanceState)
                 .append(leftDrawer);
 
-        //Select first project if there is any
+        //Select favorite project if there is any
         if (!mNoProject) {
-            mSelectedProfileIndex = 0;
+            mSelectedProfileIndex = getIndexOfFavorite();
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
             String activeProfileName = activeProfile.getName().getText();
             header.setActiveProfile(activeProfile);
@@ -529,6 +583,7 @@ public class MainActivity extends AppCompatActivity {
             displayIdeasCount();
 
             switchToProjectColors();
+            refreshStar();
         } else { // No project
 
             header.setProfiles(mProfiles);
@@ -538,6 +593,7 @@ public class MainActivity extends AppCompatActivity {
             mSecondaryColor = defaultSecondaryColor;
             mTextColor = defaultTextColor;
             updateColors();
+            refreshStar();
         }
     }
 
@@ -547,9 +603,6 @@ public class MainActivity extends AppCompatActivity {
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
         else toggleDoneTab();
-
-        cheerSwitch = new SwitchDrawerItem().withName(R.string.show_cheer_msg).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
-        if (mTinyDB.getBoolean(getString(R.string.show_cheer_pref))) cheerSwitch.withChecked(true);
 
         bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
@@ -587,6 +640,11 @@ public class MainActivity extends AppCompatActivity {
         mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
         mIdeaField.setOnEditorActionListener(ideaFieldListener);
         mNoteField.setOnEditorActionListener(noteFieldListener);
+
+        //request focus on the edit text
+        if (mIdeaField.requestFocus()) {
+            mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
 
     }
 
@@ -677,165 +735,146 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    // Shows a dialog allowing to move ideas from tab to tab
-    private void newMoveDialog() {
+    private void newProjectDialog() {
 
-        final View root = findViewById(R.id.main_content);
-
-        mMoveDialog = new LovelyCustomDialog(this)
-                .setView(R.layout.move_dialog)
+        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
-                .setTitle(R.string.move_all_title)
-                .setIcon(R.drawable.ic_transfer)
-                .setListener(R.id.move_button, new View.OnClickListener() {
+                .setIcon(R.drawable.ic_notepad)
+                .setListener(R.id.projectDoneButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        final String from = mFromSpinner.getSelectedItem().toString();
-                        final String to = mToSpinner.getSelectedItem().toString();
-
-                        String snackText = "";
-                        String errorText = getString(R.string.nothing_move) + from;
-                        boolean success = false;
-                        if (from.equals(to)) errorText = getString(R.string.must_diff);
-                        else if (mDbHelper.moveAllFromTo(from, to)) {
-                            snackText = getString(R.string.moved_all_1) + from + getString(R.string.moved_all_2) + to;
-                            success = true;
-                            displayIdeasCount();
-                        }
-
-                        Snackbar snackbar = Snackbar.make(root, snackText, Snackbar.LENGTH_LONG);
-                        if (success) {
-                            snackbar.setAction(R.string.undo, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    if (to.equals(getString(R.string.trash))) {//undo temp deleting
-                                        mDbHelper.recoverAllFromTemp();
-                                    } else {
-                                        mDbHelper.moveBackFrom(from);
-                                    }
-                                    displayIdeasCount();
-                                }
-                            }).setCallback(new Snackbar.Callback() {
-                                @Override
-                                public void onDismissed(Snackbar snackbar, int event) {
-                                    if ((event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT || event == Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE) && to.equals(getString(R.string.trash))) {
-                                        //delete for real ideas in temp
-                                        mDbHelper.deleteAllFromTemp();
-                                    }
-                                }
-                            });
-                            mMoveDialog.dismiss();
-                            rightDrawer.closeDrawer();
-                            snackbar.show();
-                        } else {
-                            mMoveError.setText(errorText);
-                            mMoveError.setVisibility(View.VISIBLE);
-                        }
+                        createProjectFromDialog();
                     }
                 })
                 .show();
 
-        mMoveError = (TextView) mMoveDialog.findViewById(R.id.move_error_message);
-        mFromSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_from);
-        mToSpinner = (Spinner) mMoveDialog.findViewById(R.id.spinner_to);
+        //get the views
+        mProjectError = (TextView) mProjectDialog.findViewById(R.id.project_error_message);
+        mProjectField = (EditText) mProjectDialog.findViewById(R.id.editProjectName);
 
-        mFromSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
-        mToSpinner.setOnItemSelectedListener(new HideErrorOnSpinnerChanged());
+        //hide error when text change
+        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //request focus on the edit text
+        if (mProjectField.requestFocus()) {
+            mProjectDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
 
     }
 
-    // Shows a project creation dialog
-    private void newProjectDialog() {
+    private void createProjectFromDialog() {
 
-        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
-                .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
-                .setTitle(R.string.new_pro)
-                .setMessage(R.string.new_pro_message)
-                .setIcon(R.drawable.ic_notepad)
-                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
-                    @Override
-                    public boolean check(String text) {
-                        return isProjectNameAvailable(text) && !text.equals("");
-                    }
-                })
-                .setConfirmButton(R.string.create, new LovelyTextInputDialog.OnTextInputConfirmListener() {
-                    @Override
-                    public void onTextInputConfirmed(String tableName) {
+        String projectName = mProjectField.getText().toString();
 
-                        mDbHelper.newTable(tableName);
+        if (isProjectNameAvailable(projectName) && !projectName.equals("")) {
 
-                        //create the profile with its colored icon
-                        Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
-                        disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
-                        IProfile newProfile = new ProfileDrawerItem().withName(tableName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
-                        mProfiles.add(newProfile);
+            mDbHelper.newTable(projectName);
 
-                        saveProject(new Project(tableName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
+            //create the profile with its colored icon
+            Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
+            disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+            IProfile newProfile = new ProfileDrawerItem().withName(projectName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
+            mProfiles.add(newProfile);
 
-                        //open the profile drawer and select the new profile
-                        header.setActiveProfile(newProfile);
-                        mSelectedProfileIndex = mProfiles.size() - 1;
-                        switchToProjectColors();
+            saveProject(new Project(projectName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
 
-                        leftDrawer.openDrawer();
-                        header.toggleSelectionList(getApplicationContext());
-                        mToolbar.setTitle(tableName);
-                        displayIdeasCount();
+            //open the profile drawer and select the new profile
 
-                        if (mNoProject) {
-                            mFab.setVisibility(View.VISIBLE);
-                            mNoProject = false;
 
-                            mViewPager.setAdapter(null);
-                            mViewPager.setAdapter(mSectionsPagerAdapter);
-                        }
+            header.removeProfile(mAddProject);
+            header.addProfile(mAddProject, mProfiles.size());
+            header.setActiveProfile(newProfile);
+            mSelectedProfileIndex = mProfiles.size() - 2;
+            switchToProjectColors();
 
-                        if (mTinyDB.getBoolean(getString(R.string.first_project_pref)))
-                            firstProjectGuide();
-                    }
-                })
-                .show();
+            mToolbar.setTitle(projectName);
+            displayIdeasCount();
+
+            if (mNoProject) {
+                mFab.setVisibility(View.VISIBLE);
+                mNoProject = false;
+
+                mViewPager.setAdapter(null);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+            }
+
+            //If first project ever
+            if (mTinyDB.getBoolean(getString(R.string.first_project_pref))) {
+                leftDrawer.openDrawer();
+                header.toggleSelectionList(getApplicationContext());
+                firstProjectGuide();
+            }
+
+            refreshStar();
+
+            mProjectDialog.dismiss();
+
+
+        } else { //Error - project name is taken or empty, show the error
+            mProjectError.setVisibility(View.VISIBLE);
+        }
+
     }
 
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        new LovelyTextInputDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
-                .setConfirmButtonColor(ContextCompat.getColor(this, R.color.md_pink_a200))
-                .setTitle(getString(R.string.rename_lower) + " " + ((Project) mProjects.get(mSelectedProfileIndex)).getName())
-                .setMessage(R.string.rename_pro_message)
                 .setIcon(R.drawable.ic_edit)
-                .setInputFilter(R.string.error_empty_taken, new LovelyTextInputDialog.TextFilter() {
+                .setListener(R.id.projectDoneButton, new View.OnClickListener() {
                     @Override
-                    public boolean check(String text) {
-                        return !text.equals("") && isProjectNameAvailable(text);
-                    }
-                })
-                .setConfirmButton(R.string.rename, new LovelyTextInputDialog.OnTextInputConfirmListener() {
-                    @Override
-                    public void onTextInputConfirmed(String tableName) {
-                        //update table's name is the list and the database
-                        renameProject(tableName);
-                        mDbHelper.renameTable(tableName);
+                    public void onClick(View v) {
 
-                        //update profile's name
-                        IProfile profile = mProfiles.get(mSelectedProfileIndex);
-                        profile.withName(tableName);
-                        header.updateProfile(profile);
-                        mProfiles.remove(mSelectedProfileIndex);
-                        mProfiles.add(mSelectedProfileIndex, profile);
+                        String projectName = mProjectField.getText().toString();
+                        if (!projectName.equals("") && isProjectNameAvailable(projectName)) {
 
-                        mToolbar.setTitle(tableName);
+                            //update table's name is the list and the database
+                            renameProject(projectName);
+                            mDbHelper.renameTable(projectName);
+
+                            //update profile's name
+                            IProfile profile = mProfiles.get(mSelectedProfileIndex);
+                            profile.withName(projectName);
+                            header.updateProfile(profile);
+                            mProfiles.remove(mSelectedProfileIndex);
+                            mProfiles.add(mSelectedProfileIndex, profile);
+
+                            mToolbar.setTitle(projectName);
+
+                            mProjectDialog.dismiss();
+
+                        } else { //Error - project name taken or empty, show message
+                            mProjectError.setVisibility(View.VISIBLE);
+                        }
                     }
                 })
                 .show();
+
+        //get the views
+        mProjectError = (TextView) mProjectDialog.findViewById(R.id.project_error_message);
+        mProjectField = (EditText) mProjectDialog.findViewById(R.id.editProjectName);
+        Button projectButton = (Button) mProjectDialog.findViewById(R.id.projectDoneButton);
+        TextView projectTitle = (TextView) mProjectDialog.findViewById(R.id.projectTitle);
+
+        //change title and button label
+        projectButton.setText(R.string.rename);
+        projectTitle.setText(R.string.rename_pro);
+
+        //hide error when text change
+        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+
+        //request focus on the edit text
+        if (mProjectField.requestFocus()) {
+            mProjectDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
     }
 
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
+
         new LovelyStandardDialog(this)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
@@ -850,6 +889,7 @@ public class MainActivity extends AppCompatActivity {
                         deleteProject();
                         mDbHelper.deleteTable();
                         if (mProjects.isEmpty()) {
+
                             DataEntry.setTableName("");
                             mToolbar.setTitle(R.string.app_name);
                             mFab.setVisibility(View.INVISIBLE);
@@ -857,6 +897,7 @@ public class MainActivity extends AppCompatActivity {
                             header.setSelectionSecondLine(getString(R.string.no_project));
                             mNoProject = true;
 
+                            //refresh the fragment display
                             mViewPager.setAdapter(null);
                             mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -865,8 +906,14 @@ public class MainActivity extends AppCompatActivity {
                             mSecondaryColor = defaultSecondaryColor;
                             mTextColor = defaultTextColor;
                             updateColors();
+
                         }
                         switchToExistingProject(mSelectedProfileIndex);
+
+                        //favorite star
+                        refreshStar();
+                        //search mode
+                        disableSearchMode();
                     }
                 })
                 .setNegativeButton(android.R.string.no, null)
@@ -902,31 +949,6 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * After project deletion, selects another project
-     *
-     * @param index the index of the deleted project
-     */
-    private void switchToExistingProject(int index) {
-        index -= 1;
-        boolean inBounds = (index >= 0) && (index < mProfiles.size());
-
-        if (!mProfiles.isEmpty()) {
-
-            if (inBounds) mSelectedProfileIndex = index;
-            else mSelectedProfileIndex = 0;
-
-            IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
-            String tableToSelect = profileToSelect.getName().getText();
-            header.setActiveProfile(profileToSelect);
-            mToolbar.setTitle(tableToSelect);
-            mDbHelper.switchTable(tableToSelect);
-            displayIdeasCount();
-
-            switchToProjectColors();
-        }
-
-    }
 
 
     // TUTORIAL AND INTRO METHODS //
@@ -1057,11 +1079,12 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("ConstantConditions")
     private void changePrimaryColor() {
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        //disable search mode for tabLayout
+        disableSearchMode();
 
-        toolbar.setBackgroundColor(mPrimaryColor);
+        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+
+        mToolbar.setBackgroundColor(mPrimaryColor);
         tabLayout.setBackgroundColor(mPrimaryColor);
         appbar.setBackgroundColor(mPrimaryColor);
 
@@ -1074,10 +1097,12 @@ public class MainActivity extends AppCompatActivity {
         rightDrawer.updateItem(mColorItem1);
 
         RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
-        RecyclerOnLongClickListener.setPrimaryColor(mPrimaryColor);
     }
 
     private void changeSecondaryColor() {
+
+        //disable search mode for tabLayout
+        disableSearchMode();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -1089,6 +1114,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeTextColor() {
+
+        //disable search mode for tabLayout
+        disableSearchMode();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
@@ -1111,6 +1139,10 @@ public class MainActivity extends AppCompatActivity {
 
     // Change all UI colors to match the selected project preferences
     private void switchToProjectColors() {
+
+        //Disable search mode
+        disableSearchMode();
+
         Project selectedProject = (Project) mProjects.get(mSelectedProfileIndex);
         mPrimaryColor = selectedProject.getPrimaryColor();
         mSecondaryColor = selectedProject.getSecondaryColor();
@@ -1173,6 +1205,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Disable the search mode, go back to standard mode
+    private void disableSearchMode() {
+        if (searchMode) {
+            searchMode = false;
+
+            //display tabs again
+            AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+            appbar.removeView(tabLayout); //make sure we're not adding the tabLayout while it's already there
+            appbar.addView(tabLayout);
+            //display floating button
+            mFab.setVisibility(View.VISIBLE);
+
+            //hide searchbar
+            mSearchBar.setVisibility(View.GONE);
+
+            //refresh the fragment display
+            mViewPager.setAdapter(null);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+        }
+    }
+
 
     // PROJECT METHODS //
 
@@ -1222,11 +1275,15 @@ public class MainActivity extends AppCompatActivity {
     private void loadProjects() {
 
         mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
+
         if (mProjects.size() == 0) {
             DataEntry.setTableName("");
             mToolbar.setTitle(R.string.app_name);
             mFab.setVisibility(View.INVISIBLE);
             mNoProject = true;
+        } else { //Start counter where we stopped
+            int lastId = ((Project) mProjects.get(mProjects.size() - 1)).getId();
+            Project.setCounter(lastId + 1);
         }
 
         mProfiles = new ArrayList<>();
@@ -1241,7 +1298,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayIdeasCount() {
-        int count = mDbHelper.getIdeasCount();
+        int count = mDbHelper.getIdeasCount(0);
+
         if (count == 0) {
             header.setSelectionSecondLine(getString(R.string.no_ideas));
         } else if (count == 1) {
@@ -1257,6 +1315,122 @@ public class MainActivity extends AppCompatActivity {
         leftDrawer.closeDrawer();
         rightDrawer.closeDrawer();
         Snackbar.make(findViewById(R.id.main_content), R.string.no_project_snack_message, Snackbar.LENGTH_LONG).show();
+    }
+
+    // Get selected project toString
+    private int getProjectId() {
+        return ((Project) mProjects.get(mSelectedProfileIndex)).getId();
+    }
+
+    // Fill or empty star depending is the current project is favorite
+    private void refreshStar() {
+
+        if (!mNoProject) {
+            int id = getProjectId();
+            mFavoriteButton.setVisibility(View.VISIBLE);
+            if (mTinyDB.getInt(getString(R.string.favorite_project)) == getProjectId()) {
+                mFavoriteButton.setFavorite(true, false);
+            } else {
+                mFavoriteButton.setFavorite(false, false);
+            }
+        } else {
+            mFavoriteButton.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    // Get index of favorite project if any
+    private int getIndexOfFavorite() {
+
+        int favoriteId = mTinyDB.getInt(getString(R.string.favorite_project)); //id of fav or -1 if no fav
+        Project p;
+        int index = 0;
+        for (Object o : mProjects) {
+            p = (Project) o;
+            if (p.getId() == favoriteId) {
+                return index;
+            }
+            index++;
+        }
+
+        return 0;
+    }
+
+    // Get index of project with a given name
+    private int getIndexOfProject(String projectName) {
+        Project p;
+        int index = 0;
+        for (Object o : mProjects) {
+            p = (Project) o;
+            if (p.getName().equals(projectName)) {
+                return index;
+            }
+            index++;
+        }
+
+        return 0;
+    }
+
+    // Get the list of the other projects, excluding the current one
+    private Project[] getOtherProjects() {
+
+        int size = mProjects.size() - 1;
+        Project[] otherProjects = new Project[size];
+        Object currentProject = mProjects.remove(mSelectedProfileIndex);
+
+        int index = 0;
+        for (Object o : mProjects) {
+            otherProjects[index] = (Project) o;
+            index++;
+        }
+
+        mProjects.add(mSelectedProfileIndex, currentProject);
+        return otherProjects;
+    }
+
+    // Switch to another project, project name has to be a valid project
+    private void switchToProject(String projectName) {
+
+        mSelectedProfileIndex = getIndexOfProject(projectName);
+        IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
+        header.setActiveProfile(profileToSelect);
+
+        mToolbar.setTitle(projectName);
+        mDbHelper.switchTable(projectName);
+        DatabaseHelper.notifyAllLists();
+        displayIdeasCount();
+        switchToProjectColors();
+
+        //favorite star
+        refreshStar();
+
+        //search mode
+        disableSearchMode();
+    }
+
+    /**
+     * After project deletion, selects another project
+     *
+     * @param index the index of the deleted project
+     */
+    private void switchToExistingProject(int index) {
+        index -= 1;
+        boolean inBounds = (index >= 0) && (index < mProfiles.size());
+
+        if (!mNoProject) {
+
+            if (inBounds) mSelectedProfileIndex = index;
+            else mSelectedProfileIndex = 0;
+
+            IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
+            String tableToSelect = profileToSelect.getName().getText();
+            header.setActiveProfile(profileToSelect);
+            mToolbar.setTitle(tableToSelect);
+            mDbHelper.switchTable(tableToSelect);
+            displayIdeasCount();
+
+            switchToProjectColors();
+        }
+
     }
 
 
@@ -1293,9 +1467,9 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            mainActivity = MainActivity.getActivity(container);
+            mainActivity = MainActivity.getInstance();
 
-            View rootView = null;
+            View rootView;
             if (DataEntry.TABLE_NAME.equals("[]")) {
                 rootView = inflater.inflate(R.layout.no_project_layout, container, false);
                 LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.noProject);
@@ -1308,77 +1482,62 @@ public class MainActivity extends AppCompatActivity {
                 return rootView;
             }
 
+            if (MainActivity.searchMode) {
+                rootView = inflater.inflate(R.layout.search_view, container, false);
+                ListView list = (ListView) rootView.findViewById(R.id.search_list);
+                mainActivity.mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
 
-            if (getTabName().equals(getString(R.string.first_tab))) { //IDEAS
-
-                rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                AnimatedExpandableListView list = (AnimatedExpandableListView) rootView.findViewById(R.id.expandableList);
-                //sets the adapter that provides data to the list
-                MyExandableListAdapter adapter = new MyExandableListAdapter(getContext());
-                DatabaseHelper.setAdapterIdea(adapter);
+                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
                 list.setAdapter(adapter);
-                list.expandGroup(0);
-                list.expandGroup(1);
-                list.expandGroup(2);
-                setListeners(list);
-            } else if (getTabName().equals(getString(R.string.second_tab))) {
-
-                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                ListView list2 = (ListView) rootView.findViewById(R.id.list);
-                MyListAdapter adapter2 = new MyListAdapter(getContext(), true);
-                DatabaseHelper.setAdapterLater(adapter2);
-                list2.setAdapter(adapter2);
-            } else if (getTabName().equals(getString(R.string.third_tab))) {
-
-                rootView = inflater.inflate(R.layout.fragment_secondary, container, false);
-                ListView list3 = (ListView) rootView.findViewById(R.id.list);
-                MyListAdapter adapter3 = new MyListAdapter(getContext(), false);
-                DatabaseHelper.setAdapterDone(adapter3);
-                list3.setAdapter(adapter3);
+                mainActivity.mSearchLabel.setText("Search for ...");
+                return rootView;
             }
 
+            //Inflate the list view
+            rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
+            DragListView mDragListView = (DragListView) rootView.findViewById(R.id.list);
+            mDragListView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+            //Determine tab number
+            int tabNumber = 0;
+            if (getTabName().equals(getString(R.string.first_tab))) { //IDEAS
+                tabNumber = 1;
+            } else if (getTabName().equals(getString(R.string.second_tab))) {
+                tabNumber = 2;
+            } else if (getTabName().equals(getString(R.string.third_tab))) {
+                tabNumber = 3;
+            }
+
+            //Set reorder listener
+            final int finalTabNumber = tabNumber;
+            mDragListView.setDragListListener(new DragListView.DragListListener() {
+
+                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                @Override
+                public void onItemDragStarted(int position) {
+                }
+
+                @Override
+                public void onItemDragEnded(int fromPosition, int toPosition) {
+                    if (fromPosition != toPosition) {
+                        DatabaseHelper.getInstance(getContext()).resetEntriesOrderAt(finalTabNumber);
+                    }
+                }
+
+                @Override
+                public void onItemDragging(int itemPosition, float x, float y) {
+                }
+            });
+
+            //Set adapter
+            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
+            mDragListView.setAdapter(itemAdapter, false);
+            mDragListView.setCanDragHorizontally(false);
+
+            DatabaseHelper.setAdapterAtTab(tabNumber, itemAdapter);
+            DatabaseHelper.notifyAllLists();
 
             return rootView;
-        }
-
-        void setListeners(final AnimatedExpandableListView listView) {
-            listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-
-                @Override
-                public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-
-                    if (listView.getExpandableListAdapter().getChildrenCount(groupPosition) != 0) { //group is not empty
-                        if (listView.isGroupExpanded(groupPosition)) {
-                            listView.collapseGroupWithAnimation(groupPosition);
-                        } else {
-                            listView.expandGroupWithAnimation(groupPosition);
-                        }
-                    } else { //group is empty
-                        mainActivity.newIdeaDialog(groupPosition + 1);
-
-                    }
-                    return true;
-                }
-
-            });
-
-            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    int itemType = ExpandableListView.getPackedPositionType(id);
-
-                    if (itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-                        int groupPosition = ExpandableListView.getPackedPositionGroup(id);
-                        mainActivity.newIdeaDialog(groupPosition + 1);
-                        return true;
-
-                    } else {
-                        // null item; we don't consume the click
-                        return false;
-                    }
-                }
-            });
-
         }
 
     }
@@ -1430,10 +1589,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 mNoteField.requestFocus();
+                return true;
             }
-            return true;
+            return false;
         }
     };
 
@@ -1441,10 +1607,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+
+            if (actionId == EditorInfo.IME_ACTION_GO
+                    || actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == EditorInfo.IME_ACTION_NEXT
+                    || actionId == EditorInfo.IME_ACTION_SEND
+                    || actionId == EditorInfo.IME_ACTION_SEARCH
+                    || actionId == EditorInfo.IME_NULL) {
                 sendIdeaFromDialog();
+                return true;
             }
-            return true;
+            return false;
         }
     };
 
@@ -1457,7 +1630,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            mIdeaError.setVisibility(View.GONE);
+            if (mIdeaError != null) mIdeaError.setVisibility(View.GONE);
+            if (mProjectError != null) mProjectError.setVisibility(View.GONE);
         }
 
         @Override
@@ -1466,31 +1640,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class HideErrorOnSpinnerChanged implements AdapterView.OnItemSelectedListener {
-
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            mMoveError.setVisibility(View.GONE);
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-
-        }
-    }
 
     // Click listener for drawer profiles
     private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
         @Override
         public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
 
+            if (drawerItem.getIdentifier() == 30) {//Add project
+                leftDrawer.openDrawer();
+                newProjectDialog();
+                return true;
+            }
+
             if (drawerItem != null && drawerItem instanceof IProfile) {
-                mSelectedProfileIndex = mProfiles.indexOf(drawerItem);
-                String tableName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
-                mToolbar.setTitle(tableName);
-                mDbHelper.switchTable(tableName);
-                displayIdeasCount();
-                switchToProjectColors();
+
+                String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
+                switchToProject(projectName);
             }
             return false;
         }
@@ -1529,20 +1694,9 @@ public class MainActivity extends AppCompatActivity {
 
             int id = (int) drawerItem.getIdentifier();
             switch (id) {
-                case 5:
-                    toggleDoneTab();
-                    break;
 
                 case 6:
                     toggleDoneTab();
-                    break;
-
-                case 7:
-                    if (isChecked) {
-                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), true);
-                    } else {
-                        mTinyDB.putBoolean(getString(R.string.show_cheer_pref), false);
-                    }
                     break;
 
                 case 20:
@@ -1562,5 +1716,92 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    // Listeners and watcher for the search tab
+    private Handler mHandler = new Handler(); //Handle modification made outside of the UI thread
+    private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
+        @Override
+        public void onSearchStateChanged(boolean enabled) {
+            if (!enabled) {
+                disableSearchMode();
+            }
+        }
+
+        @Override
+        public void onSearchConfirmed(final CharSequence text) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mSearchLabel.setText("Search for " + text.toString());
+                    mSearchLabel.invalidate();
+                }
+            });
+            SearchListAdapter.changeSearch(text.toString());
+        }
+
+        @Override
+        public void onButtonClicked(int buttonCode) {
+        }
+
+    };
+
+    private TextWatcher editSearchWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(final CharSequence s, int start, int before, int count) {
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSearchLabel.setText("Search for " + s);
+                    mSearchLabel.invalidate();
+                }
+            });
+            SearchListAdapter.changeSearch(s.toString());
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+
+    // Listener for the toolbar project name
+
+    private View.OnClickListener toolBarProjectListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            final Project[] otherProjects = getOtherProjects();
+            mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+            mDroppyBuilder.triggerOnAnchorClick(false);
+            if (otherProjects.length > 0) {
+                for (Project p : otherProjects) {
+                    mDroppyBuilder.addMenuItem(new DroppyMenuItem(p.getName()));
+                }
+
+
+                mDroppyBuilder.setOnClick(new DroppyClickCallbackInterface() {
+                    @Override
+                    public void call(View v, int id) {
+                        switchToProject(otherProjects[id].getName());
+                    }
+                });
+
+                mDroppyBuilder.setPopupAnimation(new DroppyFadeInAnimation())
+                        .setXOffset(150);
+
+                DroppyMenuPopup droppyMenu = mDroppyBuilder.build();
+                droppyMenu.show();
+            }
+        }
+    };
+
+
+
 
 }

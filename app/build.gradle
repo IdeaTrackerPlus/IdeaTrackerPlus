@@ -11,10 +11,10 @@ android {
     buildToolsVersion "24.0.0"
     defaultConfig {
         applicationId "appbox.gameideas"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 23
-        versionCode 7
-        versionName "1.0.6"
+        versionCode 8
+        versionName "1.0.8"
     }
     buildTypes {
         release {
@@ -41,5 +41,9 @@ dependencies {
     compile 'com.yarolegovich:lovely-dialog:1.0.4'
     compile 'com.github.paolorotolo:appintro:4.0.0'
     compile 'com.github.iammert:MaterialIntroView:1.5.2'
+    compile 'com.github.woxthebox:draglistview:1.2.8'
+    compile 'com.github.ivbaranov:materialfavoritebutton:0.1.2'
+    compile 'com.github.mancj:MaterialSearchBar:0.3.1'
+    compile 'com.shehabic.droppy:Droppy:0.5.1@aar'
     compile files('libs/gson-2.4.jar')
 }

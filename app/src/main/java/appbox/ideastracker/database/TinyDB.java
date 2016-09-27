@@ -198,7 +198,7 @@ public class TinyDB {
      * @return int value at 'key' or 'defaultValue' if key not found
      */
     public int getInt(String key) {
-        return preferences.getInt(key, 0);
+        return preferences.getInt(key, -1);
     }
 
     /**
