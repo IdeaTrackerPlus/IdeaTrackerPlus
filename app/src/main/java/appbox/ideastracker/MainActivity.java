@@ -3,6 +3,7 @@ package appbox.ideastracker;
 import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -36,6 +37,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -218,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
                 newIdeaDialog();
             }
         });
+        mFab.setOnLongClickListener(fabLongClick);
 
         //TABLES
         loadProjects();
@@ -948,7 +953,6 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
-
 
 
     // TUTORIAL AND INTRO METHODS //
@@ -1801,7 +1805,42 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //DRAG AND DROP OF FAB
 
+    View.OnLongClickListener fabLongClick = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            Animation anim = new ScaleAnimation(
+                    1f, 1.2f, // Start and end values for the X axis scaling
+                    1f, 1.2f, // Start and end values for the Y axis scaling
+                    Animation.RELATIVE_TO_SELF, 0.5f, // Pivot point of X scaling
+                    Animation.RELATIVE_TO_SELF, 0.5f); // Pivot point of Y scaling
+            anim.setDuration(350);
+            anim.setInterpolator(new BounceInterpolator());
+            //anim.setFillAfter(true); // Needed to keep the result of the animation
+            anim.setAnimationListener(fabAnimListener);
+            v.startAnimation(anim);
+            return true;
+        }
+    };
+
+    Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationStart(Animation animation) {
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
+            mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
+            mFab.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+
+        }
+    };
 
 
 }

@@ -102,7 +102,7 @@
     <string name="sort_priority">Sort by priority</string>
     <string name="clear_done">Clear Done tab</string>
     <string name="done_cleared">Done tab cleared</string>
-    <string name="favorite_project">favorite_project</string>
+    <string name="favorite_project" translatable="false">favorite_project</string>
     <string name="search_tab">Search</string>
     <string name="search">Search</string>
 
