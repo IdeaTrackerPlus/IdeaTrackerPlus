@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package appbox.ideastracker.ideamenu;
 
 import android.graphics.Canvas;
 import android.graphics.Point;

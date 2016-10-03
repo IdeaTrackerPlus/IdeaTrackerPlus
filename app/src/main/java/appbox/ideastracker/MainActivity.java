@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -14,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -44,6 +46,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -88,6 +91,8 @@ import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
+import appbox.ideastracker.ideamenu.FabShadowBuilder;
+import appbox.ideastracker.ideamenu.IdeaMenuItemListener;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -218,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
                 newIdeaDialog();
             }
         });
@@ -1230,6 +1235,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Vibrates breefly for feedback
+    public void feedbackVibration() {
+        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(18);
+    }
+
 
     // PROJECT METHODS //
 
@@ -1330,7 +1341,6 @@ public class MainActivity extends AppCompatActivity {
     private void refreshStar() {
 
         if (!mNoProject) {
-            int id = getProjectId();
             mFavoriteButton.setVisibility(View.VISIBLE);
             if (mTinyDB.getInt(getString(R.string.favorite_project)) == getProjectId()) {
                 mFavoriteButton.setFavorite(true, false);
@@ -1807,9 +1817,10 @@ public class MainActivity extends AppCompatActivity {
 
     //DRAG AND DROP OF FAB
 
-    View.OnLongClickListener fabLongClick = new View.OnLongClickListener() {
+    private View.OnLongClickListener fabLongClick = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
+            feedbackVibration();
             Animation anim = new ScaleAnimation(
                     1f, 1.2f, // Start and end values for the X axis scaling
                     1f, 1.2f, // Start and end values for the Y axis scaling
@@ -1824,21 +1835,33 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
+    private Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
         @Override
         public void onAnimationStart(Animation animation) {
         }
 
         @Override
         public void onAnimationEnd(Animation animation) {
+
+            //Screen dim
+            ImageView screenDim = (ImageView) findViewById(R.id.screenDim);
+            screenDim.setAlpha(0.5f);
+
+            //Set up listeners on items
+            IdeaMenuItemListener.setScreenDim(screenDim);
+            findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
+            findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
+            findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
+
+
+            //Shadow to drop
             FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
             mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
-            mFab.setVisibility(View.GONE);
+            mFab.setVisibility(View.INVISIBLE);
         }
 
         @Override
         public void onAnimationRepeat(Animation animation) {
-
         }
     };
 
