@@ -57,14 +57,6 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/screenDim"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0"
-        android:background="@color/md_black"
-        android:contentDescription="" />
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
