@@ -6,6 +6,7 @@
     android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
     android:fitsSystemWindows="true"
     tools:context="appbox.ideastracker.MainActivity">
 
@@ -73,30 +74,39 @@
         android:src="@drawable/add"
         app:backgroundTint="@color/colorAccent" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/item_p1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|bottom"
+    <RelativeLayout
+        android:id="@+id/items_priority"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_margin="@dimen/fab_margin"
-        app:backgroundTint="@color/priority1" />
+        android:clipChildren="false">
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/item_p2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="50dp"
-        android:layout_margin="@dimen/fab_margin"
-        app:backgroundTint="@color/priority2" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/item_p1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            app:backgroundTint="@color/priority1" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/item_p3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
-        android:layout_margin="@dimen/fab_margin"
-        app:backgroundTint="@color/priority3" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/item_p2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            app:backgroundTint="@color/priority2" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/item_p3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            app:backgroundTint="@color/priority3" />
+
+    </RelativeLayout>
+
 
     <com.mancj.materialsearchbar.MaterialSearchBar
         android:id="@+id/searchBar"
