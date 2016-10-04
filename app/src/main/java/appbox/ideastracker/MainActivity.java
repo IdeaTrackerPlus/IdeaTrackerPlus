@@ -1852,14 +1852,12 @@ public class MainActivity extends AppCompatActivity {
             screenDim.setAlpha(0.5f);
 
             //Set up listeners on items
-            IdeaMenuItemListener.setScreenDim(screenDim);
             findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
             findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
             findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
 
             //Move items on a circle
             setUpIdeaMenuItems();
-
 
             //Shadow to drop
             FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
@@ -1876,11 +1874,11 @@ public class MainActivity extends AppCompatActivity {
 
         final int RADIUS = mFab.getWidth() * 2;
         final int RADII = (int) (Math.sqrt(2) * RADIUS / 2);
-        final int DURATION = 2000;
-        final int DELAY = 500;
+        final int DURATION = 250;
+        final int DELAY = 30;
 
         //ANIMATE ITEM 1
-        FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
+        final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
         AnimationSet set1 = new AnimationSet(true);
         set1.setInterpolator(new AccelerateDecelerateInterpolator());
         set1.setDuration(DURATION);
@@ -1898,7 +1896,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab1.getLayoutParams();
                 params.setMargins(0, 0, 0, RADIUS);
                 fab1.setLayoutParams(params);
@@ -1911,14 +1908,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //ANIMATE ITEM 2
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
+        final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
         AnimationSet set2 = new AnimationSet(true);
         set2.setInterpolator(new AccelerateDecelerateInterpolator());
         set2.setDuration(DURATION);
         set2.setStartOffset(DELAY);
         set2.setFillAfter(true);
 
-        TranslateAnimation tr2 = new TranslateAnimation(0f, 0f, -RADII, -RADII);
+        TranslateAnimation tr2 = new TranslateAnimation(0f, -RADII, 0f, -RADII);
         ScaleAnimation sc2 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
         set2.addAnimation(tr2);
@@ -1930,7 +1927,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab2.getLayoutParams();
                 params.setMargins(0, 0, RADII, RADII);
                 fab2.setLayoutParams(params);
@@ -1943,14 +1939,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //ANIMATE ITEM 3
-        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
+        final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
         AnimationSet set3 = new AnimationSet(true);
         set3.setInterpolator(new AccelerateDecelerateInterpolator());
         set3.setDuration(DURATION);
         set3.setStartOffset(2 * DELAY);
         set3.setFillAfter(true);
 
-        TranslateAnimation tr3 = new TranslateAnimation(0f, 0f, -RADII, 0f);
+        TranslateAnimation tr3 = new TranslateAnimation(0f, -RADIUS, 0f, 0f);
         ScaleAnimation sc3 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
         set3.addAnimation(tr3);
@@ -1962,11 +1958,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab3.getLayoutParams();
-                params.setMargins(0, 0, RADII, 0);
+                params.setMargins(0, 0, RADIUS, 0);
                 fab3.setLayoutParams(params);
                 fab3.clearAnimation();
+
+                //notify the onDragListener that the items are ready for action
+                IdeaMenuItemListener.setReady(true);
             }
 
             @Override
@@ -1975,10 +1973,36 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //LAUNCH ALL ANIMATIONS
+        findViewById(R.id.items_priority).setVisibility(View.VISIBLE);
+        IdeaMenuItemListener.setReady(false);
         fab1.startAnimation(set1);
         fab2.startAnimation(set2);
         fab3.startAnimation(set3);
 
+    }
+
+    public void rebootIdeaMenuItems() {
+        findViewById(R.id.screenDim).setAlpha(0f);
+        mFab.setVisibility(View.VISIBLE);
+        findViewById(R.id.items_priority).setVisibility(View.INVISIBLE);
+
+        FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab1.getLayoutParams();
+        params.setMargins(0, 0, 0, 0);
+
+        fab1.setLayoutParams(params);
+
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
+        RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) fab2.getLayoutParams();
+        params2.setMargins(0, 0, 0, 0);
+
+        fab2.setLayoutParams(params2);
+
+        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
+        RelativeLayout.LayoutParams params3 = (RelativeLayout.LayoutParams) fab3.getLayoutParams();
+        params3.setMargins(0, 0, 0, 0);
+
+        fab3.setLayoutParams(params3);
     }
 
 }
