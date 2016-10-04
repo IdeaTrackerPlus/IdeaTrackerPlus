@@ -3,6 +3,8 @@ package appbox.ideastracker;
 import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -13,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -36,14 +39,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -84,6 +95,8 @@ import appbox.ideastracker.database.DataEntry;
 import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
+import appbox.ideastracker.ideamenu.FabShadowBuilder;
+import appbox.ideastracker.ideamenu.IdeaMenuItemListener;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
@@ -214,10 +227,11 @@ public class MainActivity extends AppCompatActivity {
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
                 newIdeaDialog();
             }
         });
+        mFab.setOnLongClickListener(fabLongClick);
 
         //TABLES
         loadProjects();
@@ -950,7 +964,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     // TUTORIAL AND INTRO METHODS //
 
     // Launch the app introduction only for the first start
@@ -1226,6 +1239,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Vibrates breefly for feedback
+    public void feedbackVibration() {
+        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(18);
+    }
+
 
     // PROJECT METHODS //
 
@@ -1326,7 +1345,6 @@ public class MainActivity extends AppCompatActivity {
     private void refreshStar() {
 
         if (!mNoProject) {
-            int id = getProjectId();
             mFavoriteButton.setVisibility(View.VISIBLE);
             if (mTinyDB.getInt(getString(R.string.favorite_project)) == getProjectId()) {
                 mFavoriteButton.setFavorite(true, false);
@@ -1801,7 +1819,190 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //DRAG AND DROP OF FAB
 
+    private View.OnLongClickListener fabLongClick = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            feedbackVibration();
+            Animation anim = new ScaleAnimation(
+                    1f, 1.2f, // Start and end values for the X axis scaling
+                    1f, 1.2f, // Start and end values for the Y axis scaling
+                    Animation.RELATIVE_TO_SELF, 0.5f, // Pivot point of X scaling
+                    Animation.RELATIVE_TO_SELF, 0.5f); // Pivot point of Y scaling
+            anim.setDuration(350);
+            anim.setInterpolator(new BounceInterpolator());
+            //anim.setFillAfter(true); // Needed to keep the result of the animation
+            anim.setAnimationListener(fabAnimListener);
+            v.startAnimation(anim);
+            return true;
+        }
+    };
 
+    private Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
+        @Override
+        public void onAnimationStart(Animation animation) {
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+
+            //Screen dim
+            ImageView screenDim = (ImageView) findViewById(R.id.screenDim);
+            screenDim.setAlpha(0.5f);
+
+            //Set up listeners on items
+            findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
+            findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
+            findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
+
+            //Move items on a circle
+            setUpIdeaMenuItems();
+
+            //Shadow to drop
+            FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
+            mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
+            mFab.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+        }
+    };
+
+    private void setUpIdeaMenuItems() {
+
+        final int RADIUS = mFab.getWidth() * 2;
+        final int RADII = (int) (Math.sqrt(2) * RADIUS / 2);
+        final int DURATION = 250;
+        final int DELAY = 30;
+
+        //ANIMATE ITEM 1
+        final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
+        AnimationSet set1 = new AnimationSet(true);
+        set1.setInterpolator(new AccelerateDecelerateInterpolator());
+        set1.setDuration(DURATION);
+        set1.setFillAfter(true);
+
+        TranslateAnimation tr1 = new TranslateAnimation(0f, 0f, 0f, -RADIUS);
+        ScaleAnimation sc1 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        set1.addAnimation(tr1);
+        set1.addAnimation(sc1);
+        set1.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab1.getLayoutParams();
+                params.setMargins(0, 0, 0, RADIUS);
+                fab1.setLayoutParams(params);
+                fab1.clearAnimation();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        //ANIMATE ITEM 2
+        final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
+        AnimationSet set2 = new AnimationSet(true);
+        set2.setInterpolator(new AccelerateDecelerateInterpolator());
+        set2.setDuration(DURATION);
+        set2.setStartOffset(DELAY);
+        set2.setFillAfter(true);
+
+        TranslateAnimation tr2 = new TranslateAnimation(0f, -RADII, 0f, -RADII);
+        ScaleAnimation sc2 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        set2.addAnimation(tr2);
+        set2.addAnimation(sc2);
+        set2.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab2.getLayoutParams();
+                params.setMargins(0, 0, RADII, RADII);
+                fab2.setLayoutParams(params);
+                fab2.clearAnimation();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        //ANIMATE ITEM 3
+        final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
+        AnimationSet set3 = new AnimationSet(true);
+        set3.setInterpolator(new AccelerateDecelerateInterpolator());
+        set3.setDuration(DURATION);
+        set3.setStartOffset(2 * DELAY);
+        set3.setFillAfter(true);
+
+        TranslateAnimation tr3 = new TranslateAnimation(0f, -RADIUS, 0f, 0f);
+        ScaleAnimation sc3 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        set3.addAnimation(tr3);
+        set3.addAnimation(sc3);
+        set3.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab3.getLayoutParams();
+                params.setMargins(0, 0, RADIUS, 0);
+                fab3.setLayoutParams(params);
+                fab3.clearAnimation();
+
+                //notify the onDragListener that the items are ready for action
+                IdeaMenuItemListener.setReady(true);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        //LAUNCH ALL ANIMATIONS
+        findViewById(R.id.items_priority).setVisibility(View.VISIBLE);
+        IdeaMenuItemListener.setReady(false);
+        fab1.startAnimation(set1);
+        fab2.startAnimation(set2);
+        fab3.startAnimation(set3);
+
+    }
+
+    public void rebootIdeaMenuItems() {
+        findViewById(R.id.screenDim).setAlpha(0f);
+        mFab.setVisibility(View.VISIBLE);
+        findViewById(R.id.items_priority).setVisibility(View.INVISIBLE);
+
+        FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab1.getLayoutParams();
+        params.setMargins(0, 0, 0, 0);
+
+        fab1.setLayoutParams(params);
+
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
+        RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) fab2.getLayoutParams();
+        params2.setMargins(0, 0, 0, 0);
+
+        fab2.setLayoutParams(params2);
+
+        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
+        RelativeLayout.LayoutParams params3 = (RelativeLayout.LayoutParams) fab3.getLayoutParams();
+        params3.setMargins(0, 0, 0, 0);
+
+        fab3.setLayoutParams(params3);
+    }
 
 }
