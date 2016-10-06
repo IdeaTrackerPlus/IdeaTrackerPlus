@@ -20,8 +20,8 @@
     <string name="error_empty_taken">Le nom est vide ou déjà pris</string>
     <string name="expand_collapse">Etendre/rétracter les priorités</string>
     <string name="feedback">Envoyer un commentaire</string>
-    <string name="first_idea_title">Très bien ! Vos idées et tâches pour ce projet s\'affichent sur cette page.\nAppuyez sur ce bouton pour en créer une.</string>
-    <string name="first_project_content">Besoin d\'aide ? Vos projets sont dans ce volet.\nCliquez sur la partie supèrieure pour basculer vers le menu</string>
+    <string name="first_idea_title">Très bien ! Vos idées et tâches pour ce projet s\'affichent sur cette page.\nCe bouton permet de créer vos idées.\nMaintenez le enfoncé pour plus d\'options.</string>
+    <string name="first_project_content">Besoin d\'aide ? Vos projets sont dans ce volet.\nCliquez sur la partie supèrieure pour basculer vers le menu.</string>
     <string name="first_tab">Idées</string>
     <string name="from">De</string>
     <string name="functions">Fonctions</string>
@@ -110,5 +110,6 @@
     <string name="done_cleared">Onglet Terminé vidé</string>
     <string name="search">Rechercher</string>
     <string name="search_tab">Rechercher</string>
+    <string name="voice_msg">Quelle est votre idée ?</string>
 
 </resources>

@@ -103,8 +103,13 @@ public class IdeaMenuItemListener implements View.OnDragListener {
 
                     MainActivity main = MainActivity.getInstance();
                     switch (mActionId) {
+                        case 4:
+                            main.startVoiceRecognitionActivity();
+                            break;
+
                         default:
                             main.newIdeaDialog(mActionId);
+                            break;
                     }
                 }
                 break;

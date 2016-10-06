@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -165,6 +166,9 @@ public class MainActivity extends AppCompatActivity {
     private int defaultSecondaryColor;
     private int defaultTextColor;
 
+    // Voice
+    private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+
 
     // STATIC METHODS //
 
@@ -308,6 +312,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK) {
+            ArrayList<String> matches = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+
+            // Capitalize first letter
+            if (!matches.isEmpty()) {
+                StringBuilder cap = new StringBuilder(matches.get(0).toLowerCase());
+                cap.setCharAt(0, Character.toUpperCase(cap.charAt(0)));
+                matches.set(0, cap.toString());
+            }
+
+            // build full string
+            StringBuilder listString = new StringBuilder();
+
+            for (String s : matches)
+                listString.append(s + " ");
+
+            // remove last space
+            listString.deleteCharAt(listString.length() - 1);
+
+            // create idea dialog with the spoken text
+            newIdeaDialog(listString.toString());
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -748,6 +781,43 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Shows an idea creation dialog
+    // pre-fill the idea with the given text
+    public void newIdeaDialog(String idea) {
+
+        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+                .setView(R.layout.new_idea_form)
+                .setTopColor(mPrimaryColor)
+                .setIcon(R.drawable.ic_bulb)
+                .setListener(R.id.doneButton, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        sendIdeaFromDialog();
+                    }
+                })
+                .show();
+
+        //get the view items
+        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
+        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
+        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
+        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
+
+        //set up listener for "ENTER" and text changed
+        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+        mIdeaField.setOnEditorActionListener(ideaFieldListener);
+        mNoteField.setOnEditorActionListener(noteFieldListener);
+
+        //request focus on the edit text
+        if (mIdeaField.requestFocus()) {
+            mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+
+        //fill idea field with text
+        mIdeaField.append(idea);
+
+    }
+
     private void newProjectDialog() {
 
         mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
@@ -960,6 +1030,24 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(android.R.string.no, null)
                 .show();
+    }
+
+    // Shows an activity to record voice inputs, to put them as a new idea after
+    public void startVoiceRecognitionActivity() {
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        // identifying your application to the Google service
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+        // hint in the dialog
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_msg));
+        // hint to the recognizer about what the user is going to say
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        // number of results
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+        // recognition language
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+        startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
     }
 
 
@@ -1258,6 +1346,7 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
                 findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
                 findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
+                findViewById(R.id.item_mic).setOnDragListener(new IdeaMenuItemListener(4));
 
                 //Move items on a circle
                 setUpIdeaMenuItems();
@@ -1297,12 +1386,13 @@ public class MainActivity extends AppCompatActivity {
     // Animate the items for the idea creation, moving them onto circles
     private void setUpIdeaMenuItems() {
 
-        final int RADIUS = mFab.getWidth() * 2;
+        final int RADIUS = (int) (mFab.getWidth() * 1.8f);
+        final int BIG_RADIUS = (int) (mFab.getWidth() * 3f);
         final int RADII = (int) (Math.sqrt(2) * RADIUS / 2);
         final int DURATION = 250;
         final int DELAY = 30;
 
-        //ANIMATE ITEM 1
+        //ANIMATE ITEM P1
         final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
         AnimationSet set1 = new AnimationSet(true);
         set1.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -1310,10 +1400,10 @@ public class MainActivity extends AppCompatActivity {
         set1.setFillAfter(true);
 
         TranslateAnimation tr1 = new TranslateAnimation(0f, 0f, 0f, -RADIUS);
-        ScaleAnimation sc1 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        ScaleAnimation scale = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
         set1.addAnimation(tr1);
-        set1.addAnimation(sc1);
+        set1.addAnimation(scale);
         set1.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -1332,7 +1422,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //ANIMATE ITEM 2
+        //ANIMATE ITEM P2
         final FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
         AnimationSet set2 = new AnimationSet(true);
         set2.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -1341,10 +1431,9 @@ public class MainActivity extends AppCompatActivity {
         set2.setFillAfter(true);
 
         TranslateAnimation tr2 = new TranslateAnimation(0f, -RADII, 0f, -RADII);
-        ScaleAnimation sc2 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
         set2.addAnimation(tr2);
-        set2.addAnimation(sc2);
+        set2.addAnimation(scale);
         set2.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -1363,7 +1452,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //ANIMATE ITEM 3
+        //ANIMATE ITEM P3
         final FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
         AnimationSet set3 = new AnimationSet(true);
         set3.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -1372,10 +1461,9 @@ public class MainActivity extends AppCompatActivity {
         set3.setFillAfter(true);
 
         TranslateAnimation tr3 = new TranslateAnimation(0f, -RADIUS, 0f, 0f);
-        ScaleAnimation sc3 = new ScaleAnimation(0f, 1f, 0f, 1f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
         set3.addAnimation(tr3);
-        set3.addAnimation(sc3);
+        set3.addAnimation(scale);
         set3.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -1387,6 +1475,36 @@ public class MainActivity extends AppCompatActivity {
                 params.setMargins(0, 0, RADIUS, 0);
                 fab3.setLayoutParams(params);
                 fab3.clearAnimation();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        //ANIMATE ITEM MIC
+        final FloatingActionButton fabMic = (FloatingActionButton) findViewById(R.id.item_mic);
+        AnimationSet setMic = new AnimationSet(true);
+        setMic.setInterpolator(new AccelerateDecelerateInterpolator());
+        setMic.setDuration(DURATION);
+        setMic.setStartOffset(3 * DELAY);
+        setMic.setFillAfter(true);
+
+        TranslateAnimation trMic = new TranslateAnimation(0f, 0f, 0f, -BIG_RADIUS);
+
+        setMic.addAnimation(trMic);
+        setMic.addAnimation(scale);
+        setMic.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fabMic.getLayoutParams();
+                params.setMargins(0, 0, 0, BIG_RADIUS);
+                fabMic.setLayoutParams(params);
+                fabMic.clearAnimation();
 
                 //notify the onDragListener that the items are ready for action
                 IdeaMenuItemListener.setReady(true);
@@ -1398,11 +1516,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //LAUNCH ALL ANIMATIONS
-        findViewById(R.id.items_priority).setVisibility(View.VISIBLE);
+        findViewById(R.id.ideasMenu_items).setVisibility(View.VISIBLE);
         IdeaMenuItemListener.setReady(false);
         fab1.startAnimation(set1);
         fab2.startAnimation(set2);
         fab3.startAnimation(set3);
+        fabMic.startAnimation(setMic);
 
     }
 
@@ -1410,25 +1529,19 @@ public class MainActivity extends AppCompatActivity {
     public void rebootIdeaMenuItems() {
 
         mFab.setVisibility(View.VISIBLE);
-        findViewById(R.id.items_priority).setVisibility(View.INVISIBLE);
+        findViewById(R.id.ideasMenu_items).setVisibility(View.INVISIBLE);
 
-        FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fab1.getLayoutParams();
-        params.setMargins(0, 0, 0, 0);
+        RelativeLayout items_parent = (RelativeLayout) findViewById(R.id.ideasMenu_items);
+        FloatingActionButton fab_item;
+        RelativeLayout.LayoutParams params;
 
-        fab1.setLayoutParams(params);
-
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.item_p2);
-        RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) fab2.getLayoutParams();
-        params2.setMargins(0, 0, 0, 0);
-
-        fab2.setLayoutParams(params2);
-
-        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.item_p3);
-        RelativeLayout.LayoutParams params3 = (RelativeLayout.LayoutParams) fab3.getLayoutParams();
-        params3.setMargins(0, 0, 0, 0);
-
-        fab3.setLayoutParams(params3);
+        // Loop through all children
+        for (int i = 0; i < items_parent.getChildCount(); i++) {
+            fab_item = (FloatingActionButton) items_parent.getChildAt(i);
+            params = (RelativeLayout.LayoutParams) fab_item.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            fab_item.setLayoutParams(params);
+        }
     }
 
 
