@@ -66,14 +66,4 @@
         android:src="@drawable/add"
         app:backgroundTint="@color/colorAccent" />
 
-    <com.mancj.materialsearchbar.MaterialSearchBar
-        android:id="@+id/searchBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:hint="Custom hint"
-        app:maxSuggestionsCount="10"
-        app:speechMode="true" />
-
-
 </android.support.design.widget.CoordinatorLayout>

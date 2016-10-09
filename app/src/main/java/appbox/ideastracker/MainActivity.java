@@ -138,9 +138,9 @@ public class MainActivity extends AppCompatActivity implements
     private NonSwipeableViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
-    private MaterialSearchBar mSearchBar;
+    private MaterialSearchBar mSearchBar = null;
     private static boolean searchMode;
-    private DroppyMenuPopup.Builder mDroppyBuilder;
+    private DroppyMenuPopup.Builder mDroppyBuilder = null;
     private RelativeLayout mIdeasMenu = null;
 
     // Dialogs
@@ -267,21 +267,7 @@ public class MainActivity extends AppCompatActivity implements
 
         switch (id) {
             case R.id.action_search:
-                searchMode = true;
-
-                //hide tabs
-                AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
-                appbar.removeView(tabLayout);
-                //hide floating button
-                mFab.setVisibility(View.INVISIBLE);
-
-                //display search bar
-                mSearchBar.setVisibility(View.VISIBLE);
-                mSearchBar.enableSearch();
-
-                //refresh the fragment display
-                mViewPager.setAdapter(null);
-                mViewPager.setAdapter(mSectionsPagerAdapter);
+                activateSearch();
                 return true;
 
             case R.id.action_settings:
@@ -335,18 +321,7 @@ public class MainActivity extends AppCompatActivity implements
         // Toolbar
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
-
-        // Drop down menu - droppy
-        mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
-        mDroppyBuilder.triggerOnAnchorClick(false);
         mToolbar.setOnClickListener(this);
-
-        // Searchbar
-        mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
-        mSearchBar.setHint(getString(R.string.search));
-        mSearchBar.setOnSearchActionListener(this);
-        EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
-        searchEdit.addTextChangedListener(this);
 
         // Wire the floating button
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -1266,6 +1241,36 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    // Activate search mode
+    private void activateSearch() {
+        // Searchbar
+        if (mSearchBar == null) {
+            CoordinatorLayout.LayoutParams params = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            mSearchBar = new MaterialSearchBar(this, null);
+            mSearchBar.setHint(getString(R.string.search));
+            mSearchBar.setOnSearchActionListener(this);
+            ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mSearchBar, params);
+
+            EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
+            searchEdit.addTextChangedListener(this);
+        }
+        searchMode = true;
+
+        //hide tabs
+        AppBarLayout appbar = (AppBarLayout) findViewById(R.id.appbar);
+        appbar.removeView(tabLayout);
+        //hide floating button
+        mFab.setVisibility(View.INVISIBLE);
+
+        //display search bar
+        mSearchBar.setVisibility(View.VISIBLE);
+        mSearchBar.enableSearch();
+
+        //refresh the fragment display
+        mViewPager.setAdapter(null);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+    }
+
     // Disable the search mode, go back to standard mode
     private void disableSearchMode() {
         if (searchMode) {
@@ -1948,13 +1953,19 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
-    // View.OnClickListener - Listener for the toolbar project name
+    // View.OnClickListener - Listener for the toolbar project name and the FAB
     @Override
     public void onClick(View v) {
 
         if (v instanceof FloatingActionButton) { // FAB click- new idea
             newIdeaDialog();
         } else { // Toolbar click - display othe rproject list
+            // Drop down menu - droppy
+            if (mDroppyBuilder == null) {
+                mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+                mDroppyBuilder.triggerOnAnchorClick(false);
+            }
+
             final Project[] otherProjects = getOtherProjects();
             mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
             mDroppyBuilder.triggerOnAnchorClick(false);
@@ -1996,6 +2007,7 @@ public class MainActivity extends AppCompatActivity implements
             ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mIdeasMenu, params);
         }
 
+        //animation for the fab
         final Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
