@@ -7,18 +7,17 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -32,6 +31,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -105,10 +106,15 @@ import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.view.MaterialIntroView;
 
-public class MainActivity extends AppCompatActivity {
-
-    // Singleton
-    private static MainActivity sInstance;
+public class MainActivity extends AppCompatActivity implements
+        TextView.OnEditorActionListener,
+        TextWatcher,
+        Drawer.OnDrawerItemClickListener,
+        Drawer.OnDrawerListener,
+        OnCheckedChangeListener,
+        MaterialSearchBar.OnSearchActionListener,
+        View.OnClickListener,
+        View.OnLongClickListener {
 
     // Database
     private DatabaseHelper mDbHelper;
@@ -133,9 +139,9 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
     private MaterialSearchBar mSearchBar;
-    public TextView mSearchLabel;
     private static boolean searchMode;
     private DroppyMenuPopup.Builder mDroppyBuilder;
+    private RelativeLayout mIdeasMenu = null;
 
     // Dialogs
     private Dialog mNewIdeaDialog;
@@ -146,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView mIdeaError;
     private EditText mIdeaField;
     private EditText mNoteField;
-
     private TextView mProjectError;
     private EditText mProjectField;
 
@@ -170,7 +175,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 
 
-    // STATIC METHODS //
+    // SINGLETON //
+
+    private static MainActivity sInstance;
 
     public static synchronized MainActivity getInstance() {
         return sInstance;
@@ -190,28 +197,10 @@ public class MainActivity extends AppCompatActivity {
         mTinyDB = new TinyDB(this);
         mDbHelper = DatabaseHelper.getInstance(this);
 
+        // App intro
         introOnFirstStart();
 
-        //Default colors
-        defaultPrimaryColor = ContextCompat.getColor(this, R.color.md_blue_grey_800);
-        defaultSecondaryColor = ContextCompat.getColor(this, R.color.md_teal_a400);
-        defaultTextColor = ContextCompat.getColor(this, R.color.md_white);
-
-        // Toolbar
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-
-        // Drop down menu - droppy
-        mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
-        mDroppyBuilder.triggerOnAnchorClick(false);
-        mToolbar.setOnClickListener(toolBarProjectListener);
-
-        // Searchbar
-        mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
-        mSearchBar.setHint(getString(R.string.search));
-        mSearchBar.setOnSearchActionListener(searchListener);
-        EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
-        searchEdit.addTextChangedListener(editSearchWatcher);
+        setUpUI();
 
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
@@ -226,39 +215,28 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
         tabLayout.setSelectedTabIndicatorHeight(8);
 
-        // Wire the floating button
-        mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                newIdeaDialog();
-            }
-        });
-        setUpFabLongClick();
-
         //TABLES
         loadProjects();
 
-        // Set up the drawers and their items
-        setUpDrawers(savedInstanceState);
+        // Select favorite project
+        selectFavoriteProject();
+
+        // Set up drawers in background tasks
+        setUpDrawers();
 
     }
 
     @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the drawer to the bundle
-        outState = leftDrawer.saveInstanceState(outState);
+        if (leftDrawer != null) {
+            outState = leftDrawer.saveInstanceState(outState);
+        }
         super.onSaveInstanceState(outState);
     }
 
@@ -341,15 +319,64 @@ public class MainActivity extends AppCompatActivity {
             newIdeaDialog(listString.toString());
         }
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("NICK", "On activity result");
     }
 
 
     // ON CREATE SET UP METHODS //
 
-    // Creates and fill the right and left drawers
-    private void setUpDrawers(Bundle savedInstanceState) {
+    private void setUpUI() {
 
-        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(profile_listener);
+        //Default colors
+        defaultPrimaryColor = ContextCompat.getColor(this, R.color.md_blue_grey_800);
+        defaultSecondaryColor = ContextCompat.getColor(this, R.color.md_teal_a400);
+        defaultTextColor = ContextCompat.getColor(this, R.color.md_white);
+
+        // Toolbar
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
+        // Drop down menu - droppy
+        mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
+        mDroppyBuilder.triggerOnAnchorClick(false);
+        mToolbar.setOnClickListener(this);
+
+        // Searchbar
+        mSearchBar = (MaterialSearchBar) findViewById(R.id.searchBar);
+        mSearchBar.setHint(getString(R.string.search));
+        mSearchBar.setOnSearchActionListener(this);
+        EditText searchEdit = (EditText) mSearchBar.findViewById(com.mancj.materialsearchbar.R.id.mt_editText);
+        searchEdit.addTextChangedListener(this);
+
+        // Wire the floating button
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mFab.setOnClickListener(this);
+        mFab.setOnLongClickListener(this);
+    }
+
+    // Select favorite project if any, select the first project if no favorite. Show no project if no project.
+    private void selectFavoriteProject() {
+
+        if (!mNoProject) {
+            mSelectedProfileIndex = getIndexOfFavorite();
+            IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
+            String activeProfileName = activeProfile.getName().getText();
+
+            ActionBar bar;
+            if ((bar = getSupportActionBar()) != null) {
+                bar.setTitle(activeProfileName);
+            }
+
+            DataEntry.setTableName(activeProfileName);
+
+            switchToProjectColors();
+        }
+    }
+
+    // Set up the left and right drawers
+    private void setUpDrawers() {
+
+        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(this);
 
         //HEADER
         header = new AccountHeaderBuilder()
@@ -358,7 +385,6 @@ public class MainActivity extends AppCompatActivity {
                 .withProfiles(mProfiles)
                 .addProfiles(mAddProject)
                 .withProfileImagesVisible(false)
-                .withSavedInstance(savedInstanceState)
                 .build();
 
         //SWITCHES
@@ -475,8 +501,7 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 })
-                .withOnDrawerListener(new MyDrawerListener())
-                .withSavedInstance(savedInstanceState)
+                .withOnDrawerListener(this)
                 .build();
 
         //FAVORITE BUTTON
@@ -610,25 +635,12 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 })
-                .withSavedInstance(savedInstanceState)
                 .append(leftDrawer);
 
-        //Select favorite project if there is any
+        //CURRENT PROJECT
         if (!mNoProject) {
-            mSelectedProfileIndex = getIndexOfFavorite();
-            IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
-            String activeProfileName = activeProfile.getName().getText();
-            header.setActiveProfile(activeProfile);
-
-            ActionBar bar;
-            if ((bar = getSupportActionBar()) != null) {
-                bar.setTitle(activeProfileName);
-            }
-
-            DataEntry.setTableName(activeProfileName);
+            header.setActiveProfile(mProfiles.get(mSelectedProfileIndex));
             displayIdeasCount();
-
-            switchToProjectColors();
             refreshStar();
         } else { // No project
 
@@ -646,18 +658,17 @@ public class MainActivity extends AppCompatActivity {
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
 
-        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
         else toggleDoneTab();
 
-        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(onCheckedChangeListener).withSelectable(false);
+        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
             bigTextSwitch.withChecked(true);
             HorizontalAdapter.setBigText(true);
         }
 
     }
-
 
     // DIALOG METHODS //
 
@@ -683,9 +694,11 @@ public class MainActivity extends AppCompatActivity {
         mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
 
         //set up listener for "ENTER" and text changed
-        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
-        mIdeaField.setOnEditorActionListener(ideaFieldListener);
-        mNoteField.setOnEditorActionListener(noteFieldListener);
+        mIdeaField.addTextChangedListener(this);
+        mIdeaField.setTag(1);
+        mIdeaField.setOnEditorActionListener(this);
+        mNoteField.setTag(2);
+        mNoteField.setOnEditorActionListener(this);
 
         //request focus on the edit text
         if (mIdeaField.requestFocus()) {
@@ -740,30 +753,9 @@ public class MainActivity extends AppCompatActivity {
     // pre-select the given priority
     public void newIdeaDialog(int priority) {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
-                .setView(R.layout.new_idea_form)
-                .setTopColor(mPrimaryColor)
-                .setIcon(R.drawable.ic_bulb)
-                .setListener(R.id.doneButton, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        sendIdeaFromDialog();
-                    }
-                })
-                .show();
-
-        //set up the error message
-        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
-
-        //set up "ENTER" listeners
-        mIdeaField.setOnEditorActionListener(ideaFieldListener);
-        mNoteField.setOnEditorActionListener(noteFieldListener);
+        newIdeaDialog();
 
         //check the right priority radio button
-        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
         RadioButton radio = (RadioButton) mNewIdeaDialog.findViewById(R.id.radioButton1);
         switch (priority) {
             case 1:
@@ -778,40 +770,13 @@ public class MainActivity extends AppCompatActivity {
         }
         radio.setChecked(true);
 
-
     }
 
     // Shows an idea creation dialog
     // pre-fill the idea with the given text
     public void newIdeaDialog(String idea) {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
-                .setView(R.layout.new_idea_form)
-                .setTopColor(mPrimaryColor)
-                .setIcon(R.drawable.ic_bulb)
-                .setListener(R.id.doneButton, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        sendIdeaFromDialog();
-                    }
-                })
-                .show();
-
-        //get the view items
-        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-        //set up listener for "ENTER" and text changed
-        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
-        mIdeaField.setOnEditorActionListener(ideaFieldListener);
-        mNoteField.setOnEditorActionListener(noteFieldListener);
-
-        //request focus on the edit text
-        if (mIdeaField.requestFocus()) {
-            mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        }
+        newIdeaDialog();
 
         //fill idea field with text
         mIdeaField.append(idea);
@@ -837,7 +802,7 @@ public class MainActivity extends AppCompatActivity {
         mProjectField = (EditText) mProjectDialog.findViewById(R.id.editProjectName);
 
         //hide error when text change
-        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+        mProjectField.addTextChangedListener(this);
 
         //request focus on the edit text
         if (mProjectField.requestFocus()) {
@@ -857,7 +822,7 @@ public class MainActivity extends AppCompatActivity {
             //create the profile with its colored icon
             Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
             disk.setColorFilter(defaultPrimaryColor, PorterDuff.Mode.SRC_ATOP);
-            IProfile newProfile = new ProfileDrawerItem().withName(projectName).withIcon(disk).withOnDrawerItemClickListener(profile_listener);
+            IProfile newProfile = new ProfileDrawerItem().withName(projectName).withIcon(disk).withOnDrawerItemClickListener(this);
             mProfiles.add(newProfile);
 
             saveProject(new Project(projectName, defaultPrimaryColor, defaultSecondaryColor, defaultTextColor));
@@ -947,7 +912,7 @@ public class MainActivity extends AppCompatActivity {
         projectTitle.setText(R.string.rename_pro);
 
         //hide error when text change
-        mProjectField.addTextChangedListener(new HideErrorOnTextChanged());
+        mProjectField.addTextChangedListener(this);
 
         //request focus on the edit text
         if (mProjectField.requestFocus()) {
@@ -1116,7 +1081,7 @@ public class MainActivity extends AppCompatActivity {
                 .setTargetPadding(30)
                 .setDelayMillis(100)
                 .enableFadeAnimation(true)
-                .performClick(true)
+                .performClick(false)
                 .setInfoText(getString(R.string.first_idea_title))
                 .setInfoTextSize(13)
                 .setTarget(mFab)
@@ -1189,12 +1154,13 @@ public class MainActivity extends AppCompatActivity {
         appbar.setBackgroundColor(mPrimaryColor);
 
         if (Build.VERSION.SDK_INT >= 21) {
-            //getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimaryDark));
             getWindow().setStatusBarColor(darken(mPrimaryColor));
         }
 
-        mColorItem1.withIconColor(mPrimaryColor);
-        rightDrawer.updateItem(mColorItem1);
+        if (rightDrawer != null) {
+            mColorItem1.withIconColor(mPrimaryColor);
+            rightDrawer.updateItem(mColorItem1);
+        }
 
         RecyclerOnClickListener.setPrimaryColor(mPrimaryColor);
     }
@@ -1209,8 +1175,10 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setSelectedTabIndicatorColor(mSecondaryColor);
         mFab.setBackgroundTintList(ColorStateList.valueOf(mSecondaryColor));
 
-        mColorItem2.withIconColor(mSecondaryColor);
-        rightDrawer.updateItem(mColorItem2);
+        if (rightDrawer != null) {
+            mColorItem2.withIconColor(mSecondaryColor);
+            rightDrawer.updateItem(mColorItem2);
+        }
     }
 
     private void changeTextColor() {
@@ -1225,8 +1193,10 @@ public class MainActivity extends AppCompatActivity {
 
         ToolbarColorizeHelper.colorizeToolbar(mToolbar, mTextColor, this);
 
-        mColorItem3.withIconColor(mTextColor);
-        rightDrawer.updateItem(mColorItem3);
+        if (rightDrawer != null) {
+            mColorItem3.withIconColor(mTextColor);
+            rightDrawer.updateItem(mColorItem3);
+        }
 
     }
 
@@ -1249,15 +1219,6 @@ public class MainActivity extends AppCompatActivity {
         mTextColor = selectedProject.getTextColor();
 
         updateColors();
-
-        mColorItem1.withIconColor(mPrimaryColor);
-        mColorItem2.withIconColor(mSecondaryColor);
-        mColorItem3.withIconColor(mTextColor);
-
-        rightDrawer.updateItem(mColorItem1);
-        rightDrawer.updateItem(mColorItem2);
-        rightDrawer.updateItem(mColorItem3);
-
     }
 
     // Makes a color darker
@@ -1332,57 +1293,6 @@ public class MainActivity extends AppCompatActivity {
         vibrator.vibrate(18);
     }
 
-    // Set listener for the fab long click, animation and dragging action
-    private void setUpFabLongClick() {
-        final Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-
-                //Set up listeners on items
-                findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
-                findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
-                findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
-                findViewById(R.id.item_mic).setOnDragListener(new IdeaMenuItemListener(4));
-
-                //Move items on a circle
-                setUpIdeaMenuItems();
-
-                //Shadow to drop
-                FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
-                mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
-                mFab.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        };
-
-        View.OnLongClickListener fabLongClickListener = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                feedbackVibration();
-                Animation anim = new ScaleAnimation(
-                        1f, 1.2f, // Start and end values for the X axis scaling
-                        1f, 1.2f, // Start and end values for the Y axis scaling
-                        Animation.RELATIVE_TO_SELF, 0.5f, // Pivot point of X scaling
-                        Animation.RELATIVE_TO_SELF, 0.5f); // Pivot point of Y scaling
-                anim.setDuration(350);
-                anim.setInterpolator(new BounceInterpolator());
-                //anim.setFillAfter(true); // Needed to keep the result of the animation
-                anim.setAnimationListener(fabAnimListener);
-                v.startAnimation(anim);
-                return true;
-            }
-        };
-
-        mFab.setOnLongClickListener(fabLongClickListener);
-    }
-
     // Animate the items for the idea creation, moving them onto circles
     private void setUpIdeaMenuItems() {
 
@@ -1390,7 +1300,7 @@ public class MainActivity extends AppCompatActivity {
         final int BIG_RADIUS = (int) (mFab.getWidth() * 3f);
         final int RADII = (int) (Math.sqrt(2) * RADIUS / 2);
         final int DURATION = 250;
-        final int DELAY = 30;
+        final int DELAY = 0;
 
         //ANIMATE ITEM P1
         final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.item_p1);
@@ -1516,7 +1426,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //LAUNCH ALL ANIMATIONS
-        findViewById(R.id.ideasMenu_items).setVisibility(View.VISIBLE);
+        mIdeasMenu.setVisibility(View.VISIBLE);
         IdeaMenuItemListener.setReady(false);
         fab1.startAnimation(set1);
         fab2.startAnimation(set2);
@@ -1529,19 +1439,25 @@ public class MainActivity extends AppCompatActivity {
     public void rebootIdeaMenuItems() {
 
         mFab.setVisibility(View.VISIBLE);
-        findViewById(R.id.ideasMenu_items).setVisibility(View.INVISIBLE);
+        mIdeasMenu.setVisibility(View.INVISIBLE);
 
-        RelativeLayout items_parent = (RelativeLayout) findViewById(R.id.ideasMenu_items);
         FloatingActionButton fab_item;
         RelativeLayout.LayoutParams params;
 
         // Loop through all children
-        for (int i = 0; i < items_parent.getChildCount(); i++) {
-            fab_item = (FloatingActionButton) items_parent.getChildAt(i);
+        for (int i = 0; i < mIdeasMenu.getChildCount(); i++) {
+            fab_item = (FloatingActionButton) mIdeasMenu.getChildAt(i);
             params = (RelativeLayout.LayoutParams) fab_item.getLayoutParams();
             params.setMargins(0, 0, 0, 0);
             fab_item.setLayoutParams(params);
         }
+    }
+
+    // Convert dp to px
+    public int dpToPx(int dp) {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+        return px;
     }
 
 
@@ -1611,7 +1527,7 @@ public class MainActivity extends AppCompatActivity {
             drawable.setColorFilter(project.getPrimaryColor(), PorterDuff.Mode.SRC_ATOP);
             mProfiles.add(new ProfileDrawerItem().withName(project.getName())
                     .withIcon(drawable)
-                    .withOnDrawerItemClickListener(profile_listener));
+                    .withOnDrawerItemClickListener(this));
         }
     }
 
@@ -1802,11 +1718,9 @@ public class MainActivity extends AppCompatActivity {
             if (MainActivity.searchMode) {
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
-                mainActivity.mSearchLabel = (TextView) rootView.findViewById(R.id.search_text);
 
                 SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
                 list.setAdapter(adapter);
-                mainActivity.mSearchLabel.setText("Search for ...");
                 return rootView;
             }
 
@@ -1900,199 +1814,147 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // LISTENERS //
+    // INTERFACE LISTENERS METHODS //
 
-    private TextView.OnEditorActionListener ideaFieldListener = new TextView.OnEditorActionListener() {
+    // TextView.OnEditorActionListener method
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
-        @Override
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_GO
+                || actionId == EditorInfo.IME_ACTION_DONE
+                || actionId == EditorInfo.IME_ACTION_NEXT
+                || actionId == EditorInfo.IME_ACTION_SEND
+                || actionId == EditorInfo.IME_ACTION_SEARCH
+                || actionId == EditorInfo.IME_NULL) {
 
-            if (actionId == EditorInfo.IME_ACTION_GO
-                    || actionId == EditorInfo.IME_ACTION_DONE
-                    || actionId == EditorInfo.IME_ACTION_NEXT
-                    || actionId == EditorInfo.IME_ACTION_SEND
-                    || actionId == EditorInfo.IME_ACTION_SEARCH
-                    || actionId == EditorInfo.IME_NULL) {
-                mNoteField.requestFocus();
-                return true;
-            }
-            return false;
-        }
-    };
-
-    private TextView.OnEditorActionListener noteFieldListener = new TextView.OnEditorActionListener() {
-
-        @Override
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-
-            if (actionId == EditorInfo.IME_ACTION_GO
-                    || actionId == EditorInfo.IME_ACTION_DONE
-                    || actionId == EditorInfo.IME_ACTION_NEXT
-                    || actionId == EditorInfo.IME_ACTION_SEND
-                    || actionId == EditorInfo.IME_ACTION_SEARCH
-                    || actionId == EditorInfo.IME_NULL) {
-                sendIdeaFromDialog();
-                return true;
-            }
-            return false;
-        }
-    };
-
-    private class HideErrorOnTextChanged implements TextWatcher {
-
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (mIdeaError != null) mIdeaError.setVisibility(View.GONE);
-            if (mProjectError != null) mProjectError.setVisibility(View.GONE);
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-    }
-
-
-    // Click listener for drawer profiles
-    private Drawer.OnDrawerItemClickListener profile_listener = new Drawer.OnDrawerItemClickListener() {
-        @Override
-        public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-
-            if (drawerItem.getIdentifier() == 30) {//Add project
-                leftDrawer.openDrawer();
-                newProjectDialog();
-                return true;
-            }
-
-            if (drawerItem != null && drawerItem instanceof IProfile) {
-
-                String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
-                switchToProject(projectName);
-            }
-            return false;
-        }
-    };
-
-    // Listener to trigger tutorial when drawer is closed
-    private class MyDrawerListener implements Drawer.OnDrawerListener {
-
-        private boolean mHandleFilter;
-
-        @Override
-        public void onDrawerOpened(View drawerView) {
-            mHandleFilter = rightDrawer.isDrawerOpen();
-
-        }
-
-        @Override
-        public void onDrawerClosed(View drawerView) {
-
-            if (mTinyDB.getBoolean(getString(R.string.right_drawer_pref)) && !mNoProject && !mHandleFilter) {//Left drawer closed
-                rightDrawerGuide();
-            } else if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject && mHandleFilter) {
-                firstIdeaGuide();
-            }
-        }
-
-        @Override
-        public void onDrawerSlide(View drawerView, float slideOffset) {
-        }
-    }
-
-    // Listener for the settings switches in the left drawer
-    private OnCheckedChangeListener onCheckedChangeListener = new OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
-
-            int id = (int) drawerItem.getIdentifier();
-            switch (id) {
-
-                case 6:
-                    toggleDoneTab();
+            switch ((int) v.getTag()) {
+                case 1:
+                    mNoteField.requestFocus();
                     break;
 
-                case 20:
-                    if (isChecked) {
-                        HorizontalAdapter.setBigText(true);
-                        mTinyDB.putBoolean(getString(R.string.big_text_pref), true);
-                        DatabaseHelper.notifyAllLists();
+                case 2:
+                    sendIdeaFromDialog();
+                    break;
 
-                    } else {
-                        HorizontalAdapter.setBigText(false);
-                        mTinyDB.putBoolean(getString(R.string.big_text_pref), false);
-                        DatabaseHelper.notifyAllLists();
-
-                    }
+                default:
+                    break;
             }
-
-
+            return true;
         }
-    };
+        return false;
+    }
 
-    // Listeners and watcher for the search tab
-    private Handler mHandler = new Handler(); //Handle modification made outside of the UI thread
-    private MaterialSearchBar.OnSearchActionListener searchListener = new MaterialSearchBar.OnSearchActionListener() {
-        @Override
-        public void onSearchStateChanged(boolean enabled) {
-            if (!enabled) {
-                disableSearchMode();
-            }
+    // TextWatcher methods
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if (mIdeaError != null) mIdeaError.setVisibility(View.GONE);
+        if (mProjectError != null) mProjectError.setVisibility(View.GONE);
+        if (searchMode) SearchListAdapter.changeSearch(s.toString());
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+    }
+
+
+    // Drawer.OnDrawerItemClickListener method
+    @Override
+    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+
+        if (drawerItem.getIdentifier() == 30) {//Add project
+            leftDrawer.openDrawer();
+            newProjectDialog();
+            return true;
         }
 
-        @Override
-        public void onSearchConfirmed(final CharSequence text) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    mSearchLabel.setText("Search for " + text.toString());
-                    mSearchLabel.invalidate();
+        if (drawerItem != null && drawerItem instanceof IProfile) {
+
+            String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
+            switchToProject(projectName);
+        }
+        return false;
+    }
+
+    // Drawer.OnDrawerListener - Listener to trigger tutorial when drawer is closed
+    private boolean mHandleFilter;
+
+    @Override
+    public void onDrawerOpened(View drawerView) {
+        mHandleFilter = rightDrawer.isDrawerOpen();
+
+    }
+
+    @Override
+    public void onDrawerClosed(View drawerView) {
+
+        if (mTinyDB.getBoolean(getString(R.string.right_drawer_pref)) && !mNoProject && !mHandleFilter) {//Left drawer closed
+            rightDrawerGuide();
+        } else if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject && mHandleFilter) {
+            firstIdeaGuide();
+        }
+    }
+
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {
+    }
+
+    // OnCheckedChangeListener - Listener for the settings switches in the left drawer
+    @Override
+    public void onCheckedChanged(IDrawerItem drawerItem, CompoundButton buttonView, boolean isChecked) {
+
+        int id = (int) drawerItem.getIdentifier();
+        switch (id) {
+
+            case 6:
+                toggleDoneTab();
+                break;
+
+            case 20:
+                if (isChecked) {
+                    HorizontalAdapter.setBigText(true);
+                    mTinyDB.putBoolean(getString(R.string.big_text_pref), true);
+                    DatabaseHelper.notifyAllLists();
+
+                } else {
+                    HorizontalAdapter.setBigText(false);
+                    mTinyDB.putBoolean(getString(R.string.big_text_pref), false);
+                    DatabaseHelper.notifyAllLists();
+
                 }
-            });
-            SearchListAdapter.changeSearch(text.toString());
         }
 
-        @Override
-        public void onButtonClicked(int buttonCode) {
+
+    }
+
+    // MaterialSearchBar.OnSearchActionListener - Listeners and watcher for the search tab
+    @Override
+    public void onSearchStateChanged(boolean enabled) {
+        if (!enabled) {
+            disableSearchMode();
         }
+    }
 
-    };
+    @Override
+    public void onSearchConfirmed(final CharSequence text) {
+        SearchListAdapter.changeSearch(text.toString());
+    }
 
-    private TextWatcher editSearchWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    @Override
+    public void onButtonClicked(int buttonCode) {
+    }
 
-        }
 
-        @Override
-        public void onTextChanged(final CharSequence s, int start, int before, int count) {
+    // View.OnClickListener - Listener for the toolbar project name
+    @Override
+    public void onClick(View v) {
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mSearchLabel.setText("Search for " + s);
-                    mSearchLabel.invalidate();
-                }
-            });
-            SearchListAdapter.changeSearch(s.toString());
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-    };
-
-    // Listener for the toolbar project name
-
-    private View.OnClickListener toolBarProjectListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
+        if (v instanceof FloatingActionButton) { // FAB click- new idea
+            newIdeaDialog();
+        } else { // Toolbar click - display othe rproject list
             final Project[] otherProjects = getOtherProjects();
             mDroppyBuilder = new DroppyMenuPopup.Builder(MainActivity.this, mToolbar);
             mDroppyBuilder.triggerOnAnchorClick(false);
@@ -2116,5 +1978,63 @@ public class MainActivity extends AppCompatActivity {
                 droppyMenu.show();
             }
         }
-    };
+    }
+
+    // View.OnLongClickListener - Listener for fab to trigger menu idea creation
+    @Override
+    public boolean onLongClick(View v) {
+
+        //inflate idea menu layout
+        if (mIdeasMenu == null) {
+            mIdeasMenu = (RelativeLayout) getLayoutInflater().inflate(R.layout.idea_menu, null);
+            CoordinatorLayout.LayoutParams params = new CoordinatorLayout.LayoutParams(
+                    CoordinatorLayout.LayoutParams.MATCH_PARENT,
+                    CoordinatorLayout.LayoutParams.MATCH_PARENT
+            );
+            int marginPx = dpToPx(16);
+            params.setMargins(marginPx, marginPx, marginPx, marginPx);
+            ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mIdeasMenu, params);
+        }
+
+        final Animation.AnimationListener fabAnimListener = new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+                //Set up listeners on items
+                findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
+                findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
+                findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
+                findViewById(R.id.item_mic).setOnDragListener(new IdeaMenuItemListener(4));
+
+                //Move items on a circle
+                setUpIdeaMenuItems();
+
+                //Shadow to drop
+                FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
+                mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
+                mFab.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        };
+
+        feedbackVibration();
+        Animation anim = new ScaleAnimation(
+                1f, 1.2f, // Start and end values for the X axis scaling
+                1f, 1.2f, // Start and end values for the Y axis scaling
+                Animation.RELATIVE_TO_SELF, 0.5f, // Pivot point of X scaling
+                Animation.RELATIVE_TO_SELF, 0.5f); // Pivot point of Y scaling
+        anim.setDuration(350);
+        anim.setInterpolator(new BounceInterpolator());
+        //anim.setFillAfter(true); // Needed to keep the result of the animation
+        anim.setAnimationListener(fabAnimListener);
+        v.startAnimation(anim);
+        return true;
+    }
 }

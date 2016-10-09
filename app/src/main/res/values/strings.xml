@@ -95,7 +95,7 @@
     <string name="priority_group">"Priority "</string>
     <string name="edit_idea">Edit idea</string>
     <string name="rate_app">Rate Ideas Tracker</string>
-    <string name="right_drawer_guide">By the way, tap here to change the colors of your project interface and access some functions!</string>
+    <string name="right_drawer_guide">By the way, tap the 3 dots here to change the colors of your project interface and access some functions!</string>
     <string name="right_drawer_pref" translatable="false">rightDrawer</string>
     <string name="next">Next</string>
     <string name="idea_moved_snack">"Idea moved to "</string>

@@ -51,6 +51,7 @@ public class IdeaMenuItemListener implements View.OnDragListener {
             public void onAnimationRepeat(Animation animation) {
             }
         }); //Hide items after animation
+
         //Scale animation
         Animation scale = new ScaleAnimation(
                 1.2f, 3f, // Start and end values for the X axis scaling
