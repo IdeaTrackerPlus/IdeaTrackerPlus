@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements
         Drawer.OnDrawerListener,
         OnCheckedChangeListener,
         MaterialSearchBar.OnSearchActionListener,
+        MaterialFavoriteButton.OnFavoriteChangeListener,
         View.OnClickListener,
         View.OnLongClickListener {
 
@@ -188,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -227,8 +229,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -1708,6 +1710,7 @@ public class MainActivity extends AppCompatActivity implements
             mainActivity = MainActivity.getInstance();
 
             View rootView;
+            // NO PROJECT
             if (DataEntry.TABLE_NAME.equals("[]")) {
                 rootView = inflater.inflate(R.layout.no_project_layout, container, false);
                 LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.noProject);
@@ -1870,10 +1873,186 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
 
-        if (drawerItem.getIdentifier() == 30) {//Add project
-            leftDrawer.openDrawer();
-            newProjectDialog();
-            return true;
+        if (drawerItem != null) {
+            int id = (int) drawerItem.getIdentifier();
+            switch (id) {
+                case 1: //Rename project
+                    if (!mNoProject) {
+                        renameProjectDialog();
+                    } else {
+                        noProjectSnack();
+                    }
+                    break;
+
+                case 2: //Delete project
+                    if (!mNoProject) {
+                        deleteProjectDialog();
+                    } else {
+                        noProjectSnack();
+                    }
+                    break;
+
+                case 3: //New project
+                    newProjectDialog();
+                    break;
+
+                case 4: //My projects
+                    if (!mNoProject) {
+                        header.toggleSelectionList(getApplicationContext());
+                    } else {
+                        noProjectSnack();
+                    }
+                    break;
+
+                case 8: //See intro again
+                    forceIntro();
+                    break;
+
+                case 9: //Tutorial mode
+                    leftDrawer.closeDrawer();
+                    Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
+                            .setCallback(new Snackbar.Callback() {
+                                @Override
+                                public void onDismissed(Snackbar snackbar, int event) {
+                                    mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
+                                    mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
+                                    mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
+                                    mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
+                                }
+                            });
+                    snackbar.show();
+                    break;
+
+                case 10:
+                    // Open browser to github issues section
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker/issues"));
+                    startActivity(browserIntent);
+                    break;
+
+                case 11:
+                    // Rate
+                    Uri uri = Uri.parse("market://details?id=" + getPackageName());
+                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                    // To count with Play market backstack, After pressing back button,
+                    // to taken back to our application, we need to add following flags to intent.
+                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    try {
+                        startActivity(goToMarket);
+                    } catch (ActivityNotFoundException e) {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
+                    }
+                    break;
+
+                case 12:
+                    // Open browser to github source code
+                    Intent browserSource = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker"));
+                    startActivity(browserSource);
+                    break;
+
+                case 21:
+                    if (!mNoProject) {
+                        new SpectrumDialog.Builder(getApplicationContext())
+                                .setTitle(R.string.select_prim_col)
+                                .setColors(R.array.colors)
+                                .setSelectedColor(mPrimaryColor)
+                                .setDismissOnColorSelected(false)
+                                .setFixedColumnCount(4)
+                                .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                                    @Override
+                                    public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                        if (positiveResult) {
+                                            //update selected color
+                                            mPrimaryColor = color;
+                                            changePrimaryColor();
+                                            saveProjectColors();
+
+                                            //change project icon
+                                            Drawable disk = ContextCompat.getDrawable(getApplicationContext(), R.drawable.disk);
+                                            disk.setColorFilter(mPrimaryColor, PorterDuff.Mode.SRC_ATOP);
+                                            IProfile p = header.getActiveProfile();
+                                            p.withIcon(disk);
+                                            header.updateProfile(p);
+                                        }
+                                    }
+                                }).build().show(mFragmentManager, "dialog_spectrum");
+                    } else noProjectSnack();
+
+                    break;
+
+                case 22:
+                    if (!mNoProject) {
+                        new SpectrumDialog.Builder(getApplicationContext())
+                                .setTitle(R.string.select_sec_col)
+                                .setColors(R.array.accent_colors)
+                                .setSelectedColor(mSecondaryColor)
+                                .setDismissOnColorSelected(false)
+                                .setFixedColumnCount(4)
+                                .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                                    @Override
+                                    public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                        if (positiveResult) {
+                                            //update selected color
+                                            mSecondaryColor = color;
+                                            changeSecondaryColor();
+                                            saveProjectColors();
+                                        }
+                                    }
+                                }).build().show(mFragmentManager, "dialog_spectrum");
+                    } else noProjectSnack();
+                    break;
+
+                case 23:
+                    if (!mNoProject) {
+                        new SpectrumDialog.Builder(getApplicationContext())
+                                .setTitle(R.string.select_text_col)
+                                .setColors(R.array.textColors)
+                                .setSelectedColor(mTextColor)
+                                .setDismissOnColorSelected(false)
+                                .setFixedColumnCount(4)
+                                .setOutlineWidth(2)
+                                .setOnColorSelectedListener(new SpectrumDialog.OnColorSelectedListener() {
+                                    @Override
+                                    public void onColorSelected(boolean positiveResult, @ColorInt int color) {
+                                        if (positiveResult) {
+                                            //update selected color
+                                            mTextColor = color;
+                                            changeTextColor();
+                                            saveProjectColors();
+                                        }
+                                    }
+                                }).build().show(mFragmentManager, "dialog_spectrum");
+                    } else noProjectSnack();
+                    break;
+
+                case 24:
+                    if (!mNoProject) {
+                        mDbHelper.clearDoneWithSnack(mViewPager);
+                        rightDrawer.closeDrawer();
+                    } else noProjectSnack();
+                    break;
+
+                case 25:
+                    if (!mNoProject) {
+                        mDbHelper.sortByAscPriority();
+                        rightDrawer.closeDrawer();
+                    } else noProjectSnack();
+                    break;
+
+                case 26:
+                    if (!mNoProject) {
+                        resetColorsDialog();
+                    } else noProjectSnack();
+                    break;
+
+                case 30: //Add project
+                    leftDrawer.openDrawer();
+                    newProjectDialog();
+                    break;
+
+            }
         }
 
         if (drawerItem != null && drawerItem instanceof IProfile) {
@@ -1952,6 +2131,15 @@ public class MainActivity extends AppCompatActivity implements
     public void onButtonClicked(int buttonCode) {
     }
 
+    //MaterialFavoriteButton.OnFavoriteChangeListener
+    @Override
+    public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+        if (favorite) {
+            mTinyDB.putInt(getString(R.string.favorite_project), getProjectId());
+        } else if (mTinyDB.getInt(getString(R.string.favorite_project)) == mSelectedProfileIndex) {
+            mTinyDB.putInt(getString(R.string.favorite_project), -1); //no favorite
+        }
+    }
 
     // View.OnClickListener - Listener for the toolbar project name and the FAB
     @Override
@@ -2049,4 +2237,5 @@ public class MainActivity extends AppCompatActivity implements
         v.startAnimation(anim);
         return true;
     }
+
 }

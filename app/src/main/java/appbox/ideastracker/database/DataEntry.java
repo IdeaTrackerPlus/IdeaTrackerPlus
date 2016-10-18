@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public abstract class DataEntry implements BaseColumns {
 
     // Contains the name of selected table
-    public static String TABLE_NAME = "[MyProject]";
+    public static String TABLE_NAME = "[]";
 
     // Column names
     public static final String COLUMN_NAME_ENTRY_ID = "entryid";
