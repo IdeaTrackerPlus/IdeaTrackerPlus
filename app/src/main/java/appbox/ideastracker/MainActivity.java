@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -190,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -217,8 +217,14 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.setupWithViewPager(mViewPager);
         tabLayout.setSelectedTabIndicatorHeight(8);
 
-        // Load ideas and drawers
-        (new MyTask()).execute();
+        //TABLES
+        loadProjects();
+
+        // Select favorite project
+        selectFavoriteProject();
+
+        // Set up drawers in background tasks
+        setUpDrawers();
 
     }
 
@@ -2232,174 +2238,4 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-    class MyTask extends AsyncTask<Integer, Integer, String> {
-
-        private String activeProfileName;
-        private List<IDrawerItem> leftDrawerItems;
-        private List<IDrawerItem> rightDrawerItems;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            findViewById(R.id.stub_loading).setVisibility(View.VISIBLE); // Start loading
-        }
-
-        @Override
-        protected String doInBackground(Integer... params) {
-
-            //LOAD PROJECTS
-            mProjects = mTinyDB.getListObject(PREF_KEY, Project.class);
-
-            if (mProjects.size() == 0) {
-                DataEntry.setTableName("");
-                mNoProject = true;
-                activeProfileName = sInstance.getString(R.string.app_name);
-            } else { //Start counter where we stopped
-                int lastId = ((Project) mProjects.get(mProjects.size() - 1)).getId();
-                Project.setCounter(lastId + 1);
-            }
-
-            mProfiles = new ArrayList<>();
-            for (Object p : mProjects) {
-                Project project = (Project) p;
-                Drawable drawable = ContextCompat.getDrawable(sInstance, R.drawable.disk);
-                drawable.setColorFilter(project.getPrimaryColor(), PorterDuff.Mode.SRC_ATOP);
-                mProfiles.add(new ProfileDrawerItem().withName(project.getName())
-                        .withIcon(drawable)
-                        .withOnDrawerItemClickListener(sInstance));
-            }
-
-            //SELECT PROJECT
-            if (!mNoProject) {
-                mSelectedProfileIndex = getIndexOfFavorite();
-                IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
-                activeProfileName = activeProfile.getName().getText();
-                DataEntry.setTableName(activeProfileName);
-            }
-            publishProgress(1); //show title and ideas
-
-            //SET UP DRAWERS//
-
-            mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(sInstance);
-            //HEADER
-            header = new AccountHeaderBuilder()
-                    .withActivity(sInstance)
-                    .withHeaderBackground(R.drawable.header)
-                    .withProfiles(mProfiles)
-                    .addProfiles(mAddProject)
-                    .withProfileImagesVisible(false)
-                    .build();
-
-            //SWITCHES
-            setUpSwitches();
-
-            //LEFT DRAWER ITEMS
-            leftDrawerItems = new ArrayList<>();
-            leftDrawerItems.add(new PrimaryDrawerItem().withIdentifier(1).withName(R.string.rename_pro).withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false));
-            leftDrawerItems.add(new PrimaryDrawerItem().withIdentifier(2).withName(R.string.delete_pro).withIcon(FontAwesome.Icon.faw_trash).withSelectable(false));
-            leftDrawerItems.add(new DividerDrawerItem());
-            leftDrawerItems.add(new PrimaryDrawerItem().withIdentifier(4).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false));
-            leftDrawerItems.add(new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false));
-            leftDrawerItems.add(new DividerDrawerItem());
-            leftDrawerItems.add(new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                    doneSwitch, bigTextSwitch));
-            leftDrawerItems.add(new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
-                    new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
-                    new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
-                    new SecondaryDrawerItem().withName(R.string.rate_app).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
-                    new SecondaryDrawerItem().withName(R.string.feedback).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
-                    new SecondaryDrawerItem().withName(R.string.source_code).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false)));
-            publishProgress(2); //Set left drawer
-
-            //COLORS BUTTONS
-            mColorItem1 = new PrimaryDrawerItem().withIdentifier(21).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
-            mColorItem2 = new PrimaryDrawerItem().withIdentifier(22).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
-            mColorItem3 = new PrimaryDrawerItem().withIdentifier(23).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
-
-            //RIGHT DRAWER
-            rightDrawerItems = new ArrayList<>();
-            rightDrawerItems.add(new SectionDrawerItem().withName(R.string.color_prefs));
-            rightDrawerItems.add(mColorItem1);
-            rightDrawerItems.add(mColorItem2);
-            rightDrawerItems.add(mColorItem3);
-            rightDrawerItems.add(new PrimaryDrawerItem().withIdentifier(26).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false));
-            rightDrawerItems.add(new SectionDrawerItem().withName(R.string.functions));
-            rightDrawerItems.add(new PrimaryDrawerItem().withIdentifier(24).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false));
-            rightDrawerItems.add(new PrimaryDrawerItem().withIdentifier(25).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false));
-            publishProgress(3); //Set right drawer
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-            switch (values[0]) {
-                case 1: //Set title and ideas
-                    mToolbar.setTitle(activeProfileName);
-                    if (mNoProject) {
-                        mFab.setVisibility(View.INVISIBLE);
-                    } else {
-                        switchToProjectColors();
-                    }
-                    mViewPager.setAdapter(null);
-                    mViewPager.setAdapter(mSectionsPagerAdapter);
-                    break;
-
-                case 2:
-                    //FAVORITE BUTTON
-                    mFavoriteButton = (MaterialFavoriteButton) header.getView().findViewById(R.id.favorite_button);
-                    mFavoriteButton.setOnFavoriteChangeListener(sInstance);
-
-                    //LEFT DRAWER
-                    leftDrawer = new DrawerBuilder(sInstance)
-                            .withToolbar(mToolbar)
-                            .withActionBarDrawerToggleAnimated(true)
-                            .withSelectedItem(-1)
-                            .withAccountHeader(header)
-                            .withDrawerItems(leftDrawerItems)
-                            .withOnDrawerItemClickListener(sInstance)
-                            .withOnDrawerListener(sInstance)
-                            .build();
-
-                    //CURRENT PROJECT
-                    if (!mNoProject) {
-                        header.setActiveProfile(mProfiles.get(mSelectedProfileIndex));
-                        displayIdeasCount();
-                        refreshStar();
-                    } else { // No project
-
-                        header.setProfiles(mProfiles);
-                        header.setSelectionSecondLine(getString(R.string.no_project));
-                        //reset color
-                        mPrimaryColor = defaultPrimaryColor;
-                        mSecondaryColor = defaultSecondaryColor;
-                        mTextColor = defaultTextColor;
-                        updateColors();
-                        refreshStar();
-                    }
-                    break;
-
-                case 3:
-                    //RIGHT DRAWER
-                    rightDrawer = new DrawerBuilder(sInstance)
-                            .withActionBarDrawerToggleAnimated(true)
-                            .withSelectedItem(-1)
-                            .withDrawerItems(rightDrawerItems)
-                            .withDrawerGravity(Gravity.END)
-                            .withStickyFooter(R.layout.footer)
-                            .withOnDrawerItemClickListener(sInstance)
-                            .append(leftDrawer);
-                    break;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            findViewById(R.id.loadingPanel).setVisibility(View.INVISIBLE);
-        }
-    }
-
-    ;
 }

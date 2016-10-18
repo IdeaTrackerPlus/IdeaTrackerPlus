@@ -52,14 +52,6 @@
             android:layout_alignTop="@id/container"
             android:visibility="invisible" />
 
-        <ViewStub
-            android:id="@+id/stub_loading"
-            android:inflatedId="@+id/loadingPanel"
-            android:layout="@layout/loading_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
