@@ -43,9 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/appbar"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        </appbox.ideastracker.customviews.NonSwipeableViewPager>
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <Button
             android:id="@+id/firstIdea"
@@ -53,6 +51,13 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/container"
             android:visibility="invisible" />
+
+        <ViewStub
+            android:id="@+id/stub_loading"
+            android:inflatedId="@+id/loadingPanel"
+            android:layout="@layout/loading_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
 
     </RelativeLayout>
