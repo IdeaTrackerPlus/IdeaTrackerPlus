@@ -391,93 +391,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
                 )
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        if (drawerItem != null) {
-                            int id = (int) drawerItem.getIdentifier();
-                            switch (id) {
-                                case 1: //Rename project
-                                    if (!mNoProject) {
-                                        renameProjectDialog();
-                                    } else {
-                                        noProjectSnack();
-                                    }
-                                    break;
-
-                                case 2: //Delete project
-                                    if (!mNoProject) {
-                                        deleteProjectDialog();
-                                    } else {
-                                        noProjectSnack();
-                                    }
-                                    break;
-
-                                case 3: //New project
-                                    newProjectDialog();
-                                    break;
-
-                                case 4: //My projects
-                                    if (!mNoProject) {
-                                        header.toggleSelectionList(getApplicationContext());
-                                    } else {
-                                        noProjectSnack();
-                                    }
-                                    break;
-
-                                case 8: //See intro again
-                                    forceIntro();
-                                    break;
-
-                                case 9: //Tutorial mode
-                                    leftDrawer.closeDrawer();
-                                    Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
-                                            .setCallback(new Snackbar.Callback() {
-                                                @Override
-                                                public void onDismissed(Snackbar snackbar, int event) {
-                                                    mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
-                                                    mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
-                                                    mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
-                                                    mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
-                                                }
-                                            });
-                                    snackbar.show();
-                                    break;
-
-                                case 10:
-                                    // Open browser to github issues section
-                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker/issues"));
-                                    startActivity(browserIntent);
-                                    break;
-
-                                case 11:
-                                    // Rate
-                                    Uri uri = Uri.parse("market://details?id=" + getPackageName());
-                                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-                                    // To count with Play market backstack, After pressing back button,
-                                    // to taken back to our application, we need to add following flags to intent.
-                                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
-                                            Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
-                                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                                    try {
-                                        startActivity(goToMarket);
-                                    } catch (ActivityNotFoundException e) {
-                                        startActivity(new Intent(Intent.ACTION_VIEW,
-                                                Uri.parse("http://play.google.com/store/apps/details?id=" + getPackageName())));
-                                    }
-                                    break;
-
-                                case 12:
-                                    // Open browser to github source code
-                                    Intent browserSource = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker"));
-                                    startActivity(browserSource);
-                                    break;
-
-                            }
-                        }
-                        return true;
-                    }
-                })
+                .withOnDrawerItemClickListener(this)
                 .withOnDrawerListener(this)
                 .build();
 
@@ -515,7 +429,6 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
-                .withStickyFooter(R.layout.footer)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -2048,9 +1961,8 @@ public class MainActivity extends AppCompatActivity implements
                     break;
 
                 case 30: //Add project
-                    leftDrawer.openDrawer();
                     newProjectDialog();
-                    break;
+                    return false;
 
             }
         }
