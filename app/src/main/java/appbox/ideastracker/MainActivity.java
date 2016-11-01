@@ -32,7 +32,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -89,6 +88,7 @@ import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import appbox.ideastracker.customviews.NonSwipeableViewPager;
 import appbox.ideastracker.customviews.ToolbarColorizeHelper;
@@ -283,31 +283,21 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        //Speech reckognition
         if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK) {
             ArrayList<String> matches = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
 
             // Capitalize first letter
             if (!matches.isEmpty()) {
-                StringBuilder cap = new StringBuilder(matches.get(0).toLowerCase());
-                cap.setCharAt(0, Character.toUpperCase(cap.charAt(0)));
-                matches.set(0, cap.toString());
+                StringBuilder capitalized = new StringBuilder(matches.get(0).toLowerCase());
+                capitalized.setCharAt(0, Character.toUpperCase(capitalized.charAt(0)));
+
+                // create idea dialog with the spoken text
+                newIdeaDialog(capitalized.toString());
             }
-
-            // build full string
-            StringBuilder listString = new StringBuilder();
-
-            for (String s : matches)
-                listString.append(s + " ");
-
-            // remove last space
-            listString.deleteCharAt(listString.length() - 1);
-
-            // create idea dialog with the spoken text
-            newIdeaDialog(listString.toString());
         }
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("NICK", "On activity result");
     }
 
 
@@ -901,7 +891,7 @@ public class MainActivity extends AppCompatActivity implements
         // number of results
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
         // recognition language
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
     }
 
@@ -2144,7 +2134,6 @@ public class MainActivity extends AppCompatActivity implements
                 Animation.RELATIVE_TO_SELF, 0.5f); // Pivot point of Y scaling
         anim.setDuration(350);
         anim.setInterpolator(new BounceInterpolator());
-        //anim.setFillAfter(true); // Needed to keep the result of the animation
         anim.setAnimationListener(fabAnimListener);
         v.startAnimation(anim);
         return true;
