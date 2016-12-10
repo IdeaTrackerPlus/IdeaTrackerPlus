@@ -14,7 +14,7 @@ import appbox.ideastracker.MainActivity;
 /**
  * Created by Nicklos on 03/10/2016.
  */
-public class IdeaMenuItemListener implements View.OnDragListener {
+public class IdeaMenuItemDragListener implements View.OnDragListener {
 
     private int mActionId;
 
@@ -22,7 +22,7 @@ public class IdeaMenuItemListener implements View.OnDragListener {
     private static boolean dragging;
     private static boolean dropping;
 
-    public IdeaMenuItemListener(int actionId) {
+    public IdeaMenuItemDragListener(int actionId) {
         super();
         mActionId = actionId;
     }
@@ -116,7 +116,7 @@ public class IdeaMenuItemListener implements View.OnDragListener {
                 break;
 
             case DragEvent.ACTION_DRAG_ENDED:
-                if (dragging && !dropping) { // avoid doing this as many times as there is listeners
+                if (dragging && !dropping) { // avoid doing this as many times as there are listeners
                     final View droppedView = (View) event.getLocalState();
                     droppedView.post(new Runnable() {
                         @Override

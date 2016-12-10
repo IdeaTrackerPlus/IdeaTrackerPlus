@@ -90,6 +90,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import appbox.ideastracker.customviews.MyMaterialIntroView;
 import appbox.ideastracker.customviews.NonSwipeableViewPager;
 import appbox.ideastracker.customviews.ToolbarColorizeHelper;
 import appbox.ideastracker.database.DataEntry;
@@ -97,14 +98,14 @@ import appbox.ideastracker.database.DatabaseHelper;
 import appbox.ideastracker.database.Project;
 import appbox.ideastracker.database.TinyDB;
 import appbox.ideastracker.ideamenu.FabShadowBuilder;
-import appbox.ideastracker.ideamenu.IdeaMenuItemListener;
+import appbox.ideastracker.ideamenu.IdeaMenuItemClickListener;
+import appbox.ideastracker.ideamenu.IdeaMenuItemDragListener;
 import appbox.ideastracker.recycler.HorizontalAdapter;
 import appbox.ideastracker.recycler.RecyclerOnClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.prefs.PreferencesManager;
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
-import co.mobiwise.materialintro.view.MaterialIntroView;
 
 public class MainActivity extends AppCompatActivity implements
         TextView.OnEditorActionListener,
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements
     private static boolean searchMode;
     private DroppyMenuPopup.Builder mDroppyBuilder = null;
     private RelativeLayout mIdeasMenu = null;
+    private MyMaterialIntroView mIdeasMenuGuide;
 
     // Dialogs
     private Dialog mNewIdeaDialog;
@@ -383,6 +385,7 @@ public class MainActivity extends AppCompatActivity implements
                 )
                 .withOnDrawerItemClickListener(this)
                 .withOnDrawerListener(this)
+                .withCloseOnClick(false)
                 .build();
 
         //FAVORITE BUTTON
@@ -932,7 +935,7 @@ public class MainActivity extends AppCompatActivity implements
 
         new PreferencesManager(this).reset("first_project");
 
-        new MaterialIntroView.Builder(this)
+        new MyMaterialIntroView.Builder(this)
                 .enableIcon(true)
                 .enableDotAnimation(true)
                 .setFocusGravity(FocusGravity.CENTER)
@@ -954,7 +957,7 @@ public class MainActivity extends AppCompatActivity implements
 
         new PreferencesManager(this).reset("first");
 
-        new MaterialIntroView.Builder(this)
+        new MyMaterialIntroView.Builder(this)
                 .enableIcon(true)
                 .setFocusGravity(FocusGravity.CENTER)
                 .setFocusType(Focus.NORMAL)
@@ -978,7 +981,7 @@ public class MainActivity extends AppCompatActivity implements
 
         View firstIdea = findViewById(R.id.firstIdea);
         new PreferencesManager(this).reset("handle");
-        new MaterialIntroView.Builder(this)
+        new MyMaterialIntroView.Builder(this)
                 .enableDotAnimation(true)
                 .enableIcon(true)
                 .setFocusGravity(FocusGravity.CENTER)
@@ -997,7 +1000,7 @@ public class MainActivity extends AppCompatActivity implements
     private void rightDrawerGuide() {
 
         new PreferencesManager(this).reset("right_drawer");
-        new MaterialIntroView.Builder(MainActivity.this)
+        new MyMaterialIntroView.Builder(MainActivity.this)
                 .enableIcon(true)
                 .enableFadeAnimation(true)
                 .setFocusGravity(FocusGravity.CENTER)
@@ -1008,7 +1011,7 @@ public class MainActivity extends AppCompatActivity implements
                 .setTarget(mToolbar.getChildAt(2))
                 .setListener(new MaterialIntroListener() {
                     @Override
-                    public void onUserClicked(String materialIntroViewId) {
+                    public void onUserClicked(String MyMaterialIntroViewId) {
                         rightDrawer.openDrawer();
                     }
                 })
@@ -1016,6 +1019,22 @@ public class MainActivity extends AppCompatActivity implements
                 .show();
 
         mTinyDB.putBoolean(getString(R.string.right_drawer_pref), false);
+    }
+
+    private MyMaterialIntroView menuIdeaGuide(View fabView) {
+        new PreferencesManager(this).reset("first_menu_idea");
+        return new MyMaterialIntroView.Builder(this)
+                .enableIcon(true)
+                .enableDotAnimation(false)
+                .setFocusGravity(FocusGravity.CENTER)
+                .setFocusType(Focus.NORMAL)
+                .enableFadeAnimation(false)
+                .setTargetPadding(530)
+                .setInfoText("Drag and drop to targets for different type of idea creation")
+                .setInfoTextSize(13)
+                .setTarget(fabView)
+                .setUsageId("first_menu_idea") //THIS SHOULD BE UNIQUE ID
+                .show();
     }
 
 
@@ -1327,7 +1346,7 @@ public class MainActivity extends AppCompatActivity implements
                 fabMic.clearAnimation();
 
                 //notify the onDragListener that the items are ready for action
-                IdeaMenuItemListener.setReady(true);
+                IdeaMenuItemDragListener.setReady(true);
             }
 
             @Override
@@ -1337,7 +1356,7 @@ public class MainActivity extends AppCompatActivity implements
 
         //LAUNCH ALL ANIMATIONS
         mIdeasMenu.setVisibility(View.VISIBLE);
-        IdeaMenuItemListener.setReady(false);
+        IdeaMenuItemDragListener.setReady(false);
         fab1.startAnimation(set1);
         fab2.startAnimation(set2);
         fab3.startAnimation(set3);
@@ -1360,6 +1379,13 @@ public class MainActivity extends AppCompatActivity implements
             params = (RelativeLayout.LayoutParams) fab_item.getLayoutParams();
             params.setMargins(0, 0, 0, 0);
             fab_item.setLayoutParams(params);
+        }
+
+        // Dismiss the guide if it was there
+        if (mIdeasMenuGuide != null) {
+            mIdeasMenuGuide.dismiss();
+            mIdeasMenuGuide = null;
+            mTinyDB.putBoolean(getString(R.string.idea_menu_pref), false);
         }
     }
 
@@ -1821,6 +1847,7 @@ public class MainActivity extends AppCompatActivity implements
                                     mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
                                     mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
                                     mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
+                                    mTinyDB.putBoolean(getString(R.string.idea_menu_pref), true);
                                 }
                             });
                     snackbar.show();
@@ -2095,6 +2122,12 @@ public class MainActivity extends AppCompatActivity implements
             int marginPx = dpToPx(16);
             params.setMargins(marginPx, marginPx, marginPx, marginPx);
             ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mIdeasMenu, params);
+
+            //Set up click listeners on items in case the drag fails
+            findViewById(R.id.item_p1).setOnClickListener(new IdeaMenuItemClickListener(1));
+            findViewById(R.id.item_p2).setOnClickListener(new IdeaMenuItemClickListener(2));
+            findViewById(R.id.item_p3).setOnClickListener(new IdeaMenuItemClickListener(3));
+            findViewById(R.id.item_mic).setOnClickListener(new IdeaMenuItemClickListener(4));
         }
 
         //animation for the fab
@@ -2106,11 +2139,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onAnimationEnd(Animation animation) {
 
-                //Set up listeners on items
-                findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemListener(1));
-                findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemListener(2));
-                findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemListener(3));
-                findViewById(R.id.item_mic).setOnDragListener(new IdeaMenuItemListener(4));
+                //Set up drag listeners on items
+                findViewById(R.id.item_p1).setOnDragListener(new IdeaMenuItemDragListener(1));
+                findViewById(R.id.item_p2).setOnDragListener(new IdeaMenuItemDragListener(2));
+                findViewById(R.id.item_p3).setOnDragListener(new IdeaMenuItemDragListener(3));
+                findViewById(R.id.item_mic).setOnDragListener(new IdeaMenuItemDragListener(4));
 
                 //Move items on a circle
                 setUpIdeaMenuItems();
@@ -2119,6 +2152,11 @@ public class MainActivity extends AppCompatActivity implements
                 FabShadowBuilder shadowBuilder = new FabShadowBuilder(mFab);
                 mFab.startDrag(ClipData.newPlainText("", ""), shadowBuilder, mFab, 0);
                 mFab.setVisibility(View.INVISIBLE);
+
+                //Guide on first use
+                if (mTinyDB.getBoolean(getString(R.string.idea_menu_pref))) {
+                    mIdeasMenuGuide = menuIdeaGuide(mFab);
+                }
             }
 
             @Override
