@@ -1,14 +1,15 @@
 <img src="https://raw.github.com/nserguier/IdeasTracker/master/graphics/feature_graphic.png" data-canonical-src="https://raw.github.com/nserguier/IdeasTracker/master/graphics/feature_graphic.png" width="512" height="250" />
 
-# IdeasTracker: Projects & Tasks
+# IdeasTrackerPlus: Projects & Tasks
 
 <b>A TO-DO LIST FOR YOUR IDEAS:</b>
-
+This is a clone of the [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
 IdeasTracker is an entirely free and open source idea, task and project management app helping you keep track of your great ideas. Almost like a To-Do list, but more relax: no annoying reminder, or big red “overdue task” notification.
 Your ideas/tasks are clearly separated by project, no need for tags or filters, you can simply focus on one project at a time.
 
 ![](https://raw.github.com/nserguier/IdeasTracker/master/graphics/showcase.png)
 
+The original app:
 <a href="https://play.google.com/store/apps/details?id=appbox.gameideas"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/en-play-badge-border.png" width="300" /></a>
 
 ## Help making the app better
