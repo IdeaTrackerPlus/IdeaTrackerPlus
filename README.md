@@ -8,7 +8,7 @@
     <a href="https://www.android.com/" target="_blank"><img src="https://img.shields.io/badge/Platform-Android-blue.svg" alt="License"></a>
 </div>
 
-> This is a clone of the [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
+> This is a fork of the amazing [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
 
 <b>A To-Do list for your ideas:</b>
 
