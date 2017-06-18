@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycler;
+package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
 import android.text.Editable;
@@ -17,9 +17,9 @@ import android.widget.TextView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
-import appbox.ideastracker.MainActivity;
-import appbox.ideastracker.R;
-import appbox.ideastracker.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.MainActivity;
+import manparvesh.ideatrackerplus.R;
+import manparvesh.ideatrackerplus.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 20/07/2016.

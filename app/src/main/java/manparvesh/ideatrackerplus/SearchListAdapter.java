@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package manparvesh.ideatrackerplus;
 
 import android.content.Context;
 import android.support.v4.util.Pair;
@@ -10,9 +10,9 @@ import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
 
-import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.recycler.HorizontalAdapter;
-import appbox.ideastracker.recycler.MyRecyclerView;
+import manparvesh.ideatrackerplus.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.recycler.HorizontalAdapter;
+import manparvesh.ideatrackerplus.recycler.MyRecyclerView;
 
 /**
  * Adapter for the search list

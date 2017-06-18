@@ -1,4 +1,4 @@
-package appbox.ideastracker.database;
+package manparvesh.ideatrackerplus.database;
 
 /*
  * Copyright 2014 KC Ochibili

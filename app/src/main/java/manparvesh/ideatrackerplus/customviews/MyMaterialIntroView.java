@@ -1,4 +1,4 @@
-package appbox.ideastracker.customviews;
+package manparvesh.ideatrackerplus.customviews;
 
 //
 // Source code recreated from a .class file by IntelliJ IDEA
@@ -29,43 +29,6 @@ import co.mobiwise.materialintro.MaterialIntroConfiguration;
 import co.mobiwise.materialintro.animation.AnimationFactory;
 import co.mobiwise.materialintro.animation.AnimationListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.prefs.PreferencesManager;
-import co.mobiwise.materialintro.shape.Circle;
-import co.mobiwise.materialintro.shape.Focus;
-import co.mobiwise.materialintro.shape.FocusGravity;
-import co.mobiwise.materialintro.target.Target;
-import co.mobiwise.materialintro.target.ViewTarget;
-import co.mobiwise.materialintro.utils.Constants;
-import co.mobiwise.materialintro.utils.Utils;
-
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Bitmap.Config;
-import android.graphics.PorterDuff.Mode;
-import android.os.Handler;
-import android.os.Build.VERSION;
-import android.util.AttributeSet;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.RelativeLayout.LayoutParams;
-import co.mobiwise.materialintro.MaterialIntroConfiguration;
-import co.mobiwise.materialintro.R.id;
-import co.mobiwise.materialintro.R.layout;
-import co.mobiwise.materialintro.animation.AnimationFactory;
-import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.animation.AnimationListener.OnAnimationEndListener;
-import co.mobiwise.materialintro.animation.AnimationListener.OnAnimationStartListener;
 import co.mobiwise.materialintro.prefs.PreferencesManager;
 import co.mobiwise.materialintro.shape.Circle;
 import co.mobiwise.materialintro.shape.Focus;

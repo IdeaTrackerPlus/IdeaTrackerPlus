@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="appbox.ideastracker"
+    package="manparvesh.ideatrackerplus"
     android:installLocation="auto">
 
     <application
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="manparvesh.ideatrackerplus.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Launcher"
             android:screenOrientation="nosensor">
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MyIntro"
+            android:name="manparvesh.ideatrackerplus.MyIntro"
             android:theme="@style/FullscreenTheme"
             android:screenOrientation="nosensor" />
 

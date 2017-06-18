@@ -1,4 +1,4 @@
-package appbox.ideastracker.ideamenu;
+package manparvesh.ideatrackerplus.ideamenu;
 
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -7,7 +7,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.ScaleAnimation;
 
-import appbox.ideastracker.MainActivity;
+import manparvesh.ideatrackerplus.MainActivity;
 
 /**
  * Created by Nicklos on 10/12/2016.

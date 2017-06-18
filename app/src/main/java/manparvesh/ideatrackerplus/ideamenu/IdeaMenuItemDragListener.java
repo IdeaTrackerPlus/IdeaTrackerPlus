@@ -1,4 +1,4 @@
-package appbox.ideastracker.ideamenu;
+package manparvesh.ideatrackerplus.ideamenu;
 
 import android.view.DragEvent;
 import android.view.View;
@@ -9,7 +9,7 @@ import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.ScaleAnimation;
 
-import appbox.ideastracker.MainActivity;
+import manparvesh.ideatrackerplus.MainActivity;
 
 /**
  * Created by Nicklos on 03/10/2016.

@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package manparvesh.ideatrackerplus;
 
 import android.content.Intent;
 import android.os.Bundle;

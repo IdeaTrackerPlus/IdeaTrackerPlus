@@ -1,4 +1,4 @@
-package appbox.ideastracker.database;
+package manparvesh.ideatrackerplus.database;
 
 /**
  * This class represents a project to be stored in the TinyDB.

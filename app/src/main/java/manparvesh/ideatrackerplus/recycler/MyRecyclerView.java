@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycler;
+package manparvesh.ideatrackerplus.recycler;
 
 import android.content.Context;
 import android.os.Handler;
@@ -9,10 +9,10 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 
-import appbox.ideastracker.MainActivity;
-import appbox.ideastracker.R;
-import appbox.ideastracker.SearchListAdapter;
-import appbox.ideastracker.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.MainActivity;
+import manparvesh.ideatrackerplus.R;
+import manparvesh.ideatrackerplus.SearchListAdapter;
+import manparvesh.ideatrackerplus.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 13/07/2016.

@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:fitsSystemWindows="true"
-    tools:context="appbox.ideastracker.MainActivity">
+    tools:context="manparvesh.ideatrackerplus.MainActivity">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -38,7 +38,7 @@
         </android.support.design.widget.AppBarLayout>
 
 
-        <appbox.ideastracker.customviews.NonSwipeableViewPager
+        <manparvesh.ideatrackerplus.customviews.NonSwipeableViewPager
             android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

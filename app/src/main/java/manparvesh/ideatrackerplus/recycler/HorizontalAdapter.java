@@ -1,4 +1,4 @@
-package appbox.ideastracker.recycler;
+package manparvesh.ideatrackerplus.recycler;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -11,8 +11,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import appbox.ideastracker.R;
-import appbox.ideastracker.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.R;
+import manparvesh.ideatrackerplus.database.DatabaseHelper;
 
 /**
  * Created by Nicklos on 13/07/2016.

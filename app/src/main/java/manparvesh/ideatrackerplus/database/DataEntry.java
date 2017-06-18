@@ -1,4 +1,4 @@
-package appbox.ideastracker.database;
+package manparvesh.ideatrackerplus.database;
 
 import android.provider.BaseColumns;
 

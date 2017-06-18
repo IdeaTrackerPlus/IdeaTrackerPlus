@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package manparvesh.ideatrackerplus;
 
 import android.annotation.TargetApi;
 import android.app.Dialog;
@@ -90,18 +90,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import appbox.ideastracker.customviews.MyMaterialIntroView;
-import appbox.ideastracker.customviews.NonSwipeableViewPager;
-import appbox.ideastracker.customviews.ToolbarColorizeHelper;
-import appbox.ideastracker.database.DataEntry;
-import appbox.ideastracker.database.DatabaseHelper;
-import appbox.ideastracker.database.Project;
-import appbox.ideastracker.database.TinyDB;
-import appbox.ideastracker.ideamenu.FabShadowBuilder;
-import appbox.ideastracker.ideamenu.IdeaMenuItemClickListener;
-import appbox.ideastracker.ideamenu.IdeaMenuItemDragListener;
-import appbox.ideastracker.recycler.HorizontalAdapter;
-import appbox.ideastracker.recycler.RecyclerOnClickListener;
+import manparvesh.ideatrackerplus.customviews.MyMaterialIntroView;
+import manparvesh.ideatrackerplus.customviews.NonSwipeableViewPager;
+import manparvesh.ideatrackerplus.customviews.ToolbarColorizeHelper;
+import manparvesh.ideatrackerplus.database.DataEntry;
+import manparvesh.ideatrackerplus.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.database.Project;
+import manparvesh.ideatrackerplus.database.TinyDB;
+import manparvesh.ideatrackerplus.ideamenu.FabShadowBuilder;
+import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemClickListener;
+import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemDragListener;
+import manparvesh.ideatrackerplus.recycler.HorizontalAdapter;
+import manparvesh.ideatrackerplus.recycler.RecyclerOnClickListener;
 import co.mobiwise.materialintro.animation.MaterialIntroListener;
 import co.mobiwise.materialintro.prefs.PreferencesManager;
 import co.mobiwise.materialintro.shape.Focus;

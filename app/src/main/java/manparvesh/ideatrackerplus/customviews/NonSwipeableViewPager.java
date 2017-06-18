@@ -1,4 +1,4 @@
-package appbox.ideastracker.customviews;
+package manparvesh.ideatrackerplus.customviews;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;

@@ -1,4 +1,4 @@
-package appbox.ideastracker.customviews;
+package manparvesh.ideatrackerplus.customviews;
 
 /*
 Copyright 2015 Michal Pawlowski
@@ -31,7 +31,7 @@ import android.widget.ImageButton;
 
 import java.util.ArrayList;
 
-import appbox.ideastracker.R;
+import manparvesh.ideatrackerplus.R;
 
 /**
  * Helper class that iterates through Toolbar views, and sets dynamically icons and texts color

@@ -1,4 +1,4 @@
-package appbox.ideastracker.database;
+package manparvesh.ideatrackerplus.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,10 +13,10 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-import appbox.ideastracker.ItemAdapter;
-import appbox.ideastracker.MainActivity;
-import appbox.ideastracker.R;
-import appbox.ideastracker.SearchListAdapter;
+import manparvesh.ideatrackerplus.ItemAdapter;
+import manparvesh.ideatrackerplus.MainActivity;
+import manparvesh.ideatrackerplus.R;
+import manparvesh.ideatrackerplus.SearchListAdapter;
 
 /**
  * This class takes care of the interaction with the database

@@ -1,4 +1,4 @@
-package appbox.ideastracker;
+package manparvesh.ideatrackerplus;
 
 /**
  * Copyright 2014 Magnus Woxblom
@@ -26,8 +26,8 @@ import android.view.ViewGroup;
 
 import com.woxthebox.draglistview.DragItemAdapter;
 
-import appbox.ideastracker.recycler.HorizontalAdapter;
-import appbox.ideastracker.recycler.MyRecyclerView;
+import manparvesh.ideatrackerplus.recycler.HorizontalAdapter;
+import manparvesh.ideatrackerplus.recycler.MyRecyclerView;
 
 public class ItemAdapter extends DragItemAdapter<Pair<Integer, String>, ItemAdapter.ViewHolder> {
 
