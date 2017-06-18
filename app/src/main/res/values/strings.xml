@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ideas Tracker</string>
+    <string name="app_name">Idea Tracker Plus</string>
     <string name="action_settings">Settings</string>
     <string name="radio_1" translatable="false">1</string>
     <string name="radio_2" translatable="false">2</string>

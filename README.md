@@ -2,8 +2,10 @@
 
 # IdeasTrackerPlus: Projects & Tasks
 
+> This is a clone of the [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
+
 <b>A TO-DO LIST FOR YOUR IDEAS:</b>
-This is a clone of the [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
+
 IdeasTracker is an entirely free and open source idea, task and project management app helping you keep track of your great ideas. Almost like a To-Do list, but more relax: no annoying reminder, or big red “overdue task” notification.
 Your ideas/tasks are clearly separated by project, no need for tags or filters, you can simply focus on one project at a time.
 
