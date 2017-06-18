@@ -2,6 +2,9 @@
 (There are two templates. You can choose which one to use and delete the other one. Also, please remove the text in the brackets before you submit an issue)
 
 (For bug reporting)  
+Description
+-------------------------------------------
+
 What are the steps to reproduce this issue?
 -------------------------------------------
 1. …

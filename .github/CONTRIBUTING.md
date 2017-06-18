@@ -30,7 +30,6 @@ Push to your fork and [submit a pull request](https://github.com/IdeaTrackerPlus
 
 ## Github labels
 ### Issue labels
-- Labels starting with `module: `: these specify the modules in which the changes / enhancements are to be made.
 - `bug`: it's a bug
 - `enhancement`: hacking on the existing code
 - Labels starting with `difficulty: `: specify the difficulty levels of the issue, depending on the work to be done to complete it.
