@@ -73,8 +73,10 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         String text = mDbHelper.getTextById(mIdRecycler);
         String note = mDbHelper.getNoteById(mIdRecycler);
+        int state = mDbHelper.getTabById(mIdRecycler);
 
-        new LovelyStandardDialog(MainActivity.getInstance())
+        LovelyStandardDialog lovelyStandardDialog =
+                new LovelyStandardDialog(MainActivity.getInstance())
                 .setTopColorRes(getPriorityColor())
                 .setIcon(R.drawable.ic_bulb)
                 .setTitle(text)
@@ -93,15 +95,24 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                     }
                 })
                 .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton(R.string.edit, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        editIdeaDialog();
-                    }
-                })
-                .setNegativeButtonColorRes(R.color.md_pink_a200)
-                .show();
+                .setNegativeButtonColorRes(R.color.md_pink_a200);
 
+        // switch for future cases
+        switch (state) {
+            case 3:
+                break;
+            default:
+                lovelyStandardDialog.
+                        setNegativeButton(R.string.edit, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                editIdeaDialog();
+                            }
+                        });
+                break;
+        }
+
+        lovelyStandardDialog.show();
     }
 
     /**
