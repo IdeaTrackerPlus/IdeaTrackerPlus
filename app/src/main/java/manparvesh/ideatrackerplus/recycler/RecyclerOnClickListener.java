@@ -132,7 +132,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         //change some strings from new to edit
         title.setText(R.string.edit_idea);
-        doneButton.setText(R.string.edit);
+        doneButton.setText(R.string.save);
 
 
         //set up the error message
