@@ -195,8 +195,9 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        mDarkTheme = prefs.getBoolean("darkTheme", false);
+        // Databases
+        mTinyDB = new TinyDB(this);
+        mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref));
 
         if (mDarkTheme) {
             setTheme(R.style.AppThemeDark_NoActionBar);
@@ -208,8 +209,6 @@ public class MainActivity extends AppCompatActivity implements
 
         sInstance = this;
 
-        // Databases
-        mTinyDB = new TinyDB(this);
         mDbHelper = DatabaseHelper.getInstance(this);
 
         // App intro
@@ -1111,11 +1110,8 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    private void changeDarkTheme(boolean isChecked) {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean("darkTheme", isChecked);
-        editor.commit();
+    private void changeDarkTheme(boolean isDarkThemeEnabled) {
+        mTinyDB.putBoolean(getString(R.string.dark_theme_pref), isDarkThemeEnabled);
         recreate();
     }
 
