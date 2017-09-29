@@ -28,7 +28,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -78,7 +77,6 @@ import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
-import com.mikepenz.materialdrawer.model.ToggleDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.shehabic.droppy.DroppyClickCallbackInterface;
@@ -131,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem bigTextSwitch;
-    private SwitchDrawerItem mColorItemDark;
+    private SwitchDrawerItem darkSwitch;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
@@ -386,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, bigTextSwitch),
+                                doneSwitch, bigTextSwitch, darkSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -416,7 +414,6 @@ public class MainActivity extends AppCompatActivity implements
                 });
 
         //COLORS BUTTONS
-        mColorItemDark = new SwitchDrawerItem().withIdentifier(7).withName(R.string.dark_col).withIcon(FontAwesome.Icon.faw_sun_o).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
         mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
         mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
         mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
@@ -427,7 +424,6 @@ public class MainActivity extends AppCompatActivity implements
                 .withSelectedItem(-1)
                 .addDrawerItems(
                         new SectionDrawerItem().withName(R.string.color_prefs),
-                        mColorItemDark,
                         mColorItem1,
                         mColorItem2,
                         mColorItem3,
@@ -555,6 +551,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
+        darkSwitch = new SwitchDrawerItem().withName(R.string.dark_col).withIdentifier(7).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
 
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
