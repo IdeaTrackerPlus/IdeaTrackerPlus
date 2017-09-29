@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -27,6 +28,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -75,6 +78,7 @@ import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.SwitchDrawerItem;
+import com.mikepenz.materialdrawer.model.ToggleDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.shehabic.droppy.DroppyClickCallbackInterface;
@@ -127,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem bigTextSwitch;
+    private SwitchDrawerItem mColorItemDark;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
@@ -168,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
     private boolean mNoProject = false;
+    private boolean mDarkTheme = true;
 
     // Color preferences
     private int defaultPrimaryColor;
@@ -191,7 +197,14 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme_NoActionBar);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mDarkTheme = prefs.getBoolean("darkTheme", false);
+
+        if (mDarkTheme) {
+            setTheme(R.style.AppThemeDark_NoActionBar);
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -403,6 +416,7 @@ public class MainActivity extends AppCompatActivity implements
                 });
 
         //COLORS BUTTONS
+        mColorItemDark = new SwitchDrawerItem().withIdentifier(7).withName(R.string.dark_col).withIcon(FontAwesome.Icon.faw_sun_o).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
         mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
         mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
         mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
@@ -413,6 +427,7 @@ public class MainActivity extends AppCompatActivity implements
                 .withSelectedItem(-1)
                 .addDrawerItems(
                         new SectionDrawerItem().withName(R.string.color_prefs),
+                        mColorItemDark,
                         mColorItem1,
                         mColorItem2,
                         mColorItem3,
@@ -1097,6 +1112,14 @@ public class MainActivity extends AppCompatActivity implements
             rightDrawer.updateItem(mColorItem3);
         }
 
+    }
+
+    private void changeDarkTheme(boolean isChecked) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean("darkTheme", isChecked);
+        editor.commit();
+        recreate();
     }
 
     // Change all UI colors to match the color attributes
@@ -2038,6 +2061,11 @@ public class MainActivity extends AppCompatActivity implements
                     DatabaseHelper.notifyAllLists();
 
                 }
+                break;
+
+            case 7:
+                changeDarkTheme(isChecked);
+                break;
         }
 
 
