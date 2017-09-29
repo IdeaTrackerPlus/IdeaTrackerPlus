@@ -17,6 +17,7 @@
     <string name="rename">RENAME</string>
     <string name="all_pro">All projects</string>
     <string name="new_pro">New project</string>
+    <string name="dark_col">Dark Theme</string>
     <string name="primary_col">Primary color</string>
     <string name="secondary_col">Secondary color</string>
     <string name="text_col">Text color</string>
