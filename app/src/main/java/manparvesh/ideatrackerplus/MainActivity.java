@@ -1816,6 +1816,7 @@ public class MainActivity extends AppCompatActivity implements
                 case 2: //Delete project
                     if (!mNoProject) {
                         deleteProjectDialog();
+                        leftDrawer.closeDrawer();
                     } else {
                         noProjectSnack();
                     }
@@ -1988,6 +1989,7 @@ public class MainActivity extends AppCompatActivity implements
 
             String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
             switchToProject(projectName);
+            leftDrawer.closeDrawer();
         }
         return false;
     }
