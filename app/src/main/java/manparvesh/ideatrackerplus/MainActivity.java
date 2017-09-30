@@ -1187,6 +1187,7 @@ public class MainActivity extends AppCompatActivity implements
         if (mSearchBar == null) {
             CoordinatorLayout.LayoutParams params = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             mSearchBar = new MaterialSearchBar(this, null);
+            mSearchBar.setTextColor(android.R.color.black);
             mSearchBar.setHint(getString(R.string.search));
             mSearchBar.setOnSearchActionListener(this);
             ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mSearchBar, params);
