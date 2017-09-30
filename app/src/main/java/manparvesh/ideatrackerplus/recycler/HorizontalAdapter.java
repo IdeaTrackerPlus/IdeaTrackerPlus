@@ -32,6 +32,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     // same text size for all ideas
     private static boolean mBigtext = false;
 
+    private boolean mDarkTheme;
+
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView txtView;
@@ -47,10 +49,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     }
 
 
-    public HorizontalAdapter(Context context, String text, int tabNumber) {
+    public HorizontalAdapter(Context context, String text, int tabNumber, boolean darkTheme) {
         mIdea = text;
         mTabNumber = tabNumber;
         mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
+        mDarkTheme = darkTheme;
 
     }
 
@@ -98,7 +101,11 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
             if (position == 1) {//Idea text and tabTag
                 holder.tabTag.setVisibility(View.VISIBLE);
-                holder.tabTag.setTextColor(Color.BLACK);
+                if (mDarkTheme) {
+                    holder.tabTag.setTextColor(Color.WHITE);
+                } else {
+                    holder.tabTag.setTextColor(Color.BLACK);
+                }
                 switch (tab) {
                     case 1:
                         holder.tabTag.setText(R.string.first_tab);
@@ -131,12 +138,21 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         holder.txtView.setSingleLine();
                         holder.txtView.setText(mIdea);
                         holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            container.setBackgroundResource(R.drawable.white_ripple);
+                        if (mDarkTheme) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                container.setBackgroundResource(R.drawable.grey_ripple);
+                            } else {
+                                container.setBackgroundResource(R.color.md_blue_grey_800);
+                            }
+                            holder.txtView.setTextColor(Color.WHITE);
                         } else {
-                            container.setBackgroundResource(R.color.white);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                container.setBackgroundResource(R.drawable.white_ripple);
+                            } else {
+                                container.setBackgroundResource(R.color.white);
+                            }
+                            holder.txtView.setTextColor(Color.BLACK);
                         }
-                        holder.txtView.setTextColor(Color.BLACK);
                         //Listeners
                         RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
                         container.setOnClickListener(listener);

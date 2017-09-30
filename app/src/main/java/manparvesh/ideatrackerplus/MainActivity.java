@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -27,6 +28,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -127,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem bigTextSwitch;
+    private SwitchDrawerItem darkSwitch;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
@@ -168,6 +171,7 @@ public class MainActivity extends AppCompatActivity implements
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
     private boolean mNoProject = false;
+    private boolean mDarkTheme = true;
 
     // Color preferences
     private int defaultPrimaryColor;
@@ -191,14 +195,22 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme_NoActionBar);
+        mTinyDB = new TinyDB(this);
+        mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref));
+
+        if (mDarkTheme) {
+            setTheme(R.style.AppThemeDark_NoActionBar);
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         sInstance = this;
 
-        // Databases
-        mTinyDB = new TinyDB(this);
+        //Initialize SearchListAdapter with proper dark theme value
+        SearchListAdapter.getInstance(this, mDarkTheme);
+
         mDbHelper = DatabaseHelper.getInstance(this);
 
         // App intro
@@ -227,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set up drawers in background tasks
         setUpDrawers();
-
     }
 
     @Override
@@ -373,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, bigTextSwitch),
+                                doneSwitch, bigTextSwitch, darkSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
@@ -540,6 +551,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
+        darkSwitch = new SwitchDrawerItem().withName(R.string.dark_col).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
 
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
@@ -558,7 +570,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows an idea creation dialog
     public void newIdeaDialog() {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mNewIdeaDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
@@ -668,7 +680,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void newProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_notepad)
@@ -751,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
@@ -806,7 +818,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
 
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
@@ -853,7 +865,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows a dialog to reset color preferences to default
     private void resetColorsDialog() {
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColor(mPrimaryColor)
                 .setButtonsColorRes(R.color.md_pink_a200)
                 .setIcon(R.drawable.ic_drop)
@@ -1099,6 +1111,11 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    private void changeDarkTheme(boolean isDarkThemeEnabled) {
+        mTinyDB.putBoolean(getString(R.string.dark_theme_pref), isDarkThemeEnabled);
+        recreate();
+    }
+
     // Change all UI colors to match the color attributes
     private void updateColors() {
         changePrimaryColor();
@@ -1171,6 +1188,7 @@ public class MainActivity extends AppCompatActivity implements
         if (mSearchBar == null) {
             CoordinatorLayout.LayoutParams params = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             mSearchBar = new MaterialSearchBar(this, null);
+            mSearchBar.setTextColor(android.R.color.black);
             mSearchBar.setHint(getString(R.string.search));
             mSearchBar.setOnSearchActionListener(this);
             ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mSearchBar, params);
@@ -1616,12 +1634,13 @@ public class MainActivity extends AppCompatActivity implements
 
         private static MainActivity mainActivity;
 
-        public static ListFragment newInstance(String tabName) {
+        public static ListFragment newInstance(String tabName, boolean darkTheme) {
             ListFragment f = new ListFragment();
 
             // Supply index input as an argument.
             Bundle args = new Bundle();
             args.putString("tabName", tabName);
+            args.putBoolean("darkTheme", darkTheme);
             f.setArguments(args);
 
             return f;
@@ -1637,6 +1656,8 @@ public class MainActivity extends AppCompatActivity implements
                                  Bundle savedInstanceState) {
 
             mainActivity = MainActivity.getInstance();
+
+            boolean darkTheme = getArguments().getBoolean("darkTheme", false);
 
             View rootView;
             // NO PROJECT
@@ -1656,7 +1677,7 @@ public class MainActivity extends AppCompatActivity implements
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
 
-                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
+                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext(), false);
                 list.setAdapter(adapter);
                 return rootView;
             }
@@ -1698,7 +1719,7 @@ public class MainActivity extends AppCompatActivity implements
             });
 
             //Set adapter
-            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
+            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view, darkTheme);
             mDragListView.setAdapter(itemAdapter, false);
             mDragListView.setCanDragHorizontally(false);
 
@@ -1728,7 +1749,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString());
+            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString(), mDarkTheme);
         }
 
         @Override
@@ -2038,6 +2059,11 @@ public class MainActivity extends AppCompatActivity implements
                     DatabaseHelper.notifyAllLists();
 
                 }
+                break;
+
+            case 7:
+                changeDarkTheme(isChecked);
+                break;
         }
 
 

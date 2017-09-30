@@ -104,7 +104,7 @@ public class MyRecyclerView extends RecyclerView {
 
                 //Notify search tab if necessary
                 if (state == RecyclerView.SCROLL_STATE_IDLE && needSearchNotify) {
-                    SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
+                    SearchListAdapter.getInstance(getContext(), false).notifyDataSetChanged();
                     needSearchNotify = false;
                     return;
                 }
@@ -320,7 +320,7 @@ public class MyRecyclerView extends RecyclerView {
                 mDbHelper.deleteEntryWithSnack(v, tagId);
 
                 mainActivity.displayIdeasCount();
-                SearchListAdapter.getInstance(getContext()).notifyDataSetChanged();
+                SearchListAdapter.getInstance(getContext(), false).notifyDataSetChanged();
             }
 
             @Override
