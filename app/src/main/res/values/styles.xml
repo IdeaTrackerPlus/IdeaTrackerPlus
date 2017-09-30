@@ -6,12 +6,14 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="listSeparator">@color/md_grey_300</item>
     </style>
     <style name="AppThemeDark" parent="MaterialDrawerTheme.ActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="listSeparator">@color/md_grey_800</item>
     </style>
 
 

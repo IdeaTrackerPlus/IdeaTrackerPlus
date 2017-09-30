@@ -195,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Databases
         mTinyDB = new TinyDB(this);
         mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref));
 
@@ -208,6 +207,9 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         sInstance = this;
+
+        //Initialize SearchListAdapter with proper dark theme value
+        SearchListAdapter.getInstance(this, mDarkTheme);
 
         mDbHelper = DatabaseHelper.getInstance(this);
 
@@ -237,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set up drawers in background tasks
         setUpDrawers();
-
     }
 
     @Override
@@ -1633,12 +1634,13 @@ public class MainActivity extends AppCompatActivity implements
 
         private static MainActivity mainActivity;
 
-        public static ListFragment newInstance(String tabName) {
+        public static ListFragment newInstance(String tabName, boolean darkTheme) {
             ListFragment f = new ListFragment();
 
             // Supply index input as an argument.
             Bundle args = new Bundle();
             args.putString("tabName", tabName);
+            args.putBoolean("darkTheme", darkTheme);
             f.setArguments(args);
 
             return f;
@@ -1654,6 +1656,8 @@ public class MainActivity extends AppCompatActivity implements
                                  Bundle savedInstanceState) {
 
             mainActivity = MainActivity.getInstance();
+
+            boolean darkTheme = getArguments().getBoolean("darkTheme", false);
 
             View rootView;
             // NO PROJECT
@@ -1673,7 +1677,7 @@ public class MainActivity extends AppCompatActivity implements
                 rootView = inflater.inflate(R.layout.search_view, container, false);
                 ListView list = (ListView) rootView.findViewById(R.id.search_list);
 
-                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
+                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext(), false);
                 list.setAdapter(adapter);
                 return rootView;
             }
@@ -1715,7 +1719,7 @@ public class MainActivity extends AppCompatActivity implements
             });
 
             //Set adapter
-            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
+            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view, darkTheme);
             mDragListView.setAdapter(itemAdapter, false);
             mDragListView.setCanDragHorizontally(false);
 
@@ -1745,7 +1749,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString());
+            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString(), mDarkTheme);
         }
 
         @Override
