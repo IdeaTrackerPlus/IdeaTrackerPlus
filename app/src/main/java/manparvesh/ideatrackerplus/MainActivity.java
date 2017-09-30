@@ -116,7 +116,8 @@ public class MainActivity extends AppCompatActivity implements
         MaterialSearchBar.OnSearchActionListener,
         MaterialFavoriteButton.OnFavoriteChangeListener,
         View.OnClickListener,
-        View.OnLongClickListener {
+        View.OnLongClickListener,
+        View.OnFocusChangeListener {
 
     // Database
     private DatabaseHelper mDbHelper;
@@ -580,8 +581,13 @@ public class MainActivity extends AppCompatActivity implements
         mIdeaField.addTextChangedListener(this);
         mIdeaField.setTag(1);
         mIdeaField.setOnEditorActionListener(this);
+        mIdeaField.setHighlightColor(Color.LTGRAY);
+        mIdeaField.setOnFocusChangeListener(this);
+
         mNoteField.setTag(2);
         mNoteField.setOnEditorActionListener(this);
+        mNoteField.setHighlightColor(Color.LTGRAY);
+        mNoteField.setOnFocusChangeListener(this);
 
         //request focus on the edit text
         if (mIdeaField.requestFocus()) {
@@ -686,6 +692,8 @@ public class MainActivity extends AppCompatActivity implements
 
         //hide error when text change
         mProjectField.addTextChangedListener(this);
+        mProjectField.setHighlightColor(Color.LTGRAY);
+        mProjectField.setOnFocusChangeListener(this);
 
         //request focus on the edit text
         if (mProjectField.requestFocus()) {
@@ -1600,6 +1608,18 @@ public class MainActivity extends AppCompatActivity implements
             switchToProjectColors();
         }
 
+    }
+
+    @Override
+    public void onFocusChange(View view, boolean hasFocus) {
+        if(view instanceof EditText) {
+            EditText editText = (EditText) view;
+            if(hasFocus) {
+                editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
+            } else {
+                editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+            }
+        }
     }
 
 
