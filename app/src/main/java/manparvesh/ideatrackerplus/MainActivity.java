@@ -550,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
-        darkSwitch = new SwitchDrawerItem().withName(R.string.dark_col).withIdentifier(7).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
+        darkSwitch = new SwitchDrawerItem().withName(R.string.dark_col).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
 
         doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
@@ -569,7 +569,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows an idea creation dialog
     public void newIdeaDialog() {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mNewIdeaDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
@@ -679,7 +679,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void newProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_notepad)
@@ -762,7 +762,7 @@ public class MainActivity extends AppCompatActivity implements
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
@@ -817,7 +817,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
 
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
@@ -864,7 +864,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows a dialog to reset color preferences to default
     private void resetColorsDialog() {
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColor(mPrimaryColor)
                 .setButtonsColorRes(R.color.md_pink_a200)
                 .setIcon(R.drawable.ic_drop)

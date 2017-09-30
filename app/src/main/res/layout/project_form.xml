@@ -20,7 +20,7 @@
             android:layout_marginStart="8dp"
             android:text="@string/new_pro"
             android:layout_centerVertical="true"
-            android:textColor="@color/md_black"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 

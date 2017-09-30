@@ -36,6 +36,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="EditTextTintThemeDark" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
     <style name="text">
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">16sp</item>
