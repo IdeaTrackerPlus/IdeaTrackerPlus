@@ -77,44 +77,37 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
 
         String note = mDbHelper.getNoteById(mIdRecycler);
-        int state = mDbHelper.getTabById(mIdRecycler);
+        final int state = mDbHelper.getTabById(mIdRecycler);
 
         LovelyStandardDialog lovelyStandardDialog =
                 new LovelyStandardDialog(MainActivity.getInstance())
-                .setTopColorRes(getPriorityColor())
-                .setIcon(R.drawable.ic_bulb)
-                .setTitle(text)
-                .setMessage(note)
-                .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok, null)
-                .setNeutralButton(R.string.delete, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mTabNumber == 4) {//Search tab
-                            mRecyclerView.muteCellToDelete();
-
-                        } else { //Other tabs
-                            mRecyclerView.sendCellToTab(-1);
-                        }
-                    }
-                })
-                .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButtonColorRes(R.color.md_pink_a200);
-
-        // switch for future cases
-        switch (state) {
-            case 3:
-                break;
-            default:
-                lovelyStandardDialog.
-                        setNegativeButton(R.string.edit, new View.OnClickListener() {
+                        .setTopColorRes(getPriorityColor())
+                        .setIcon(R.drawable.ic_bulb)
+                        .setTitle(text)
+                        .setMessage(note)
+                        .setPositiveButtonColorRes(R.color.md_pink_a200)
+                        .setPositiveButton(R.string.ok, null)
+                        .setNegativeButton(R.string.edit, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                editIdeaDialog();
+                                if(state != 3) {
+                                    editIdeaDialog();
+                                }
                             }
-                        });
-                break;
-        }
+                        })
+                        .setNeutralButton(R.string.delete, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mTabNumber == 4) {//Search tab
+                                    mRecyclerView.muteCellToDelete();
+
+                                } else { //Other tabs
+                                    mRecyclerView.sendCellToTab(-1);
+                                }
+                            }
+                        })
+                        .setNeutralButtonColorRes(R.color.md_pink_a200)
+                        .setNegativeButtonColorRes(R.color.md_pink_a200);
 
         lovelyStandardDialog.show();
     }
