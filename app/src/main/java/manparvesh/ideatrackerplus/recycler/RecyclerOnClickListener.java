@@ -74,7 +74,8 @@ public class RecyclerOnClickListener implements View.OnClickListener {
     private void showIdeaDialog() {
 
         SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
-        text.setSpan(new AbsoluteSizeSpan(24,true),0,text.length(),0);
+        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
+
         String note = mDbHelper.getNoteById(mIdRecycler);
 
         new LovelyStandardDialog(MainActivity.getInstance())
