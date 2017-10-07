@@ -87,14 +87,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                         .setMessage(note)
                         .setPositiveButtonColorRes(R.color.md_pink_a200)
                         .setPositiveButton(R.string.ok, null)
-                        .setNegativeButton(R.string.edit, new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if(state != 3) {
-                                    editIdeaDialog();
-                                }
-                            }
-                        })
+
                         .setNeutralButton(R.string.delete, new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -108,6 +101,17 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                         })
                         .setNeutralButtonColorRes(R.color.md_pink_a200)
                         .setNegativeButtonColorRes(R.color.md_pink_a200);
+
+        // if state is NOT "Done"
+        if (state != 3){
+            lovelyStandardDialog.setNegativeButton(R.string.edit, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editIdeaDialog();
+                }
+            });
+        }
+
 
         lovelyStandardDialog.show();
     }
