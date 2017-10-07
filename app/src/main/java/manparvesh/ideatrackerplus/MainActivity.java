@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -1090,6 +1091,11 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.setTabTextColors(slightDarken(mTextColor), mTextColor);
         mToolbar.setTitleTextColor(mTextColor);
 
+        Drawable myFabSrc = getResources().getDrawable(R.drawable.add);
+        Drawable newColorDrawable = changeDrawableColor(myFabSrc,mTextColor);
+
+        mFab.setImageDrawable(newColorDrawable);
+
         ToolbarColorizeHelper.colorizeToolbar(mToolbar, mTextColor, this);
 
         if (rightDrawer != null) {
@@ -1097,6 +1103,16 @@ public class MainActivity extends AppCompatActivity implements
             rightDrawer.updateItem(mColorItem3);
         }
 
+    }
+
+    @NonNull
+    private Drawable changeDrawableColor(Drawable myFabSrc, int textColor) {
+        //get the drawable
+        //copy it in a new one
+        Drawable willBeWhite = myFabSrc.getConstantState().newDrawable();
+        //set the color filter, you can use also Mode.SRC_ATOP
+        willBeWhite.mutate().setColorFilter(textColor, PorterDuff.Mode.MULTIPLY);
+        return willBeWhite;
     }
 
     // Change all UI colors to match the color attributes

@@ -2,7 +2,9 @@ package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
 import android.text.Editable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.AbsoluteSizeSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -43,8 +45,8 @@ public class RecyclerOnClickListener implements View.OnClickListener {
     private EditText mIdeaField;
     private EditText mNoteField;
     private TextView mError;
-
     private Switch mDoLater;
+
     //Color for the dialogs
     private static int mPrimaryColor;
 
@@ -70,10 +72,16 @@ public class RecyclerOnClickListener implements View.OnClickListener {
      * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
+        SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
+        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
+
+        String note = mDbHelper.getNoteById(mIdRecycler);
+
         mDetailedIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
                 .setView(R.layout.detailed_idea_form)
-                .setTopColor(mPrimaryColor)
+                .setTopColor(getPriorityColor())
                 .setIcon(R.drawable.ic_bulb)
+                .setMessage(note)
                 .setListener(R.id.editButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -157,7 +165,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         //change some strings from new to edit
         title.setText(R.string.edit_idea);
-        doneButton.setText(R.string.edit);
+        doneButton.setText(R.string.save);
 
 
         //set up the error message

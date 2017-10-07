@@ -107,6 +107,7 @@
     <string name="search">Search</string>
     <string name="voice_msg">What\'s your idea?</string>
     <string name="idea_menu_pref">firstIdeaMenu</string>
+    <string name="save">Save</string>
     <string name="detailed_idea">Idea details</string>
 
     <string-array name="array_from">
