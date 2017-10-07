@@ -2,9 +2,7 @@ package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
 import android.text.Editable;
-import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.text.style.AbsoluteSizeSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -72,16 +70,10 @@ public class RecyclerOnClickListener implements View.OnClickListener {
      * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
-        SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
-        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
-
-        String note = mDbHelper.getNoteById(mIdRecycler);
-
         mDetailedIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
                 .setView(R.layout.detailed_idea_form)
                 .setTopColor(getPriorityColor())
                 .setIcon(R.drawable.ic_bulb)
-                .setMessage(note)
                 .setListener(R.id.editButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -114,9 +106,10 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         RadioGroup radioGroup = (RadioGroup) mDetailedIdeaDialog.findViewById(R.id.radioGroup);
         mIdeaField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editText);
         mNoteField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editNote);
-        String ideaText = mDbHelper.getTextById(mIdRecycler);
-        mIdeaField.append(ideaText);
+        mIdeaField.append(mDbHelper.getTextById(mIdRecycler));
         mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
+        mNoteField.setEnabled(false);
+        mIdeaField.setEnabled(false);
 
         RadioButton radio = null;
         switch (mPriority) {
