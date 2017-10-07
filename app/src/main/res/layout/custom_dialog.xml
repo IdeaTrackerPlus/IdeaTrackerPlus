@@ -34,10 +34,10 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_height="wrap_content">
+        android:layout_marginRight="8dp">
 
         <Button
             android:id="@+id/delete"
@@ -46,7 +46,8 @@
             android:layout_marginTop="30dp"
             android:background="@drawable/border"
             android:elevation="5dp"
-            android:text="DELETE" />
+            android:text="@string/delete" />
+
         <Button
             android:id="@+id/ok"
             android:layout_width="90dp"
@@ -55,7 +56,7 @@
             android:layout_marginTop="30dp"
             android:background="@drawable/border"
             android:elevation="5dp"
-            android:text="OK" />
+            android:text="@string/ok" />
 
         <Button
             android:id="@+id/edit"
@@ -66,7 +67,7 @@
             android:layout_toLeftOf="@id/ok"
             android:background="@drawable/border"
             android:elevation="5dp"
-            android:text="EDIT" />
+            android:text="@string/edit" />
 
 
     </RelativeLayout>
