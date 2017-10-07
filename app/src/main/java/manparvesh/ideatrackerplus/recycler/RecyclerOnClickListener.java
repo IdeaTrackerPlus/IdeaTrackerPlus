@@ -1,9 +1,11 @@
 package manparvesh.ideatrackerplus.recycler;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -73,35 +75,39 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         String text = mDbHelper.getTextById(mIdRecycler);
         String note = mDbHelper.getNoteById(mIdRecycler);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
+        View view = LayoutInflater.from(MainActivity.getInstance()).inflate(R.layout.custom_dialog, null);
+        builder.setView(view);
+        Button editBitton = (Button) view.findViewById(R.id.edit);
+        editBitton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editIdeaDialog();
+            }
+        });
+        Button deleteButton = (Button) view.findViewById(R.id.delete);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mTabNumber == 4) {//Search tab
+                    mRecyclerView.muteCellToDelete();
 
-        new LovelyStandardDialog(MainActivity.getInstance())
-                .setTopColorRes(getPriorityColor())
-                .setIcon(R.drawable.ic_bulb)
-                .setTitle(text)
-                .setMessage(note)
-                .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok, null)
-                .setNeutralButton(R.string.delete, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mTabNumber == 4) {//Search tab
-                            mRecyclerView.muteCellToDelete();
-
-                        } else { //Other tabs
-                            mRecyclerView.sendCellToTab(-1);
-                        }
-                    }
-                })
-                .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton(R.string.edit, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        editIdeaDialog();
-                    }
-                })
-                .setNegativeButtonColorRes(R.color.md_pink_a200)
-                .show();
-
+                } else { //Other tabs
+                    mRecyclerView.sendCellToTab(-1);
+                }
+            }
+        });
+        final AlertDialog alertDialog = builder.create();
+        Button okButton = (Button) view.findViewById(R.id.ok);
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        TextView noteText = (TextView) view.findViewById(R.id.note);
+        noteText.setText(note);
+        alertDialog.show();
     }
 
     /**
