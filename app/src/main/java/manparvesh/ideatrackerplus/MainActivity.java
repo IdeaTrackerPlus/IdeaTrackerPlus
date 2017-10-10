@@ -119,6 +119,28 @@ public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
         View.OnLongClickListener {
 
+    // IDs of the right drawer
+    private static final int ID_PRIMARY_COLOR = 1;
+    private static final int ID_SECONDARY_COLOR = 2;
+    private static final int ID_TEXT_COLOR = 3;
+    private static final int ID_CLEAR_DONE = 4;
+    private static final int ID_SORT_BY_PRIORITY = 5;
+    private static final int ID_RESET_COLOR_PREFS = 6;
+
+    // IDs of the left drawer
+    private static final int ID_RENAME_PROJECT = 1;
+    private static final int ID_DELETE_PROJECT = 2;
+    private static final int ID_NEW_PROJECT_AND_SWITCH = 3;
+    private static final int ID_ALL_PROJECTS = 4;
+    private static final int ID_TOGGLE_DONE = 6;
+    private static final int ID_SEE_APP_INTRO_AGAIN = 8;
+    private static final int ID_ACTIVATE_TUTORIAL_AGAIN = 9;
+    private static final int ID_SEND_FEEDBACK = 10;
+    private static final int ID_RATE_IDEAS_TRACKER = 11;
+    private static final int ID_SOURCE_CODE = 12;
+    private static final int ID_TOGGLE_BIG_TEXT = 20;
+    private static final int ID_NEW_PROJECT_WITHOUT_SWITCH = 30;
+
     // Database
     private DatabaseHelper mDbHelper;
 
@@ -346,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements
     // Set up the left and right drawers
     private void setUpDrawers() {
 
-        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(30).withSelectable(false).withOnDrawerItemClickListener(this);
+        mAddProject = new ProfileSettingDrawerItem().withName("New project").withIcon(FontAwesome.Icon.faw_plus).withIdentifier(ID_NEW_PROJECT_WITHOUT_SWITCH).withSelectable(false).withOnDrawerItemClickListener(this);
 
         //HEADER
         header = new AccountHeaderBuilder()
@@ -367,20 +389,20 @@ public class MainActivity extends AppCompatActivity implements
                 .withSelectedItem(-1)
                 .withAccountHeader(header)
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withIdentifier(1).withName(R.string.rename_pro).withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(2).withName(R.string.delete_pro).withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_RENAME_PROJECT).withName(R.string.rename_pro).withIcon(FontAwesome.Icon.faw_i_cursor).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_DELETE_PROJECT).withName(R.string.delete_pro).withIcon(FontAwesome.Icon.faw_trash).withSelectable(false),
                         new DividerDrawerItem(),
-                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(3).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_ALL_PROJECTS).withName(R.string.all_pro).withIcon(GoogleMaterial.Icon.gmd_inbox).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_NEW_PROJECT_AND_SWITCH).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
                                 doneSwitch, bigTextSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
-                                new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(8).withSelectable(false),
-                                new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(9).withSelectable(false),
-                                new SecondaryDrawerItem().withName(R.string.rate_app).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(11).withSelectable(false),
-                                new SecondaryDrawerItem().withName(R.string.feedback).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(10).withSelectable(false),
-                                new SecondaryDrawerItem().withName(R.string.source_code).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(12).withSelectable(false))
+                                new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(ID_SEE_APP_INTRO_AGAIN).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(ID_ACTIVATE_TUTORIAL_AGAIN).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.rate_app).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_star).withIdentifier(ID_RATE_IDEAS_TRACKER).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.feedback).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_bug).withIdentifier(ID_SEND_FEEDBACK).withSelectable(false),
+                                new SecondaryDrawerItem().withName(R.string.source_code).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_github).withIdentifier(ID_SOURCE_CODE).withSelectable(false))
 
 
                 )
@@ -404,9 +426,9 @@ public class MainActivity extends AppCompatActivity implements
                 });
 
         //COLORS BUTTONS
-        mColorItem1 = new PrimaryDrawerItem().withIdentifier(1).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
-        mColorItem2 = new PrimaryDrawerItem().withIdentifier(2).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
-        mColorItem3 = new PrimaryDrawerItem().withIdentifier(3).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
+        mColorItem1 = new PrimaryDrawerItem().withIdentifier(ID_PRIMARY_COLOR).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
+        mColorItem2 = new PrimaryDrawerItem().withIdentifier(ID_SECONDARY_COLOR).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
+        mColorItem3 = new PrimaryDrawerItem().withIdentifier(ID_TEXT_COLOR).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
 
         //RIGHT DRAWER
         rightDrawer = new DrawerBuilder(this)
@@ -417,10 +439,10 @@ public class MainActivity extends AppCompatActivity implements
                         mColorItem1,
                         mColorItem2,
                         mColorItem3,
-                        new PrimaryDrawerItem().withIdentifier(6).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_RESET_COLOR_PREFS).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
                         new SectionDrawerItem().withName(R.string.functions),
-                        new PrimaryDrawerItem().withIdentifier(4).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(5).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(ID_CLEAR_DONE).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_SORT_BY_PRIORITY).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -430,7 +452,7 @@ public class MainActivity extends AppCompatActivity implements
                         if (drawerItem != null && !mNoProject) {
                             int id = (int) drawerItem.getIdentifier();
                             switch (id) {
-                                case 1:
+                                case ID_PRIMARY_COLOR:
                                     new SpectrumDialog.Builder(getApplicationContext())
                                             .setTitle(R.string.select_prim_col)
                                             .setColors(R.array.colors)
@@ -458,7 +480,7 @@ public class MainActivity extends AppCompatActivity implements
 
                                     break;
 
-                                case 2:
+                                case ID_SECONDARY_COLOR:
                                     new SpectrumDialog.Builder(getApplicationContext())
                                             .setTitle(R.string.select_sec_col)
                                             .setColors(R.array.accent_colors)
@@ -478,7 +500,7 @@ public class MainActivity extends AppCompatActivity implements
                                             }).build().show(mFragmentManager, "dialog_spectrum");
                                     break;
 
-                                case 3:
+                                case ID_TEXT_COLOR:
                                     new SpectrumDialog.Builder(getApplicationContext())
                                             .setTitle(R.string.select_text_col)
                                             .setColors(R.array.textColors)
@@ -499,17 +521,17 @@ public class MainActivity extends AppCompatActivity implements
                                             }).build().show(mFragmentManager, "dialog_spectrum");
                                     break;
 
-                                case 4:
+                                case ID_CLEAR_DONE:
                                     mDbHelper.clearDoneWithSnack(mViewPager);
                                     rightDrawer.closeDrawer();
                                     break;
 
-                                case 5:
+                                case ID_SORT_BY_PRIORITY:
                                     mDbHelper.sortByAscPriority();
                                     rightDrawer.closeDrawer();
                                     break;
 
-                                case 6:
+                                case ID_RESET_COLOR_PREFS:
                                     resetColorsDialog();
                                     break;
                             }
@@ -542,11 +564,11 @@ public class MainActivity extends AppCompatActivity implements
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
 
-        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(6).withOnCheckedChangeListener(this).withSelectable(false);
+        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(ID_TOGGLE_DONE).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
         else toggleDoneTab();
 
-        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(20).withOnCheckedChangeListener(this).withSelectable(false);
+        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(ID_TOGGLE_BIG_TEXT).withOnCheckedChangeListener(this).withSelectable(false);
         if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
             bigTextSwitch.withChecked(true);
             HorizontalAdapter.setBigText(true);
@@ -1821,7 +1843,7 @@ public class MainActivity extends AppCompatActivity implements
         if (drawerItem != null) {
             int id = (int) drawerItem.getIdentifier();
             switch (id) {
-                case 1: //Rename project
+                case ID_RENAME_PROJECT:
                     if (!mNoProject) {
                         renameProjectDialog();
                     } else {
@@ -1829,7 +1851,7 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     break;
 
-                case 2: //Delete project
+                case ID_DELETE_PROJECT:
                     if (!mNoProject) {
                         deleteProjectDialog();
                         leftDrawer.closeDrawer();
@@ -1838,11 +1860,11 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     break;
 
-                case 3: //New project
+                case ID_NEW_PROJECT_AND_SWITCH:
                     newProjectDialog();
                     break;
 
-                case 4: //My projects
+                case ID_ALL_PROJECTS:
                     if (!mNoProject) {
                         header.toggleSelectionList(getApplicationContext());
                     } else {
@@ -1850,11 +1872,11 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     break;
 
-                case 8: //See intro again
+                case ID_SEE_APP_INTRO_AGAIN:
                     forceIntro();
                     break;
 
-                case 9: //Tutorial mode
+                case ID_ACTIVATE_TUTORIAL_AGAIN:
                     leftDrawer.closeDrawer();
                     Snackbar snackbar = Snackbar.make(findViewById(R.id.main_content), R.string.tuto_mode, Snackbar.LENGTH_SHORT)
                             .setCallback(new Snackbar.Callback() {
@@ -1870,13 +1892,13 @@ public class MainActivity extends AppCompatActivity implements
                     snackbar.show();
                     break;
 
-                case 10:
+                case ID_SEND_FEEDBACK:
                     // Open browser to github issues section
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker/issues"));
                     startActivity(browserIntent);
                     break;
 
-                case 11:
+                case ID_RATE_IDEAS_TRACKER:
                     // Rate
                     Uri uri = Uri.parse("market://details?id=" + getPackageName());
                     Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
@@ -1893,7 +1915,7 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     break;
 
-                case 12:
+                case ID_SOURCE_CODE:
                     // Open browser to github source code
                     Intent browserSource = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nserguier/IdeasTracker"));
                     startActivity(browserSource);
@@ -1994,7 +2016,7 @@ public class MainActivity extends AppCompatActivity implements
                     } else noProjectSnack();
                     break;
 
-                case 30: //Add project
+                case ID_NEW_PROJECT_WITHOUT_SWITCH:
                     newProjectDialog();
                     return false;
 
@@ -2002,7 +2024,6 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         if (drawerItem != null && drawerItem instanceof IProfile) {
-
             String projectName = ((IProfile) drawerItem).getName().getText(MainActivity.this);
             switchToProject(projectName);
             leftDrawer.closeDrawer();
@@ -2040,11 +2061,11 @@ public class MainActivity extends AppCompatActivity implements
         int id = (int) drawerItem.getIdentifier();
         switch (id) {
 
-            case 6:
+            case ID_TOGGLE_DONE:
                 toggleDoneTab();
                 break;
 
-            case 20:
+            case ID_TOGGLE_BIG_TEXT:
                 if (isChecked) {
                     HorizontalAdapter.setBigText(true);
                     mTinyDB.putBoolean(getString(R.string.big_text_pref), true);
@@ -2054,10 +2075,8 @@ public class MainActivity extends AppCompatActivity implements
                     HorizontalAdapter.setBigText(false);
                     mTinyDB.putBoolean(getString(R.string.big_text_pref), false);
                     DatabaseHelper.notifyAllLists();
-
                 }
         }
-
 
     }
 
