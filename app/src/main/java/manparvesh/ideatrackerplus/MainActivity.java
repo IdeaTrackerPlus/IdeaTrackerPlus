@@ -91,6 +91,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.prefs.PreferencesManager;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
 import manparvesh.ideatrackerplus.customviews.MyMaterialIntroView;
 import manparvesh.ideatrackerplus.customviews.NonSwipeableViewPager;
 import manparvesh.ideatrackerplus.customviews.ToolbarColorizeHelper;
@@ -103,10 +107,6 @@ import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemClickListener;
 import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemDragListener;
 import manparvesh.ideatrackerplus.recycler.HorizontalAdapter;
 import manparvesh.ideatrackerplus.recycler.RecyclerOnClickListener;
-import co.mobiwise.materialintro.animation.MaterialIntroListener;
-import co.mobiwise.materialintro.prefs.PreferencesManager;
-import co.mobiwise.materialintro.shape.Focus;
-import co.mobiwise.materialintro.shape.FocusGravity;
 
 public class MainActivity extends AppCompatActivity implements
         TextView.OnEditorActionListener,
@@ -426,9 +426,25 @@ public class MainActivity extends AppCompatActivity implements
                 });
 
         //COLORS BUTTONS
-        mColorItem1 = new PrimaryDrawerItem().withIdentifier(ID_PRIMARY_COLOR).withName(R.string.primary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mPrimaryColor).withSelectable(false);
-        mColorItem2 = new PrimaryDrawerItem().withIdentifier(ID_SECONDARY_COLOR).withName(R.string.secondary_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mSecondaryColor).withSelectable(false);
-        mColorItem3 = new PrimaryDrawerItem().withIdentifier(ID_TEXT_COLOR).withName(R.string.text_col).withIcon(FontAwesome.Icon.faw_paint_brush).withIconColor(mTextColor).withSelectable(false);
+        mColorItem1 = new PrimaryDrawerItem()
+                .withIdentifier(ID_PRIMARY_COLOR)
+                .withName(R.string.primary_col)
+                .withIcon(FontAwesome.Icon.faw_paint_brush)
+                .withIconColor(mPrimaryColor).withSelectable(false);
+
+        mColorItem2 = new PrimaryDrawerItem()
+                .withIdentifier(ID_SECONDARY_COLOR)
+                .withName(R.string.secondary_col)
+                .withIcon(FontAwesome.Icon.faw_paint_brush)
+                .withIconColor(mSecondaryColor)
+                .withSelectable(false);
+
+        mColorItem3 = new PrimaryDrawerItem()
+                .withIdentifier(ID_TEXT_COLOR)
+                .withName(R.string.text_col)
+                .withIcon(FontAwesome.Icon.faw_paint_brush)
+                .withIconColor(mTextColor)
+                .withSelectable(false);
 
         //RIGHT DRAWER
         rightDrawer = new DrawerBuilder(this)
@@ -439,10 +455,20 @@ public class MainActivity extends AppCompatActivity implements
                         mColorItem1,
                         mColorItem2,
                         mColorItem3,
-                        new PrimaryDrawerItem().withIdentifier(ID_RESET_COLOR_PREFS).withName(R.string.reset_color_prefs).withIcon(FontAwesome.Icon.faw_tint).withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_RESET_COLOR_PREFS)
+                                .withName(R.string.reset_color_prefs)
+                                .withIcon(FontAwesome.Icon.faw_tint)
+                                .withSelectable(false),
                         new SectionDrawerItem().withName(R.string.functions),
-                        new PrimaryDrawerItem().withIdentifier(ID_CLEAR_DONE).withName(R.string.clear_done).withIcon(FontAwesome.Icon.faw_check_circle).withSelectable(false),
-                        new PrimaryDrawerItem().withIdentifier(ID_SORT_BY_PRIORITY).withName(R.string.sort_priority).withIcon(FontAwesome.Icon.faw_sort_amount_desc).withSelectable(false)
+                        new PrimaryDrawerItem().withIdentifier(ID_CLEAR_DONE)
+                                .withName(R.string.clear_done)
+                                .withIcon(FontAwesome.Icon.faw_check_circle)
+                                .withSelectable(false),
+                        new PrimaryDrawerItem()
+                                .withIdentifier(ID_SORT_BY_PRIORITY)
+                                .withName(R.string.sort_priority)
+                                .withIcon(FontAwesome.Icon.faw_sort_amount_desc)
+                                .withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -561,14 +587,26 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    // Creates the swicthes displayed in the drawer
+    // Creates the switches displayed in the drawer
     private void setUpSwitches() {
 
-        doneSwitch = new SwitchDrawerItem().withName(R.string.show_done_msg).withLevel(2).withIdentifier(ID_TOGGLE_DONE).withOnCheckedChangeListener(this).withSelectable(false);
-        if (mTinyDB.getBoolean(getString(R.string.show_done_pref))) doneSwitch.withChecked(true);
-        else toggleDoneTab();
+        doneSwitch = new SwitchDrawerItem()
+                .withName(R.string.show_done_msg)
+                .withLevel(2).withIdentifier(ID_TOGGLE_DONE)
+                .withOnCheckedChangeListener(this)
+                .withSelectable(false);
 
-        bigTextSwitch = new SwitchDrawerItem().withName(R.string.big_text_msg).withLevel(2).withIdentifier(ID_TOGGLE_BIG_TEXT).withOnCheckedChangeListener(this).withSelectable(false);
+        if (mTinyDB.getBoolean(getString(R.string.show_done_pref)))
+            doneSwitch.withChecked(true);
+        else
+            toggleDoneTab();
+
+        bigTextSwitch = new SwitchDrawerItem()
+                .withName(R.string.big_text_msg)
+                .withLevel(2).withIdentifier(ID_TOGGLE_BIG_TEXT)
+                .withOnCheckedChangeListener(this)
+                .withSelectable(false);
+
         if (mTinyDB.getBoolean(getString(R.string.big_text_pref), false)) {
             bigTextSwitch.withChecked(true);
             HorizontalAdapter.setBigText(true);
@@ -936,9 +974,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 //  If the activity has never started before...
                 if (firstStart) {
-
                     forceIntro();
-
                     mTinyDB.putBoolean("firstStart", false);
                 }
             }
@@ -1114,7 +1150,7 @@ public class MainActivity extends AppCompatActivity implements
         mToolbar.setTitleTextColor(mTextColor);
 
         Drawable myFabSrc = getResources().getDrawable(R.drawable.add);
-        Drawable newColorDrawable = changeDrawableColor(myFabSrc,mTextColor);
+        Drawable newColorDrawable = changeDrawableColor(myFabSrc, mTextColor);
 
         mFab.setImageDrawable(newColorDrawable);
 
