@@ -5,7 +5,9 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.AbsoluteSizeSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -79,7 +81,9 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
      */
     private void showIdeaDialog() {
 
-        String text = mDbHelper.getTextById(mIdRecycler);
+        SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
+        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
+
         String note = mDbHelper.getNoteById(mIdRecycler);
 
         new LovelyStandardDialog(MainActivity.getInstance())
