@@ -292,6 +292,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
+    /**
+     * Returns status\tab id for dataEntry by given id
+     * @param id of dataEntry
+     * @return integer value of status\tab
+     *         1 - active?
+     *         2 - later
+     *         3 - done
+     */
     public int getTabById(int id) {
 
         Cursor cursor = getEntryById(id);

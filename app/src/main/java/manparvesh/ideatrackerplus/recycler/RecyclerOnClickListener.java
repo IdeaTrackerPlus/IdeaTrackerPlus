@@ -77,35 +77,41 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
 
         String note = mDbHelper.getNoteById(mIdRecycler);
+        final int state = mDbHelper.getTabById(mIdRecycler);
 
-        new LovelyStandardDialog(MainActivity.getInstance())
-                .setTopColorRes(getPriorityColor())
-                .setIcon(R.drawable.ic_bulb)
-                .setTitle(text)
-                .setMessage(note)
-                .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok, null)
-                .setNeutralButton(R.string.delete, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mTabNumber == 4) {//Search tab
-                            mRecyclerView.muteCellToDelete();
+        LovelyStandardDialog lovelyStandardDialog =
+                new LovelyStandardDialog(MainActivity.getInstance())
+                        .setTopColorRes(getPriorityColor())
+                        .setIcon(R.drawable.ic_bulb)
+                        .setTitle(text)
+                        .setMessage(note)
+                        .setPositiveButtonColorRes(R.color.md_pink_a200)
+                        .setPositiveButton(R.string.ok, null)
+                        .setNeutralButton(R.string.delete, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mTabNumber == 4) {//Search tab
+                                    mRecyclerView.muteCellToDelete();
 
-                        } else { //Other tabs
-                            mRecyclerView.sendCellToTab(-1);
-                        }
-                    }
-                })
-                .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton(R.string.edit, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        editIdeaDialog();
-                    }
-                })
-                .setNegativeButtonColorRes(R.color.md_pink_a200)
-                .show();
+                                } else { //Other tabs
+                                    mRecyclerView.sendCellToTab(-1);
+                                }
+                            }
+                        })
+                        .setNeutralButtonColorRes(R.color.md_pink_a200)
+                        .setNegativeButtonColorRes(R.color.md_pink_a200);
 
+        // if state is NOT "Done"
+        if (state != 3){
+            lovelyStandardDialog.setNegativeButton(R.string.edit, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editIdeaDialog();
+                }
+            });
+        }
+
+        lovelyStandardDialog.show();
     }
 
     /**
@@ -136,7 +142,7 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         //change some strings from new to edit
         title.setText(R.string.edit_idea);
-        doneButton.setText(R.string.save);
+        doneButton.setText(R.string.edit);
 
 
         //set up the error message
