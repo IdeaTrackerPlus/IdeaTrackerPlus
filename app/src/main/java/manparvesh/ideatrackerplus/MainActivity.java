@@ -26,6 +26,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -204,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements
     // SINGLETON //
 
     private static MainActivity sInstance;
+    private DrawerBuilder rightDrawerBuilder;
 
     public static synchronized MainActivity getInstance() {
         return sInstance;
@@ -250,6 +252,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set up drawers in background tasks
         setUpDrawers();
+        setRightDrawerSate();
 
     }
 
@@ -447,7 +450,7 @@ public class MainActivity extends AppCompatActivity implements
                 .withSelectable(false);
 
         //RIGHT DRAWER
-        rightDrawer = new DrawerBuilder(this)
+        rightDrawerBuilder = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
                 .addDrawerItems(
@@ -566,16 +569,15 @@ public class MainActivity extends AppCompatActivity implements
                         }
                         return true;
                     }
-                })
-                .append(leftDrawer);
+                });
 
+        rightDrawer = rightDrawerBuilder.build();
         //CURRENT PROJECT
         if (!mNoProject) {
             header.setActiveProfile(mProfiles.get(mSelectedProfileIndex));
             displayIdeasCount();
             refreshStar();
         } else { // No project
-
             header.setProfiles(mProfiles);
             header.setSelectionSecondLine(getString(R.string.no_project));
             //reset color
@@ -588,6 +590,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // Creates the switches displayed in the drawer
+    private void setRightDrawerSate() {
+        if (mNoProject) {
+            rightDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, Gravity.RIGHT);
+        } else {
+            rightDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+    }
+
+    // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
 
         doneSwitch = new SwitchDrawerItem()
@@ -797,7 +808,7 @@ public class MainActivity extends AppCompatActivity implements
                 header.toggleSelectionList(getApplicationContext());
                 firstProjectGuide();
             }
-
+            setRightDrawerSate();
             refreshStar();
 
             mProjectDialog.dismiss();
@@ -903,6 +914,7 @@ public class MainActivity extends AppCompatActivity implements
                         switchToExistingProject(mSelectedProfileIndex);
 
                         //favorite star
+                        setRightDrawerSate();
                         refreshStar();
                         //search mode
                         disableSearchMode();
