@@ -569,31 +569,37 @@ public class MainActivity extends AppCompatActivity implements
                         sendIdeaFromDialog();
                     }
                 })
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+                        //get the view items
+                        mRadioGroup = (RadioGroup) v.findViewById(R.id.radioGroup);
+                        mIdeaError = (TextView) v.findViewById(R.id.new_error_message);
+                        mIdeaField = (EditText) v.findViewById(R.id.editText);
+                        mNoteField = (EditText) v.findViewById(R.id.editNote);
+
+                        //set up listener for "ENTER" and text changed
+                        mIdeaField.addTextChangedListener(MainActivity.this);
+                        mIdeaField.setTag(1);
+                        mIdeaField.setOnEditorActionListener(MainActivity.this);
+                        mIdeaField.setHighlightColor(Color.LTGRAY);
+                        mIdeaField.setOnFocusChangeListener(MainActivity.this);
+
+                        mNoteField.setTag(2);
+                        mNoteField.setOnEditorActionListener(MainActivity.this);
+                        mNoteField.setHighlightColor(Color.LTGRAY);
+                        mNoteField.setOnFocusChangeListener(MainActivity.this);
+
+
+                        //request focus on the edit text
+
+                    }
+                })
                 .show();
 
-        //get the view items
-        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-        //set up listener for "ENTER" and text changed
-        mIdeaField.addTextChangedListener(this);
-        mIdeaField.setTag(1);
-        mIdeaField.setOnEditorActionListener(this);
-        mIdeaField.setHighlightColor(Color.LTGRAY);
-        mIdeaField.setOnFocusChangeListener(this);
-
-        mNoteField.setTag(2);
-        mNoteField.setOnEditorActionListener(this);
-        mNoteField.setHighlightColor(Color.LTGRAY);
-        mNoteField.setOnFocusChangeListener(this);
-
-        //request focus on the edit text
-        if (mIdeaField.requestFocus()) {
+        if (mNoteField.requestFocus() && mIdeaField.requestFocus()) {
             mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
-
     }
 
     private void sendIdeaFromDialog() {
@@ -1086,6 +1092,8 @@ public class MainActivity extends AppCompatActivity implements
             mColorItem2.withIconColor(mSecondaryColor);
             rightDrawer.updateItem(mColorItem2);
         }
+
+        RecyclerOnClickListener.setSecondaryColor(mSecondaryColor);
     }
 
     private void changeTextColor() {
