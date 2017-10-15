@@ -118,7 +118,8 @@ public class MainActivity extends AppCompatActivity implements
         MaterialSearchBar.OnSearchActionListener,
         MaterialFavoriteButton.OnFavoriteChangeListener,
         View.OnClickListener,
-        View.OnLongClickListener {
+        View.OnLongClickListener,
+        View.OnFocusChangeListener {
 
     // IDs of the right drawer
     private static final int ID_PRIMARY_COLOR = 1;
@@ -640,26 +641,37 @@ public class MainActivity extends AppCompatActivity implements
                         sendIdeaFromDialog();
                     }
                 })
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+                        //get the view items
+                        mRadioGroup = (RadioGroup) v.findViewById(R.id.radioGroup);
+                        mIdeaError = (TextView) v.findViewById(R.id.new_error_message);
+                        mIdeaField = (EditText) v.findViewById(R.id.editText);
+                        mNoteField = (EditText) v.findViewById(R.id.editNote);
+
+                        //set up listener for "ENTER" and text changed
+                        mIdeaField.addTextChangedListener(MainActivity.this);
+                        mIdeaField.setTag(1);
+                        mIdeaField.setOnEditorActionListener(MainActivity.this);
+                        mIdeaField.setHighlightColor(Color.LTGRAY);
+                        mIdeaField.setOnFocusChangeListener(MainActivity.this);
+
+                        mNoteField.setTag(2);
+                        mNoteField.setOnEditorActionListener(MainActivity.this);
+                        mNoteField.setHighlightColor(Color.LTGRAY);
+                        mNoteField.setOnFocusChangeListener(MainActivity.this);
+
+
+                        //request focus on the edit text
+
+                    }
+                })
                 .show();
 
-        //get the view items
-        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-        //set up listener for "ENTER" and text changed
-        mIdeaField.addTextChangedListener(this);
-        mIdeaField.setTag(1);
-        mIdeaField.setOnEditorActionListener(this);
-        mNoteField.setTag(2);
-        mNoteField.setOnEditorActionListener(this);
-
-        //request focus on the edit text
-        if (mIdeaField.requestFocus()) {
+        if (mNoteField.requestFocus() && mIdeaField.requestFocus()) {
             mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
-
     }
 
     private void sendIdeaFromDialog() {
@@ -758,6 +770,8 @@ public class MainActivity extends AppCompatActivity implements
 
         //hide error when text change
         mProjectField.addTextChangedListener(this);
+        mProjectField.setHighlightColor(Color.LTGRAY);
+        mProjectField.setOnFocusChangeListener(this);
 
         //request focus on the edit text
         if (mProjectField.requestFocus()) {
@@ -1149,6 +1163,8 @@ public class MainActivity extends AppCompatActivity implements
             mColorItem2.withIconColor(mSecondaryColor);
             rightDrawer.updateItem(mColorItem2);
         }
+
+        RecyclerOnClickListener.setSecondaryColor(mSecondaryColor);
     }
 
     private void changeTextColor() {
@@ -1686,6 +1702,18 @@ public class MainActivity extends AppCompatActivity implements
             switchToProjectColors();
         }
 
+    }
+
+    @Override
+    public void onFocusChange(View view, boolean hasFocus) {
+        if(view instanceof EditText) {
+            EditText editText = (EditText) view;
+            if(hasFocus) {
+                editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
+            } else {
+                editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+            }
+        }
     }
 
 
