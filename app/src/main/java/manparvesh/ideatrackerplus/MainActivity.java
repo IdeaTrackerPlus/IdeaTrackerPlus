@@ -27,6 +27,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -119,7 +120,8 @@ public class MainActivity extends AppCompatActivity implements
         MaterialSearchBar.OnSearchActionListener,
         MaterialFavoriteButton.OnFavoriteChangeListener,
         View.OnClickListener,
-        View.OnLongClickListener {
+        View.OnLongClickListener,
+        View.OnFocusChangeListener {
 
     // IDs of the right drawer
     private static final int ID_PRIMARY_COLOR = 1;
@@ -209,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements
     // SINGLETON //
 
     private static MainActivity sInstance;
+    private DrawerBuilder rightDrawerBuilder;
 
     public static synchronized MainActivity getInstance() {
         return sInstance;
@@ -263,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set up drawers in background tasks
         setUpDrawers();
+        setRightDrawerSate();
     }
 
     @Override
@@ -459,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements
                 .withSelectable(false);
 
         //RIGHT DRAWER
-        rightDrawer = new DrawerBuilder(this)
+        rightDrawerBuilder = new DrawerBuilder(this)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
                 .addDrawerItems(
@@ -578,16 +582,15 @@ public class MainActivity extends AppCompatActivity implements
                         }
                         return true;
                     }
-                })
-                .append(leftDrawer);
+                });
 
+        rightDrawer = rightDrawerBuilder.build();
         //CURRENT PROJECT
         if (!mNoProject) {
             header.setActiveProfile(mProfiles.get(mSelectedProfileIndex));
             displayIdeasCount();
             refreshStar();
         } else { // No project
-
             header.setProfiles(mProfiles);
             header.setSelectionSecondLine(getString(R.string.no_project));
             //reset color
@@ -600,6 +603,15 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // Creates the switches displayed in the drawer
+    private void setRightDrawerSate() {
+        if (mNoProject) {
+            rightDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, Gravity.RIGHT);
+        } else {
+            rightDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
+    }
+
+    // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
         darkSwitch = new SwitchDrawerItem()
                 .withName(R.string.dark_col)
@@ -647,26 +659,37 @@ public class MainActivity extends AppCompatActivity implements
                         sendIdeaFromDialog();
                     }
                 })
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+                        //get the view items
+                        mRadioGroup = (RadioGroup) v.findViewById(R.id.radioGroup);
+                        mIdeaError = (TextView) v.findViewById(R.id.new_error_message);
+                        mIdeaField = (EditText) v.findViewById(R.id.editText);
+                        mNoteField = (EditText) v.findViewById(R.id.editNote);
+
+                        //set up listener for "ENTER" and text changed
+                        mIdeaField.addTextChangedListener(MainActivity.this);
+                        mIdeaField.setTag(1);
+                        mIdeaField.setOnEditorActionListener(MainActivity.this);
+                        mIdeaField.setHighlightColor(Color.LTGRAY);
+                        mIdeaField.setOnFocusChangeListener(MainActivity.this);
+
+                        mNoteField.setTag(2);
+                        mNoteField.setOnEditorActionListener(MainActivity.this);
+                        mNoteField.setHighlightColor(Color.LTGRAY);
+                        mNoteField.setOnFocusChangeListener(MainActivity.this);
+
+
+                        //request focus on the edit text
+
+                    }
+                })
                 .show();
 
-        //get the view items
-        mRadioGroup = (RadioGroup) mNewIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaError = (TextView) mNewIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField = (EditText) mNewIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mNewIdeaDialog.findViewById(R.id.editNote);
-
-        //set up listener for "ENTER" and text changed
-        mIdeaField.addTextChangedListener(this);
-        mIdeaField.setTag(1);
-        mIdeaField.setOnEditorActionListener(this);
-        mNoteField.setTag(2);
-        mNoteField.setOnEditorActionListener(this);
-
-        //request focus on the edit text
-        if (mIdeaField.requestFocus()) {
+        if (mNoteField.requestFocus() && mIdeaField.requestFocus()) {
             mNewIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
-
     }
 
     private void sendIdeaFromDialog() {
@@ -765,6 +788,8 @@ public class MainActivity extends AppCompatActivity implements
 
         //hide error when text change
         mProjectField.addTextChangedListener(this);
+        mProjectField.setHighlightColor(Color.LTGRAY);
+        mProjectField.setOnFocusChangeListener(this);
 
         //request focus on the edit text
         if (mProjectField.requestFocus()) {
@@ -815,7 +840,7 @@ public class MainActivity extends AppCompatActivity implements
                 header.toggleSelectionList(getApplicationContext());
                 firstProjectGuide();
             }
-
+            setRightDrawerSate();
             refreshStar();
 
             mProjectDialog.dismiss();
@@ -921,6 +946,7 @@ public class MainActivity extends AppCompatActivity implements
                         switchToExistingProject(mSelectedProfileIndex);
 
                         //favorite star
+                        setRightDrawerSate();
                         refreshStar();
                         //search mode
                         disableSearchMode();
@@ -1155,6 +1181,8 @@ public class MainActivity extends AppCompatActivity implements
             mColorItem2.withIconColor(mSecondaryColor);
             rightDrawer.updateItem(mColorItem2);
         }
+
+        RecyclerOnClickListener.setSecondaryColor(mSecondaryColor);
     }
 
     private void changeTextColor() {
@@ -1698,6 +1726,18 @@ public class MainActivity extends AppCompatActivity implements
             switchToProjectColors();
         }
 
+    }
+
+    @Override
+    public void onFocusChange(View view, boolean hasFocus) {
+        if(view instanceof EditText) {
+            EditText editText = (EditText) view;
+            if(hasFocus) {
+                editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
+            } else {
+                editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+            }
+        }
     }
 
 

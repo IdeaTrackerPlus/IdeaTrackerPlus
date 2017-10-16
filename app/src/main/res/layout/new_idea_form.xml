@@ -43,7 +43,8 @@
         android:hint="@string/hint_edit_idea"
         android:textColorHint="@color/md_grey_500"
         android:imeOptions="actionDone"
-        android:inputType="textCapSentences|textMultiLine" />
+        android:inputType="textCapSentences|textMultiLine"
+        android:textCursorDrawable="@drawable/edit_text_cursor"/>
 
     <TextView
         android:id="@+id/new_error_message"
@@ -61,7 +62,8 @@
         android:layout_height="wrap_content"
         android:hint="@string/hint_edit_note"
         android:textColorHint="@color/md_grey_500"
-        android:inputType="textCapSentences|textMultiLine" />
+        android:inputType="textCapSentences|textMultiLine"
+        android:textCursorDrawable="@drawable/edit_text_cursor"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
