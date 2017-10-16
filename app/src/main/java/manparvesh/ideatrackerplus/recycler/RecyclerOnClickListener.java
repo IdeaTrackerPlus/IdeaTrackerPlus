@@ -17,7 +17,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
-import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
@@ -75,11 +74,11 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         String text = mDbHelper.getTextById(mIdRecycler);
         String note = mDbHelper.getNoteById(mIdRecycler);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
-        View view = LayoutInflater.from(MainActivity.getInstance()).inflate(R.layout.custom_dialog, null);
-        builder.setView(view);
-        Button editBitton = (Button) view.findViewById(R.id.edit);
-        editBitton.setOnClickListener(new View.OnClickListener() {
+        final AlertDialog.Builder editDialogBuilder = new AlertDialog.Builder(MainActivity.getInstance());
+        View view = LayoutInflater.from(MainActivity.getInstance()).inflate(R.layout.edit_dialog, null);
+        editDialogBuilder.setView(view);
+        Button editButton = (Button) view.findViewById(R.id.edit);
+        editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 editIdeaDialog();
@@ -91,13 +90,12 @@ public class RecyclerOnClickListener implements View.OnClickListener {
             public void onClick(View v) {
                 if (mTabNumber == 4) {//Search tab
                     mRecyclerView.muteCellToDelete();
-
                 } else { //Other tabs
                     mRecyclerView.sendCellToTab(-1);
                 }
             }
         });
-        final AlertDialog alertDialog = builder.create();
+        final AlertDialog alertDialog = editDialogBuilder.create();
         Button okButton = (Button) view.findViewById(R.id.ok);
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
