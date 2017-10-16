@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_CLEAR_DONE = 4;
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
+    private static final int ID_DARK_THEME = 7;
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -194,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
     private boolean mNoProject = false;
-    private boolean mDarkTheme = true;
+    private boolean mDarkTheme = false;
 
     // Color preferences
     private int defaultPrimaryColor;
@@ -219,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mTinyDB = new TinyDB(this);
-        mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref));
+        mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref), false);
 
         if (mDarkTheme) {
             setTheme(R.style.AppThemeDark_NoActionBar);
@@ -600,7 +601,12 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the switches displayed in the drawer
     private void setUpSwitches() {
-        darkSwitch = new SwitchDrawerItem().withName(R.string.dark_col).withLevel(2).withIdentifier(7).withOnCheckedChangeListener(this).withChecked(mDarkTheme).withSelectable(false);
+        darkSwitch = new SwitchDrawerItem()
+                .withName(R.string.dark_col)
+                .withLevel(2).withIdentifier(ID_DARK_THEME)
+                .withOnCheckedChangeListener(this)
+                .withChecked(mDarkTheme)
+                .withSelectable(false);
 
         doneSwitch = new SwitchDrawerItem()
                 .withName(R.string.show_done_msg)
@@ -2040,7 +2046,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 break;
 
-            case 7:
+            case ID_DARK_THEME:
                 changeDarkTheme(isChecked);
                 break;
         }
