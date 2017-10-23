@@ -1,6 +1,5 @@
 package manparvesh.ideatrackerplus;
 
-import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
@@ -22,21 +21,17 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,8 +47,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
@@ -84,7 +77,6 @@ import com.shehabic.droppy.DroppyMenuItem;
 import com.shehabic.droppy.DroppyMenuPopup;
 import com.shehabic.droppy.animations.DroppyFadeInAnimation;
 import com.thebluealliance.spectrum.SpectrumDialog;
-import com.woxthebox.draglistview.DragListView;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
@@ -119,7 +111,8 @@ public class MainActivity extends AppCompatActivity implements
         MaterialFavoriteButton.OnFavoriteChangeListener,
         View.OnClickListener,
         View.OnLongClickListener,
-        View.OnFocusChangeListener {
+        View.OnFocusChangeListener,
+        IdeaActivityHost {
 
     // IDs of the right drawer
     private static final int ID_PRIMARY_COLOR = 1;
@@ -166,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private TabLayout tabLayout;
     private MaterialSearchBar mSearchBar = null;
-    private static boolean searchMode;
+    private boolean searchMode;
     private DroppyMenuPopup.Builder mDroppyBuilder = null;
     private RelativeLayout mIdeasMenu = null;
     private MyMaterialIntroView mIdeasMenuGuide;
@@ -234,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
-        mSectionsPagerAdapter = new SectionsPagerAdapter(mFragmentManager);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(this, mFragmentManager);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
@@ -1245,7 +1238,6 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows/hide the DONE tab
     private void toggleDoneTab() {
-
         int count = tabLayout.getTabCount();
 
         for (int i = 0; i < count; i++) {
@@ -1706,9 +1698,9 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFocusChange(View view, boolean hasFocus) {
-        if(view instanceof EditText) {
+        if (view instanceof EditText) {
             EditText editText = (EditText) view;
-            if(hasFocus) {
+            if (hasFocus) {
                 editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
             } else {
                 editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
@@ -1718,151 +1710,6 @@ public class MainActivity extends AppCompatActivity implements
 
 
     // FRAGMENT CLASSES //
-
-    /**
-     * Fragment containing the listView to be displayed in each tab
-     */
-    public static class ListFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-
-        private static MainActivity mainActivity;
-
-        public static ListFragment newInstance(String tabName) {
-            ListFragment f = new ListFragment();
-
-            // Supply index input as an argument.
-            Bundle args = new Bundle();
-            args.putString("tabName", tabName);
-            f.setArguments(args);
-
-            return f;
-        }
-
-        public String getTabName() {
-            return getArguments().getString("tabName");
-        }
-
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-
-            mainActivity = MainActivity.getInstance();
-
-            View rootView;
-            // NO PROJECT
-            if (DataEntry.TABLE_NAME.equals("[]")) {
-                rootView = inflater.inflate(R.layout.no_project_layout, container, false);
-                LinearLayout lin = (LinearLayout) rootView.findViewById(R.id.noProject);
-                lin.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mainActivity.newProjectDialog();
-                    }
-                });
-                return rootView;
-            }
-
-            if (MainActivity.searchMode) {
-                rootView = inflater.inflate(R.layout.search_view, container, false);
-                ListView list = (ListView) rootView.findViewById(R.id.search_list);
-
-                SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
-                list.setAdapter(adapter);
-                return rootView;
-            }
-
-            //Inflate the list view
-            rootView = inflater.inflate(R.layout.fragment_list_view, container, false);
-            DragListView mDragListView = (DragListView) rootView.findViewById(R.id.list);
-            mDragListView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
-            //Determine tab number
-            int tabNumber = 0;
-            if (getTabName().equals(getString(R.string.first_tab))) { //IDEAS
-                tabNumber = 1;
-            } else if (getTabName().equals(getString(R.string.second_tab))) {
-                tabNumber = 2;
-            } else if (getTabName().equals(getString(R.string.third_tab))) {
-                tabNumber = 3;
-            }
-
-            //Set reorder listener
-            final int finalTabNumber = tabNumber;
-            mDragListView.setDragListListener(new DragListView.DragListListener() {
-
-                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-                @Override
-                public void onItemDragStarted(int position) {
-                }
-
-                @Override
-                public void onItemDragEnded(int fromPosition, int toPosition) {
-                    if (fromPosition != toPosition) {
-                        DatabaseHelper.getInstance(getContext()).resetEntriesOrderAt(finalTabNumber);
-                    }
-                }
-
-                @Override
-                public void onItemDragging(int itemPosition, float x, float y) {
-                }
-            });
-
-            //Set adapter
-            ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
-            mDragListView.setAdapter(itemAdapter, false);
-            mDragListView.setCanDragHorizontally(false);
-
-            DatabaseHelper.setAdapterAtTab(tabNumber, itemAdapter);
-            DatabaseHelper.notifyAllLists();
-
-            return rootView;
-        }
-
-    }
-
-    /**
-     * Fragment adapter creating the right fragment for the right tab
-     */
-    private class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        private int tabCount = 3;
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        public void setTabCount(int count) {
-            tabCount = count;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            return ListFragment.newInstance(tabLayout.getTabAt(position).getText().toString());
-        }
-
-        @Override
-        public int getCount() {
-            return tabCount;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return getString(R.string.first_tab);
-                case 1:
-                    return getString(R.string.second_tab);
-                case 2:
-                    return getString(R.string.third_tab);
-            }
-            return null;
-        }
-    }
 
 
     // INTERFACE LISTENERS METHODS //
@@ -2195,4 +2042,13 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
+    @Override
+    public boolean isSearchEnabled() {
+        return searchMode;
+    }
+
+    @Override
+    public void openProjectDialog() {
+        newProjectDialog();
+    }
 }
