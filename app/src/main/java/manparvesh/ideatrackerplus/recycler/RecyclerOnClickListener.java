@@ -5,9 +5,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
-import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.text.style.AbsoluteSizeSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,7 +18,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
-import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
@@ -41,6 +38,7 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
     private int mTabNumber;
     private int mPriority;
 
+    private Dialog mDetailedIdeaDialog;
     private Dialog mEditIdeaDialog;
 
     //Dialog views
@@ -80,20 +78,18 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
      * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
-
-        SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
-        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
-
-        String note = mDbHelper.getNoteById(mIdRecycler);
-
-        new LovelyStandardDialog(MainActivity.getInstance())
-                .setTopColorRes(getPriorityColor())
+        mDetailedIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
+                .setView(R.layout.detailed_idea_form)
+                .setTopColor(getPriorityColor())
                 .setIcon(R.drawable.ic_bulb)
-                .setTitle(text)
-                .setMessage(note)
-                .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok, null)
-                .setNeutralButton(R.string.delete, new View.OnClickListener() {
+                .setListener(R.id.editButton, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        editIdeaDialog();
+                        mDetailedIdeaDialog.dismiss();
+                    }
+                })
+                .setListener(R.id.deleteButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (mTabNumber == 4) {//Search tab
@@ -102,18 +98,44 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
                         } else { //Other tabs
                             mRecyclerView.sendCellToTab(-1);
                         }
+                        mDetailedIdeaDialog.dismiss();
                     }
                 })
-                .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton(R.string.edit, new View.OnClickListener() {
+                .setListener(R.id.okButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        editIdeaDialog();
+                        mDetailedIdeaDialog.dismiss();
                     }
                 })
-                .setNegativeButtonColorRes(R.color.md_pink_a200)
                 .show();
 
+        TextView title = (TextView) mDetailedIdeaDialog.findViewById(R.id.idea_dialog_title);
+        title.setText(R.string.detailed_idea);
+        RadioGroup radioGroup = (RadioGroup) mDetailedIdeaDialog.findViewById(R.id.radioGroup);
+        mIdeaField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editText);
+        mNoteField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editNote);
+        mIdeaField.append(mDbHelper.getTextById(mIdRecycler));
+        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
+        mNoteField.setEnabled(false);
+        mIdeaField.setEnabled(false);
+
+        RadioButton radio = null;
+        switch (mPriority) {
+            case 1:
+                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton1);
+                break;
+            case 2:
+                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton2);
+                break;
+            case 3:
+                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton3);
+                break;
+        }
+        radio.setChecked(true);
+        // Disabling radio button in "view" mode
+        for (int i = 0; i < radioGroup.getChildCount(); i++) {
+            radioGroup.getChildAt(i).setEnabled(false);
+        }
     }
 
     /**
