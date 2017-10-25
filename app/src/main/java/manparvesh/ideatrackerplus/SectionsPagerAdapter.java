@@ -11,11 +11,13 @@ import android.support.v4.app.FragmentPagerAdapter;
 class SectionsPagerAdapter extends FragmentPagerAdapter {
     private final Context context;
     private final int[] pageTitles = {R.string.first_tab, R.string.second_tab, R.string.third_tab};
+    private final boolean darkTheme;
     private int tabCount = 3;
 
-    SectionsPagerAdapter(Context context, FragmentManager fm) {
+    SectionsPagerAdapter(Context context, FragmentManager fm, boolean darkTheme) {
         super(fm);
         this.context = context;
+        this.darkTheme = darkTheme;
     }
 
     void setTabCount(int count) {
@@ -25,8 +27,7 @@ class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
-        return ListFragment.newInstance(context.getResources().getString(pageTitles[position]));
-
+        return ListFragment.newInstance(context.getResources().getString(pageTitles[position]), darkTheme);
     }
 
     @Override

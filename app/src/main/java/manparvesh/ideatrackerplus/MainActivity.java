@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_CLEAR_DONE = 4;
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
+    private static final int ID_DARK_THEME = 7;
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -145,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements
     private AccountHeader header = null;
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem bigTextSwitch;
+    private SwitchDrawerItem darkSwitch;
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
@@ -186,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
     private boolean mNoProject = false;
+    private boolean mDarkTheme;
 
     // Color preferences
     private int defaultPrimaryColor;
@@ -210,14 +213,22 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme_NoActionBar);
+        mTinyDB = new TinyDB(this);
+        mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref), false);
+
+        if (mDarkTheme) {
+            setTheme(R.style.AppThemeDark_NoActionBar);
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         sInstance = this;
 
-        // Databases
-        mTinyDB = new TinyDB(this);
+        //Initialize SearchListAdapter with proper dark theme value
+        SearchListAdapter.getInstance(this, mDarkTheme);
+
         mDbHelper = DatabaseHelper.getInstance(this);
 
         // App intro
@@ -227,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Fragments manager to populate the tabs
         mFragmentManager = getSupportFragmentManager();
-        mSectionsPagerAdapter = new SectionsPagerAdapter(this, mFragmentManager);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(this, mFragmentManager, mDarkTheme);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
@@ -247,7 +258,6 @@ public class MainActivity extends AppCompatActivity implements
         // Set up drawers in background tasks
         setUpDrawers();
         setRightDrawerSate();
-
     }
 
     @Override
@@ -393,7 +403,7 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(ID_NEW_PROJECT_AND_SWITCH).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, bigTextSwitch),
+                                doneSwitch, bigTextSwitch, darkSwitch),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(ID_SEE_APP_INTRO_AGAIN).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(ID_ACTIVATE_TUTORIAL_AGAIN).withSelectable(false),
@@ -594,6 +604,12 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
+        darkSwitch = new SwitchDrawerItem()
+                .withName(R.string.dark_col)
+                .withLevel(2).withIdentifier(ID_DARK_THEME)
+                .withOnCheckedChangeListener(this)
+                .withChecked(mDarkTheme)
+                .withSelectable(false);
 
         doneSwitch = new SwitchDrawerItem()
                 .withName(R.string.show_done_msg)
@@ -624,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows an idea creation dialog
     public void newIdeaDialog() {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mNewIdeaDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
@@ -745,7 +761,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void newProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_notepad)
@@ -830,7 +846,7 @@ public class MainActivity extends AppCompatActivity implements
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
@@ -885,7 +901,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
 
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
@@ -933,7 +949,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows a dialog to reset color preferences to default
     private void resetColorsDialog() {
-        new LovelyStandardDialog(this)
+        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
                 .setTopColor(mPrimaryColor)
                 .setButtonsColorRes(R.color.md_pink_a200)
                 .setIcon(R.drawable.ic_drop)
@@ -1184,6 +1200,11 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    private void changeDarkTheme(boolean isDarkThemeEnabled) {
+        mTinyDB.putBoolean(getString(R.string.dark_theme_pref), isDarkThemeEnabled);
+        recreate();
+    }
+
     @NonNull
     private Drawable changeDrawableColor(Drawable myFabSrc, int textColor) {
         //get the drawable
@@ -1261,10 +1282,11 @@ public class MainActivity extends AppCompatActivity implements
 
     // Activate search mode
     private void activateSearch() {
-        // Searchbar
+        // Search bar
         if (mSearchBar == null) {
             CoordinatorLayout.LayoutParams params = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             mSearchBar = new MaterialSearchBar(this, null);
+            mSearchBar.setTextColor(android.R.color.black);
             mSearchBar.setHint(getString(R.string.search));
             mSearchBar.setOnSearchActionListener(this);
             ((CoordinatorLayout) findViewById(R.id.main_content)).addView(mSearchBar, params);
@@ -1708,12 +1730,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-
-    // FRAGMENT CLASSES //
-
-
     // INTERFACE LISTENERS METHODS //
-
     // TextView.OnEditorActionListener method
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -1904,6 +1921,11 @@ public class MainActivity extends AppCompatActivity implements
                     mTinyDB.putBoolean(getString(R.string.big_text_pref), false);
                     DatabaseHelper.notifyAllLists();
                 }
+                break;
+
+            case ID_DARK_THEME:
+                changeDarkTheme(isChecked);
+                break;
         }
 
     }

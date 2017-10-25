@@ -118,7 +118,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         //Notify search tab
-        SearchListAdapter.getInstance(mainActivity).notifyDataSetChanged();
+        SearchListAdapter.getInstance(mainActivity, false).notifyDataSetChanged();
 
     }
 
