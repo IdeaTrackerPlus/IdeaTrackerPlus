@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:layout_marginLeft="16dp"
-              android:layout_marginRight="16dp"
-              android:layout_marginBottom="8dp"
-              android:orientation="vertical"
-              android:weightSum="1">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="8dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:orientation="vertical"
+    android:weightSum="1">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,10 +17,10 @@
             android:id="@+id/idea_dialog_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
-            android:text="@string/new_idea"
-            android:layout_centerVertical="true"
+            android:text="@string/detailed_idea"
             android:textColor="@color/md_black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -29,39 +30,30 @@
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="@string/edit"
             android:textColor="@color/md_pink_a200" />
     </RelativeLayout>
 
-    <EditText
+    <TextView
         android:id="@+id/editText"
+        style="@style/TextAppearance.AppCompat.Medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_edit_idea"
+        android:layout_marginBottom="10dp"
         android:textColorHint="@color/md_grey_500"
-        android:imeOptions="actionDone"
-        android:inputType="textCapSentences|textMultiLine" />
+        tools:text="@string/hint_edit_idea" />
 
     <TextView
-        android:id="@+id/new_error_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginStart="8dp"
-        android:text="@string/dont_forget"
-        android:textColor="@color/md_red_500"
-        android:visibility="gone" />
-
-    <EditText
         android:id="@+id/editNote"
+        style="@style/TextAppearance.AppCompat.Small"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_edit_note"
+        android:layout_marginBottom="10dp"
         android:textColorHint="@color/md_grey_500"
-        android:inputType="textCapSentences|textMultiLine" />
+        tools:text="@string/hint_edit_idea" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -70,58 +62,35 @@
         android:orientation="horizontal">
 
         <TextView
+            style="@style/TextAppearance.AppCompat.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:text="@string/priority"
             android:textSize="16sp" />
 
-        <RadioGroup
-            android:clickable="false"
-            android:id="@+id/radioGroup"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/radioButton1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:buttonTint="@color/priority1"
-                android:checked="true"
-                android:text="@string/radio_1" />
-
-            <RadioButton
-                android:id="@+id/radioButton2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:buttonTint="@color/priority2"
-                android:checked="false"
-                android:text="@string/radio_2" />
-
-            <RadioButton
-                android:id="@+id/radioButton3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:buttonTint="@color/priority3"
-                android:checked="false"
-                android:text="@string/radio_3" />
-        </RadioGroup>
+        <android.support.v7.widget.AppCompatRadioButton
+            android:id="@+id/priorityRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            tools:buttonTint="@color/priority2"
+            tools:text="1" />
     </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
-        android:layout_marginTop="8dp"
-        android:layout_height="wrap_content">
+        android:layout_marginTop="8dp">
 
         <Button
             android:id="@+id/deleteButton"
-            android:layout_alignParentLeft="true"
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:text="@string/delete"
             android:textColor="@color/md_pink_a200" />
@@ -131,8 +100,8 @@
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="@string/ok"
             android:textColor="@color/md_pink_a200" />
