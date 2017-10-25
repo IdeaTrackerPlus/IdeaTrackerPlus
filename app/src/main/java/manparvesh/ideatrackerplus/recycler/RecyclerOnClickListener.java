@@ -1,9 +1,14 @@
 package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.support.v7.widget.RecyclerView;
+import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatRadioButton;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -19,6 +24,8 @@ import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 
+import java.util.Locale;
+
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
 import manparvesh.ideatrackerplus.database.DatabaseHelper;
@@ -30,7 +37,6 @@ import manparvesh.ideatrackerplus.database.DatabaseHelper;
 public class RecyclerOnClickListener implements View.OnClickListener, View.OnFocusChangeListener {
 
     private MyRecyclerView mRecyclerView;
-
     private DatabaseHelper mDbHelper;
 
     //RecyclerView attrs
@@ -43,8 +49,8 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
 
     //Dialog views
     private RadioGroup mRadioGroup;
-    private EditText mIdeaField;
-    private EditText mNoteField;
+    private TextView mIdeaField;
+    private TextView mNoteField;
     private TextView mError;
     private Switch mDoLater;
 
@@ -80,7 +86,7 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
     private void showIdeaDialog() {
         mDetailedIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
                 .setView(R.layout.detailed_idea_form)
-                .setTopColor(getPriorityColor())
+                .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
                 .setListener(R.id.editButton, new View.OnClickListener() {
                     @Override
@@ -107,43 +113,52 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
                         mDetailedIdeaDialog.dismiss();
                     }
                 })
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+                        mIdeaField = (TextView) v.findViewById(R.id.editText);
+                        mNoteField = (TextView) v.findViewById(R.id.editNote);
+                        mIdeaField.append(mDbHelper.getTextById(mIdRecycler));
+                        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
+
+                        AppCompatRadioButton radio = (AppCompatRadioButton) v.findViewById(R.id.priorityRadioButton);
+                        radio.setText(String.format(Locale.getDefault(), "%d", mPriority));
+                        radio.setHighlightColor(getPriorityColor());
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            radio.setButtonTintList(ColorStateList.valueOf(getPriorityColor()));
+                        }
+                    }
+                })
                 .show();
+    }
 
-        TextView title = (TextView) mDetailedIdeaDialog.findViewById(R.id.idea_dialog_title);
-        title.setText(R.string.detailed_idea);
-        RadioGroup radioGroup = (RadioGroup) mDetailedIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mDetailedIdeaDialog.findViewById(R.id.editNote);
-        mIdeaField.append(mDbHelper.getTextById(mIdRecycler));
-        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
-        mNoteField.setEnabled(false);
-        mIdeaField.setEnabled(false);
+    @ColorInt
+    private int getPriorityColor() {
+        return ContextCompat.getColor(MainActivity.getInstance(), getPriorityColorResource());
+    }
 
-        RadioButton radio = null;
+    @ColorRes
+    private int getPriorityColorResource() {
         switch (mPriority) {
             case 1:
-                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton1);
-                break;
+                return R.color.priority1;
+
             case 2:
-                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton2);
-                break;
+                return R.color.priority2;
+
             case 3:
-                radio = (RadioButton) mDetailedIdeaDialog.findViewById(R.id.radioButton3);
-                break;
+                return R.color.priority3;
+
         }
-        radio.setChecked(true);
-        // Disabling radio button in "view" mode
-        for (int i = 0; i < radioGroup.getChildCount(); i++) {
-            radioGroup.getChildAt(i).setEnabled(false);
-        }
+
+        return R.color.white;
     }
 
     /**
-     * Show a dialog allwing to edit all the attributes
+     * Show a dialog allowing to edit all the attributes
      * of the idea and showing the original ones.
      */
     public void editIdeaDialog() {
-
         mEditIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
@@ -181,8 +196,6 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
 
                         mIdeaField.setOnFocusChangeListener(RecyclerOnClickListener.this);
                         mNoteField.setOnFocusChangeListener(RecyclerOnClickListener.this);
-
-
 
                         //Get the values from the idea and set them
                         String ideaText = mDbHelper.getTextById(mIdRecycler);
@@ -236,27 +249,11 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
         }
     }
 
-    private int getPriorityColor() {
-        switch (mPriority) {
-            case 1:
-                return R.color.priority1;
-
-            case 2:
-                return R.color.priority2;
-
-            case 3:
-                return R.color.priority3;
-
-        }
-
-        return R.color.white;
-    }
-
     @Override
     public void onFocusChange(View view, boolean hasFocus) {
-        if(view instanceof EditText) {
+        if (view instanceof EditText) {
             EditText editText = (EditText) view;
-            if(hasFocus) {
+            if (hasFocus) {
                 editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
             } else {
                 editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
@@ -264,13 +261,10 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
         }
     }
 
-
-
     private class HideErrorOnTextChanged implements TextWatcher {
 
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
         }
 
         @Override
@@ -280,12 +274,10 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
 
         @Override
         public void afterTextChanged(Editable s) {
-
         }
     }
 
     // EDIT TEXT LISTENERS //
-
     private TextView.OnEditorActionListener ideaFieldListener = new TextView.OnEditorActionListener() {
 
         @Override
@@ -317,5 +309,4 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
             return true;
         }
     };
-
 }
