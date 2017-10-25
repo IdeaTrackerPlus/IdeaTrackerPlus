@@ -30,12 +30,13 @@ public class ListFragment extends Fragment {
      * The fragment argument representing the section number for this
      * fragment.
      */
-    public static ListFragment newInstance(String tabName) {
+    public static ListFragment newInstance(String tabName, boolean darkTheme) {
         ListFragment f = new ListFragment();
 
         // Supply index input as an argument.
         Bundle args = new Bundle();
         args.putString("tabName", tabName);
+        args.putBoolean("darkTheme", darkTheme);
         f.setArguments(args);
 
         return f;
@@ -57,6 +58,7 @@ public class ListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView;
+        boolean darkTheme = getArguments().getBoolean("darkTheme", false);
 
         // NO PROJECT
         if (DataEntry.TABLE_NAME.equals("[]")) {
@@ -76,7 +78,7 @@ public class ListFragment extends Fragment {
             rootView = inflater.inflate(R.layout.search_view, container, false);
             ListView list = (ListView) rootView.findViewById(R.id.search_list);
 
-            SearchListAdapter adapter = SearchListAdapter.getInstance(getContext());
+            SearchListAdapter adapter = SearchListAdapter.getInstance(getContext(), darkTheme);
             list.setAdapter(adapter);
             return rootView;
         }
@@ -119,7 +121,7 @@ public class ListFragment extends Fragment {
         });
 
         //Set adapter
-        ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view);
+        ItemAdapter itemAdapter = new ItemAdapter(getContext(), tabNumber, R.layout.recycler_view_item, R.id.horizontal_recycler_view, darkTheme);
         mDragListView.setAdapter(itemAdapter, false);
         mDragListView.setCanDragHorizontally(false);
 

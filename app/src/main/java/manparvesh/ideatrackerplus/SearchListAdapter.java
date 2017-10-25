@@ -22,23 +22,24 @@ public class SearchListAdapter extends BaseAdapter {
     //singleton instance
     private static SearchListAdapter sInstance;
 
-    private LayoutInflater inflater;
     private DatabaseHelper mDbHelper;
     private static String subString;
 
-    public static synchronized SearchListAdapter getInstance(Context context) {
+    private boolean mDarkTheme;
+
+    public static synchronized SearchListAdapter getInstance(Context context, boolean darkTheme) {
 
         if (sInstance == null) {
-            sInstance = new SearchListAdapter(context.getApplicationContext());
+            sInstance = new SearchListAdapter(context.getApplicationContext(), darkTheme);
         }
         return sInstance;
     }
 
-    public SearchListAdapter(Context context) {
-        this.inflater = LayoutInflater.from(context);
+    public SearchListAdapter(Context context, boolean darkTheme) {
         mDbHelper = DatabaseHelper.getInstance(context);
 
         subString = "";
+        this.mDarkTheme = darkTheme;
     }
 
     public static void changeSearch(String newSearch) {
@@ -59,6 +60,7 @@ public class SearchListAdapter extends BaseAdapter {
 
         //Recycle made complicated with big text option
         if (view == null) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             view = inflater.inflate(R.layout.recycler_view_item, parent, false);
         }
 
@@ -71,7 +73,7 @@ public class SearchListAdapter extends BaseAdapter {
 
         // Create the right adapter for the recycler view
         HorizontalAdapter horizontalAdapter;
-        horizontalAdapter = new HorizontalAdapter(horizontal_recycler_view.getContext(), pair.second, 4);
+        horizontalAdapter = new HorizontalAdapter(horizontal_recycler_view.getContext(), pair.second, 4, mDarkTheme);
 
         // Set up the manager and adapter of the recycler view
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(horizontal_recycler_view.getContext(), LinearLayoutManager.HORIZONTAL, false);
