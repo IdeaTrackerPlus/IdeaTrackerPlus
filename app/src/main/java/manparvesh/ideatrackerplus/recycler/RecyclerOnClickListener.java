@@ -1,6 +1,7 @@
 package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -29,6 +30,7 @@ import java.util.Locale;
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
 import manparvesh.ideatrackerplus.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.database.TinyDB;
 
 /**
  * Created by Nicklos on 20/07/2016.
@@ -36,8 +38,10 @@ import manparvesh.ideatrackerplus.database.DatabaseHelper;
  */
 public class RecyclerOnClickListener implements View.OnClickListener, View.OnFocusChangeListener {
 
-    private MyRecyclerView mRecyclerView;
+    private Context context;
     private DatabaseHelper mDbHelper;
+    private MyRecyclerView mRecyclerView;
+    private boolean mDarkTheme;
 
     //RecyclerView attrs
     private int mIdRecycler;
@@ -59,14 +63,18 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
     private static int mSecondaryColor;
 
     public RecyclerOnClickListener(MyRecyclerView recyclerView, int tabNumber) {
+        this.context = recyclerView.getContext();
         mRecyclerView = recyclerView;
         mTabNumber = tabNumber;
+
+        mDbHelper = DatabaseHelper.getInstance(context);
+        TinyDB mTinyDB = new TinyDB(context);
+        mDarkTheme = mTinyDB.getBoolean(context.getString(R.string.dark_theme_pref), false);
     }
 
     @Override
     public void onClick(View v) {
         mIdRecycler = (int) mRecyclerView.getTag();
-        mDbHelper = DatabaseHelper.getInstance(mRecyclerView.getContext());
         mPriority = mDbHelper.getPriorityById(mIdRecycler);
         showIdeaDialog();
     }
@@ -84,7 +92,7 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
      * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
-        mDetailedIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
+        mDetailedIdeaDialog = new LovelyCustomDialog(context, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.detailed_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
@@ -159,7 +167,7 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
      * of the idea and showing the original ones.
      */
     public void editIdeaDialog() {
-        mEditIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
+        mEditIdeaDialog = new LovelyCustomDialog(context, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)

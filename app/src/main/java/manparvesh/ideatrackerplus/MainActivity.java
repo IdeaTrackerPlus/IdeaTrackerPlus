@@ -1202,7 +1202,10 @@ public class MainActivity extends AppCompatActivity implements
 
     private void changeDarkTheme(boolean isDarkThemeEnabled) {
         mTinyDB.putBoolean(getString(R.string.dark_theme_pref), isDarkThemeEnabled);
-        recreate();
+
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
     }
 
     @NonNull
