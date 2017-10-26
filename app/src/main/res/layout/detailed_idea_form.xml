@@ -21,7 +21,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
             android:text="@string/detailed_idea"
-            android:textColor="@color/md_black"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
