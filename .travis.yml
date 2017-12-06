@@ -1,0 +1,62 @@
+language: android
+jdk: oraclejdk8
+sudo: false
+
+env:
+    matrix:
+        - ANDROID_TARGET=android-22 ANDROID_ABI=armeabi-v7a
+    global:
+        - ADB_INSTALL_TIMEOUT=10    #Time out to 10 mins
+
+before_cache:
+    - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+
+cache:
+  directories:      #Cache all dirs under .gradle folder
+    - $HOME/.gradle/daemon      #Cache daemon logs
+    - $HOME/.gradle/native      #Cache library downloaded from the gradle dependency
+    - $HOME/.gradle/wrapper     #Cache the gradle
+
+android:
+    update_sdk: true
+    components:
+        - platform-tools
+        - tools
+        - build-tools-25.0.0
+        - android-23
+        - android-22
+
+        # Additional components
+        - extra-google-google_play_services
+        - extra-google-m2repository
+        - extra-android-m2repository
+
+        #system image
+        - sys-img-armeabi-v7a-android-22
+
+licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
+
+before_script:
+    - chmod +x gradlew      #Grand permissions
+    - android list targets
+    - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a -c 32M    #Create AVD for given api
+    - emulator -avd test -no-skin -no-audio -no-window &    #Start emulator
+
+script:
+    - echo "Travis branch is $TRAVIS_BRANCH"
+    - echo "Travis branch is in pull request $TRAVIS_PULL+REQUEST"
+    - android-wait-for-emulator
+    - adb devices   #Display list of devices
+    - adb shell input keyevent 82 &
+    - ./gradlew connectedCheck -PdisablePreDex --stacktrace
+
+before_install:
+    - pip install --user codecov    #Install codecov
+
+after_success:
+    - codecov                       #Run codecov
+
+after_failure: "cat $TRAVIS_BUILD_DIR/app/build/outputs/lint-results-debug.xml"
