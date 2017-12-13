@@ -9,7 +9,7 @@
     <a href="https://travis-ci.org/IdeaTrackerPlus/IdeaTrackerPlus" target="_blank"><img src="https://travis-ci.org/IdeaTrackerPlus/IdeaTrackerPlus.svg?branch=master" alt="Build Status"></a>
 </div>
 
-> This is a fork of the amazing [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with some optimizations, fixes and modifications by [@manparvesh](https://github.com/manparvesh).  
+> This is a fork of the amazing [IdeasTracker app](https://github.com/nserguier/IdeasTracker) by [@nserguier](https://github.com/nserguier), with many optimizations, fixes and modifications by [the contributors](https://github.com/IdeaTrackerPlus/IdeaTrackerPlus/graphs/contributors). This project is maintained by [@manparvesh](https://github.com/manparvesh).  
 
 <b>A To-Do list for your ideas:</b>
 
