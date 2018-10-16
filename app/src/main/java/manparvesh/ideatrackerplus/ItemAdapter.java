@@ -1,6 +1,6 @@
 package manparvesh.ideatrackerplus;
 
-/**
+/*
  * Copyright 2014 Magnus Woxblom
  * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,9 @@ public class ItemAdapter extends DragItemAdapter<Pair<Integer, String>, ItemAdap
     private Context mContext;
     private int mTabNumber;
 
-    public ItemAdapter(Context context, int tabNumber, int layoutId, int grabHandleId) {
+    private boolean mDarkTheme;
+
+    public ItemAdapter(Context context, int tabNumber, int layoutId, int grabHandleId, boolean darkTheme) {
         super(true);
         mLayoutId = layoutId;
         mGrabHandleId = grabHandleId;
@@ -45,6 +47,7 @@ public class ItemAdapter extends DragItemAdapter<Pair<Integer, String>, ItemAdap
 
         mContext = context;
         mTabNumber = tabNumber;
+        mDarkTheme = darkTheme;
     }
 
 
@@ -58,7 +61,7 @@ public class ItemAdapter extends DragItemAdapter<Pair<Integer, String>, ItemAdap
 
         // Create the right adapter for the recycler view
         HorizontalAdapter horizontalAdapter;
-        horizontalAdapter = new HorizontalAdapter(recyclerView.getContext(), "", mTabNumber);
+        horizontalAdapter = new HorizontalAdapter(recyclerView.getContext(), "", mTabNumber, mDarkTheme);
 
         // Set up the manager and adapter of the recycler view
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);

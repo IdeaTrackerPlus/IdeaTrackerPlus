@@ -17,6 +17,7 @@
     <string name="rename">RENAME</string>
     <string name="all_pro">All projects</string>
     <string name="new_pro">New project</string>
+    <string name="dark_col">Dark Theme</string>
     <string name="primary_col">Primary color</string>
     <string name="secondary_col">Secondary color</string>
     <string name="text_col">Text color</string>
@@ -53,6 +54,7 @@
     <string name="error_empty_taken">Name is empty or already taken</string>
     <string name="help">Help</string>
     <string name="tuto_mode">Tutorial mode is now active</string>
+    <string name="dark_theme_pref" translatable="false">darkTheme</string>
     <string name="show_done_pref" translatable="false">showDone</string>
     <string name="show_done_msg">Show Done tab</string>
     <string name="big_text_pref" translatable="false">bigTextSwitch</string>
@@ -74,7 +76,7 @@
     <string name="activate_tuto">Activate tutorial again</string>
     <string name="feedback">Send feedback</string>
     <string name="source_code">Source code</string>
-    <string name="welcome">Welcome to\nIdeas Tracker</string>
+    <string name="welcome">Welcome to\nIdea Tracker Plus</string>
     <string name="welcome_content">All your ideas and tasks\nin one place</string>
     <string name="simple">Keep it simple</string>
     <string name="simple_content">Capture ideas faster\nwith little information required</string>
@@ -108,6 +110,7 @@
     <string name="voice_msg">What\'s your idea?</string>
     <string name="idea_menu_pref">firstIdeaMenu</string>
     <string name="save">Save</string>
+    <string name="detailed_idea">Idea details</string>
 
     <string-array name="array_from">
         <item>Done</item>

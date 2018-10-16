@@ -1,10 +1,17 @@
 package manparvesh.ideatrackerplus.recycler;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatRadioButton;
 import android.text.Editable;
-import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.text.style.AbsoluteSizeSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -17,48 +24,57 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
-import com.yarolegovich.lovelydialog.LovelyStandardDialog;
+
+import java.util.Locale;
 
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
 import manparvesh.ideatrackerplus.database.DatabaseHelper;
+import manparvesh.ideatrackerplus.database.TinyDB;
 
 /**
  * Created by Nicklos on 20/07/2016.
  * Listener for clicks on MyRecyclerView
  */
-public class RecyclerOnClickListener implements View.OnClickListener {
+public class RecyclerOnClickListener implements View.OnClickListener, View.OnFocusChangeListener {
 
-    private MyRecyclerView mRecyclerView;
-
+    private Context context;
     private DatabaseHelper mDbHelper;
+    private MyRecyclerView mRecyclerView;
+    private boolean mDarkTheme;
 
     //RecyclerView attrs
     private int mIdRecycler;
     private int mTabNumber;
     private int mPriority;
 
+    private Dialog mDetailedIdeaDialog;
     private Dialog mEditIdeaDialog;
 
     //Dialog views
     private RadioGroup mRadioGroup;
-    private EditText mIdeaField;
-    private EditText mNoteField;
+    private TextView mIdeaField;
+    private TextView mNoteField;
     private TextView mError;
     private Switch mDoLater;
 
     //Color for the dialogs
     private static int mPrimaryColor;
+    private static int mSecondaryColor;
 
     public RecyclerOnClickListener(MyRecyclerView recyclerView, int tabNumber) {
+        this.context = recyclerView.getContext();
         mRecyclerView = recyclerView;
         mTabNumber = tabNumber;
+
+        mDbHelper = DatabaseHelper.getInstance(context);
+        TinyDB mTinyDB = new TinyDB(context);
+        mDarkTheme = mTinyDB.getBoolean(context.getString(R.string.dark_theme_pref), false);
     }
 
     @Override
     public void onClick(View v) {
         mIdRecycler = (int) mRecyclerView.getTag();
-        mDbHelper = DatabaseHelper.getInstance(mRecyclerView.getContext());
         mPriority = mDbHelper.getPriorityById(mIdRecycler);
         showIdeaDialog();
     }
@@ -67,25 +83,27 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         mPrimaryColor = color;
     }
 
+    public static void setSecondaryColor(int color) {
+        mSecondaryColor = color;
+    }
+
     /**
      * Show a dialog with the idea's text and note
      * allows to delete or edit the idea
      */
     private void showIdeaDialog() {
-
-        SpannableString text = new SpannableString(mDbHelper.getTextById(mIdRecycler));
-        text.setSpan(new AbsoluteSizeSpan(24, true), 0, text.length(), 0);
-
-        String note = mDbHelper.getNoteById(mIdRecycler);
-
-        new LovelyStandardDialog(MainActivity.getInstance())
-                .setTopColorRes(getPriorityColor())
+        mDetailedIdeaDialog = new LovelyCustomDialog(context, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
+                .setView(R.layout.detailed_idea_form)
+                .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
-                .setTitle(text)
-                .setMessage(note)
-                .setPositiveButtonColorRes(R.color.md_pink_a200)
-                .setPositiveButton(R.string.ok, null)
-                .setNeutralButton(R.string.delete, new View.OnClickListener() {
+                .setListener(R.id.editButton, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        editIdeaDialog();
+                        mDetailedIdeaDialog.dismiss();
+                    }
+                })
+                .setListener(R.id.deleteButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (mTabNumber == 4) {//Search tab
@@ -94,27 +112,62 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                         } else { //Other tabs
                             mRecyclerView.sendCellToTab(-1);
                         }
+                        mDetailedIdeaDialog.dismiss();
                     }
                 })
-                .setNeutralButtonColorRes(R.color.md_pink_a200)
-                .setNegativeButton(R.string.edit, new View.OnClickListener() {
+                .setListener(R.id.okButton, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        editIdeaDialog();
+                        mDetailedIdeaDialog.dismiss();
                     }
                 })
-                .setNegativeButtonColorRes(R.color.md_pink_a200)
-                .show();
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+                        mIdeaField = (TextView) v.findViewById(R.id.editText);
+                        mNoteField = (TextView) v.findViewById(R.id.editNote);
+                        mIdeaField.append(mDbHelper.getTextById(mIdRecycler));
+                        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
 
+                        AppCompatRadioButton radio = (AppCompatRadioButton) v.findViewById(R.id.priorityRadioButton);
+                        radio.setText(String.format(Locale.getDefault(), "%d", mPriority));
+                        radio.setHighlightColor(getPriorityColor());
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            radio.setButtonTintList(ColorStateList.valueOf(getPriorityColor()));
+                        }
+                    }
+                })
+                .show();
+    }
+
+    @ColorInt
+    private int getPriorityColor() {
+        return ContextCompat.getColor(MainActivity.getInstance(), getPriorityColorResource());
+    }
+
+    @ColorRes
+    private int getPriorityColorResource() {
+        switch (mPriority) {
+            case 1:
+                return R.color.priority1;
+
+            case 2:
+                return R.color.priority2;
+
+            case 3:
+                return R.color.priority3;
+
+        }
+
+        return R.color.white;
     }
 
     /**
-     * Show a dialog allwing to edit all the attributes
+     * Show a dialog allowing to edit all the attributes
      * of the idea and showing the original ones.
      */
     public void editIdeaDialog() {
-
-        mEditIdeaDialog = new LovelyCustomDialog(MainActivity.getInstance(), R.style.EditTextTintTheme)
+        mEditIdeaDialog = new LovelyCustomDialog(context, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
@@ -124,53 +177,61 @@ public class RecyclerOnClickListener implements View.OnClickListener {
                         sendEditIdea();
                     }
                 })
+                .configureView(new LovelyCustomDialog.ViewConfigurator() {
+                    @Override
+                    public void configureView(View v) {
+
+                        //Get the views
+                        TextView title = (TextView) v.findViewById(R.id.idea_dialog_title);
+                        Button doneButton = (Button) v.findViewById(R.id.doneButton);
+                        mDoLater = (Switch) v.findViewById(R.id.doLater);
+                        mRadioGroup = (RadioGroup) v.findViewById(R.id.radioGroup);
+                        mIdeaField = (EditText) v.findViewById(R.id.editText);
+                        mNoteField = (EditText) v.findViewById(R.id.editNote);
+
+                        //change some strings from new to edit
+                        title.setText(R.string.edit_idea);
+                        doneButton.setText(R.string.edit);
+
+
+                        //set up the error message
+                        mError = (TextView) v.findViewById(R.id.new_error_message);
+                        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
+
+                        //set up the "ENTER" listeners
+                        mIdeaField.setOnEditorActionListener(ideaFieldListener);
+                        mNoteField.setOnEditorActionListener(noteFieldListener);
+
+                        mIdeaField.setOnFocusChangeListener(RecyclerOnClickListener.this);
+                        mNoteField.setOnFocusChangeListener(RecyclerOnClickListener.this);
+
+                        //Get the values from the idea and set them
+                        String ideaText = mDbHelper.getTextById(mIdRecycler);
+                        mIdeaField.append(ideaText);
+                        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
+                        int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
+                        if (fromTab == 2) mDoLater.toggle();
+
+                        RadioButton radio = null;
+                        switch (mPriority) {
+                            case 1:
+                                radio = (RadioButton) v.findViewById(R.id.radioButton1);
+                                break;
+                            case 2:
+                                radio = (RadioButton) v.findViewById(R.id.radioButton2);
+                                break;
+                            case 3:
+                                radio = (RadioButton) v.findViewById(R.id.radioButton3);
+                                break;
+                        }
+                        radio.setChecked(true);
+                    }
+                })
                 .show();
 
-        //Get the views
-        TextView title = (TextView) mEditIdeaDialog.findViewById(R.id.idea_dialog_title);
-        Button doneButton = (Button) mEditIdeaDialog.findViewById(R.id.doneButton);
-        mDoLater = (Switch) mEditIdeaDialog.findViewById(R.id.doLater);
-        mRadioGroup = (RadioGroup) mEditIdeaDialog.findViewById(R.id.radioGroup);
-        mIdeaField = (EditText) mEditIdeaDialog.findViewById(R.id.editText);
-        mNoteField = (EditText) mEditIdeaDialog.findViewById(R.id.editNote);
-
-        //change some strings from new to edit
-        title.setText(R.string.edit_idea);
-        doneButton.setText(R.string.save);
-
-
-        //set up the error message
-        mError = (TextView) mEditIdeaDialog.findViewById(R.id.new_error_message);
-        mIdeaField.addTextChangedListener(new HideErrorOnTextChanged());
-
-        //set up the "ENTER" listeners
-        mIdeaField.setOnEditorActionListener(ideaFieldListener);
-        mNoteField.setOnEditorActionListener(noteFieldListener);
-
-        //Get the values from the idea and set them
-        String ideaText = mDbHelper.getTextById(mIdRecycler);
-        mIdeaField.append(ideaText);
-        if (mIdeaField.requestFocus()) {
+        if (mNoteField.requestFocus() && mIdeaField.requestFocus()) {
             mEditIdeaDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         }
-        mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
-        int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
-        if (fromTab == 2) mDoLater.toggle();
-
-        RadioButton radio = null;
-        switch (mPriority) {
-            case 1:
-                radio = (RadioButton) mEditIdeaDialog.findViewById(R.id.radioButton1);
-                break;
-            case 2:
-                radio = (RadioButton) mEditIdeaDialog.findViewById(R.id.radioButton2);
-                break;
-            case 3:
-                radio = (RadioButton) mEditIdeaDialog.findViewById(R.id.radioButton3);
-                break;
-        }
-        radio.setChecked(true);
-
     }
 
     private void sendEditIdea() {
@@ -196,27 +257,22 @@ public class RecyclerOnClickListener implements View.OnClickListener {
         }
     }
 
-    private int getPriorityColor() {
-        switch (mPriority) {
-            case 1:
-                return R.color.priority1;
-
-            case 2:
-                return R.color.priority2;
-
-            case 3:
-                return R.color.priority3;
-
+    @Override
+    public void onFocusChange(View view, boolean hasFocus) {
+        if (view instanceof EditText) {
+            EditText editText = (EditText) view;
+            if (hasFocus) {
+                editText.getBackground().setColorFilter(mSecondaryColor, PorterDuff.Mode.SRC_IN);
+            } else {
+                editText.getBackground().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+            }
         }
-
-        return R.color.white;
     }
 
     private class HideErrorOnTextChanged implements TextWatcher {
 
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
         }
 
         @Override
@@ -226,12 +282,10 @@ public class RecyclerOnClickListener implements View.OnClickListener {
 
         @Override
         public void afterTextChanged(Editable s) {
-
         }
     }
 
     // EDIT TEXT LISTENERS //
-
     private TextView.OnEditorActionListener ideaFieldListener = new TextView.OnEditorActionListener() {
 
         @Override
@@ -263,5 +317,4 @@ public class RecyclerOnClickListener implements View.OnClickListener {
             return true;
         }
     };
-
 }

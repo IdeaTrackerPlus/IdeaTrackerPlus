@@ -118,7 +118,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         //Notify search tab
-        SearchListAdapter.getInstance(mainActivity).notifyDataSetChanged();
+        SearchListAdapter.getInstance(mainActivity, false).notifyDataSetChanged();
 
     }
 
@@ -231,35 +231,53 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public String getTextById(int id) {
-        Cursor cursor = getEntryById(id);
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+        Cursor cursor = null;
+        try {
+            cursor = getEntryById(id);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return "Nothing";
     }
 
     public String getNoteById(int id) {
-        Cursor cursor = getEntryById(id);
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
+        Cursor cursor = null;
+        try {
+            cursor = getEntryById(id);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    return cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return "Nothing";
     }
 
     public int getPriorityById(int id) {
-        Cursor cursor = getEntryById(id);
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+        Cursor cursor = null;
+        try {
+            cursor = getEntryById(id);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return 0;
     }
 
@@ -281,34 +299,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public int getOrderIndexById(int id) {
-
-        Cursor cursor = getEntryById(id);
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_ENTRY_ID));
+        Cursor cursor = null;
+        try {
+            cursor = getEntryById(id);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    return cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_ENTRY_ID));
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return 0;
     }
 
     public int getTabById(int id) {
 
-        Cursor cursor = getEntryById(id);
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                boolean later = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_LATER)) > 0;
-                boolean done = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_DONE)) > 0;
+        Cursor cursor = null;
+        try {
+            cursor = getEntryById(id);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    boolean later = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_LATER)) > 0;
+                    boolean done = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_DONE)) > 0;
 
-                if (done) {
-                    return 3;
-                } else if (later) {
-                    return 2;
+                    if (done) {
+                        return 3;
+                    } else if (later) {
+                        return 2;
+                    }
+                    return 1;
                 }
-                return 1;
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return 1;
     }
 
@@ -637,31 +666,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     break;
             }
 
-            Cursor cursor = db.query(
-                    DataEntry.TABLE_NAME,  // The table to query
-                    projection,                               // The columns to return
-                    where,                                   // The columns for the WHERE clause
-                    values,                      // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    sortOrder                                 // The sort order
-            );
-
+            Cursor cursor = null;
             ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-            Pair<Integer, String> pair;
+            try {
+                cursor = db.query(
+                        DataEntry.TABLE_NAME,  // The table to query
+                        projection,                               // The columns to return
+                        where,                                   // The columns for the WHERE clause
+                        values,                      // The values for the WHERE clause
+                        null,                                     // don't group the rows
+                        null,                                     // don't filter by row groups
+                        sortOrder                                 // The sort order
+                );
 
-            //Scan the ideas and return everything
-            if (cursor.moveToFirst()) {
 
-                while (!cursor.isAfterLast()) {
-                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                    pair = new Pair<>(id, text);
-                    ideas.add(pair);
-                    cursor.moveToNext();
+                Pair<Integer, String> pair;
+
+                //Scan the ideas and return everything
+                if (cursor.moveToFirst()) {
+
+                    while (!cursor.isAfterLast()) {
+                        String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                        int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                        pair = new Pair<>(id, text);
+                        ideas.add(pair);
+                        cursor.moveToNext();
+                    }
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
                 }
             }
-            cursor.close();
             return ideas;
         }
 
@@ -678,28 +714,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         int count = 0;
         Cursor cursor = null;
+        try {
+            switch (tabNumber) {
+                case 0: //NOW+LATER
+                    cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0", null);
+                    break;
 
-        switch (tabNumber) {
-            case 0: //NOW+LATER
-                cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0", null);
-                break;
+                case 1: //NOW/IDEAS
+                    cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0 and later=0", null);
+                    break;
 
-            case 1: //NOW/IDEAS
-                cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0 and later=0", null);
-                break;
+                case 2: //LATER
+                    cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0 and later=1", null);
+                    break;
 
-            case 2: //LATER
-                cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=0 and temp=0 and later=1", null);
-                break;
+                case 3: //DONE
+                    cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=1 and temp=0", null);
+                    break;
+            }
 
-            case 3: //DONE
-                cursor = getReadableDatabase().rawQuery("select count(*) from " + DataEntry.TABLE_NAME + " where done=1 and temp=0", null);
-                break;
+            cursor.moveToFirst();
+            count = cursor.getInt(0);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
-
-        cursor.moveToFirst();
-        count = cursor.getInt(0);
-        cursor.close();
 
         return count;
     }
@@ -744,21 +784,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     break;
             }
 
-            Cursor cursor = db.query(
-                    DataEntry.TABLE_NAME,  // The table to query
-                    projection,                               // The columns to return
-                    where,                                   // The columns for the WHERE clause
-                    values,                      // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    sortOrder                                 // The sort order
-            );
+            Cursor cursor = null;
+            try {
+                cursor = db.query(
+                        DataEntry.TABLE_NAME,  // The table to query
+                        projection,                               // The columns to return
+                        where,                                   // The columns for the WHERE clause
+                        values,                      // The values for the WHERE clause
+                        null,                                     // don't group the rows
+                        null,                                     // don't filter by row groups
+                        sortOrder                                 // The sort order
+                );
 
 
-            if (cursor.moveToLast()) {
-                lastOrderIndex = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_ENTRY_ID));
+                if (cursor.moveToLast()) {
+                    lastOrderIndex = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_ENTRY_ID));
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
             }
-            cursor.close();
         }
 
         return lastOrderIndex;
@@ -772,27 +818,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ArrayList<Integer> readTempIdeas() {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] projection = {DataEntry._ID};
-        Cursor cursor = db.query(
-                DataEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                "temp=?",                                   // The columns for the WHERE clause
-                new String[]{"1"},                      // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
-        );
 
         ArrayList<Integer> temps = new ArrayList<>();
-        //Scan the ideas and return everything
-        if (cursor.moveToFirst()) {
+        Cursor cursor = null;
+        try {
+            cursor = db.query(
+                    DataEntry.TABLE_NAME,  // The table to query
+                    projection,                               // The columns to return
+                    "temp=?",                                   // The columns for the WHERE clause
+                    new String[]{"1"},                      // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                 // The sort order
+            );
 
-            while (!cursor.isAfterLast()) {
-                int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
-                temps.add(id);
-                cursor.moveToNext();
+
+            //Scan the ideas and return everything
+            if (cursor.moveToFirst()) {
+
+                while (!cursor.isAfterLast()) {
+                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                    temps.add(id);
+                    cursor.moveToNext();
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
         }
-        cursor.close();
         return temps;
     }
 
@@ -819,35 +873,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String where = "temp=?";
             String[] values = new String[]{"0"};
 
-            Cursor cursor = db.query(
-                    DataEntry.TABLE_NAME,  // The table to query
-                    projection,                               // The columns to return
-                    where,                                   // The columns for the WHERE clause
-                    values,                      // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    sortOrder                                 // The sort order
-            );
-
+            Cursor cursor = null;
             ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
-            Pair<Integer, String> pair;
+            try {
+                cursor = db.query(
+                        DataEntry.TABLE_NAME,  // The table to query
+                        projection,                               // The columns to return
+                        where,                                   // The columns for the WHERE clause
+                        values,                      // The values for the WHERE clause
+                        null,                                     // don't group the rows
+                        null,                                     // don't filter by row groups
+                        sortOrder                                 // The sort order
+                );
 
-            //Scan the ideas and return everything
-            if (cursor.moveToFirst()) {
 
-                while (!cursor.isAfterLast()) {
-                    String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
-                    String note = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
-                    int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+                Pair<Integer, String> pair;
 
-                    if (text.toLowerCase().contains(sub.toLowerCase()) || note.toLowerCase().contains(sub.toLowerCase())) {
-                        pair = new Pair<>(id, text);
-                        ideas.add(pair);
+                //Scan the ideas and return everything
+                if (cursor.moveToFirst()) {
+
+                    while (!cursor.isAfterLast()) {
+                        String text = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                        String note = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
+                        int id = cursor.getInt(cursor.getColumnIndex(DataEntry._ID));
+
+                        if (text.toLowerCase().contains(sub.toLowerCase()) || note.toLowerCase().contains(sub.toLowerCase())) {
+                            pair = new Pair<>(id, text);
+                            ideas.add(pair);
+                        }
+                        cursor.moveToNext();
                     }
-                    cursor.moveToNext();
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
                 }
             }
-            cursor.close();
             return ideas;
         }
 

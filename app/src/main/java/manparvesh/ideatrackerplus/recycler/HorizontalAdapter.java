@@ -24,21 +24,20 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     private String mIdea;
     private int mTabNumber;
 
-
     private View mLayout;
     private MyRecyclerView mRecyclerView;
     private View.OnLongClickListener mListener;
 
     // same text size for all ideas
     private static boolean mBigtext = false;
+    private boolean mDarkTheme;
 
+    class MyViewHolder extends RecyclerView.ViewHolder {
+        TextView txtView;
+        TextView tabTag;
+        View priorityTag;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView txtView;
-        public TextView tabTag;
-        public View priorityTag;
-
-        public MyViewHolder(View view) {
+        MyViewHolder(View view) {
             super(view);
             txtView = (TextView) view.findViewById(R.id.txtView);
             tabTag = (TextView) view.findViewById(R.id.tabTag);
@@ -46,23 +45,22 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         }
     }
 
-
-    public HorizontalAdapter(Context context, String text, int tabNumber) {
+    public HorizontalAdapter(Context context, String text, int tabNumber, boolean darkTheme) {
         mIdea = text;
         mTabNumber = tabNumber;
         mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
-
+        mDarkTheme = darkTheme;
     }
 
     public static void setBigText(boolean b) {
         mBigtext = b;
     }
 
-    public void setLongClickListener(View.OnLongClickListener l) {
+    void setLongClickListener(View.OnLongClickListener l) {
         mListener = l;
     }
 
-    public void setIdeaText(String ideaText) {
+    void setIdeaText(String ideaText) {
         mIdea = ideaText;
     }
 
@@ -92,13 +90,17 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         }
 
         //SEARCH TAB
-        int tab = mTabNumber; //The tab number the idea bealongs to
+        int tab = mTabNumber; //The tab number the idea belongs to
         if (mTabNumber == 4) {//Search tab
             tab = helper.getTabById((int) mRecyclerView.getTag());
 
             if (position == 1) {//Idea text and tabTag
                 holder.tabTag.setVisibility(View.VISIBLE);
-                holder.tabTag.setTextColor(Color.BLACK);
+                if (mDarkTheme) {
+                    holder.tabTag.setTextColor(Color.WHITE);
+                } else {
+                    holder.tabTag.setTextColor(Color.BLACK);
+                }
                 switch (tab) {
                     case 1:
                         holder.tabTag.setText(R.string.first_tab);
@@ -118,7 +120,6 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         //Fill the textView with the right content
         switch (tab) {
             case 1: //TAB#1 IDEA
-
                 switch (position) {
                     case 0: //Quick action send to DONE
                         holder.txtView.setText(R.string.done_caps);
@@ -128,22 +129,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //Idea text
-                        holder.txtView.setSingleLine();
-                        holder.txtView.setText(mIdea);
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            container.setBackgroundResource(R.drawable.white_ripple);
-                        } else {
-                            container.setBackgroundResource(R.color.white);
-                        }
-                        holder.txtView.setTextColor(Color.BLACK);
-                        //Listeners
-                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
-                        container.setOnClickListener(listener);
-                        container.setOnLongClickListener(mListener);
+                        setupIdeaTile(holder, container);
                         //Priority tag
-                        holder.priorityTag.setVisibility(View.VISIBLE);
-                        holder.priorityTag.setBackgroundResource(helper.getPriorityColorById((int) mRecyclerView.getTag()));
+                        setupPriorityTag(holder, helper);
                         break;
 
                     case 2: //Quick action send to LATER
@@ -156,7 +144,6 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 break;
 
             case 2: //TAB#2 LATER
-
                 switch (position) {
                     case 0: //Quick action send to NOW
                         holder.txtView.setText(R.string.now);
@@ -166,21 +153,9 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //Idea text
-                        holder.txtView.setSingleLine();
-                        holder.txtView.setText(mIdea);
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            container.setBackgroundResource(R.drawable.white_ripple);
-                        } else {
-                            container.setBackgroundResource(R.color.white);
-                        }
-                        holder.txtView.setTextColor(Color.DKGRAY);
-                        //Listeners
-                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
-                        container.setOnClickListener(listener);
-                        container.setOnLongClickListener(mListener);
-                        holder.priorityTag.setVisibility(View.VISIBLE);
-                        holder.priorityTag.setBackgroundResource(helper.getPriorityColorById((int) mRecyclerView.getTag()));
+                        setupIdeaTile(holder, container);
+                        //Priority tag
+                        setupPriorityTag(holder, helper);
                         break;
 
                     case 2: //Quick action send to DELETE
@@ -193,7 +168,6 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 break;
 
             case 3: //TAB#3 DONE
-
                 switch (position) {
                     case 0: //Quick action send to IDEAS
                         holder.txtView.setText(R.string.recover);
@@ -203,19 +177,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
 
                     case 1: //idea text
-                        holder.txtView.setSingleLine();
-                        holder.txtView.setText(mIdea);
-                        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            container.setBackgroundResource(R.drawable.white_ripple);
-                        } else {
-                            container.setBackgroundResource(R.color.white);
-                        }
-                        holder.txtView.setTextColor(Color.GRAY);
-                        //Listeners
-                        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
-                        container.setOnClickListener(listener);
-                        container.setOnLongClickListener(mListener);
+                        setupIdeaTile(holder, container);
+                        //priority tag is not required for DONE tab
                         break;
 
                     case 2: //Quick action send to DELETE
@@ -226,16 +189,45 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                         break;
                 }
                 break;
+        }
+    }
 
+    private void setupPriorityTag(MyViewHolder holder, DatabaseHelper helper) {
+        holder.priorityTag.setVisibility(View.VISIBLE);
+        holder.priorityTag.setBackgroundResource(helper.getPriorityColorById((int) mRecyclerView.getTag()));
+    }
+
+    private void setupIdeaTile(MyViewHolder holder, LinearLayout container) {
+        holder.txtView.setSingleLine();
+        holder.txtView.setText(mIdea);
+        holder.txtView.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+
+        if (mDarkTheme) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                container.setBackgroundResource(R.drawable.grey_ripple);
+            } else {
+                container.setBackgroundResource(R.color.md_grey_800);
+            }
+            holder.txtView.setTextColor(Color.WHITE);
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                container.setBackgroundResource(R.drawable.white_ripple);
+            } else {
+                container.setBackgroundResource(R.color.white);
+            }
+            holder.txtView.setTextColor(Color.BLACK);
         }
 
+        //Listeners
+        RecyclerOnClickListener listener = new RecyclerOnClickListener(mRecyclerView, mTabNumber);
+        container.setOnClickListener(listener);
+        container.setOnLongClickListener(mListener);
     }
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         mRecyclerView = (MyRecyclerView) recyclerView;
-
     }
 
     @Override

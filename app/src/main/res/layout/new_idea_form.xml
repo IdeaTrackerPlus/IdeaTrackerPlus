@@ -2,9 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginBottom="16dp"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
-    android:layout_marginBottom="16dp"
     android:orientation="vertical"
     android:weightSum="1">
 
@@ -16,11 +16,11 @@
             android:id="@+id/idea_dialog_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
             android:text="@string/new_idea"
-            android:layout_centerVertical="true"
-            android:textColor="@color/md_black"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -29,8 +29,8 @@
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:text="@string/create"
             android:textColor="@color/md_pink_a200" />
@@ -41,9 +41,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/hint_edit_idea"
-        android:textColorHint="@color/md_grey_500"
         android:imeOptions="actionDone"
-        android:inputType="textCapSentences|textMultiLine" />
+        android:inputType="textCapSentences|textMultiLine"
+        android:textColorHint="@color/md_grey_500"
+        android:textCursorDrawable="@drawable/edit_text_cursor" />
 
     <TextView
         android:id="@+id/new_error_message"
@@ -60,8 +61,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/hint_edit_note"
+        android:inputType="textCapSentences|textMultiLine"
         android:textColorHint="@color/md_grey_500"
-        android:inputType="textCapSentences|textMultiLine" />
+        android:textCursorDrawable="@drawable/edit_text_cursor" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -72,8 +74,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:text="@string/priority"
             android:textSize="16sp" />
 
@@ -118,8 +120,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:text="@string/do_later"
             android:textSize="16sp" />
 

@@ -20,7 +20,7 @@
             android:layout_marginStart="8dp"
             android:text="@string/new_pro"
             android:layout_centerVertical="true"
-            android:textColor="@color/md_black"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -41,7 +41,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColorHint="@color/md_grey_500"
-        android:inputType="textCapSentences" />
+        android:inputType="textCapSentences"
+        android:textCursorDrawable="@drawable/edit_text_cursor" />
 
     <TextView
         android:id="@+id/project_error_message"
