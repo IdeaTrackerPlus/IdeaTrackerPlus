@@ -209,8 +209,10 @@ public class RecyclerOnClickListener implements View.OnClickListener, View.OnFoc
                         String ideaText = mDbHelper.getTextById(mIdRecycler);
                         mIdeaField.append(ideaText);
                         mNoteField.setText(mDbHelper.getNoteById(mIdRecycler));
-                        int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
-                        if (fromTab == 2) mDoLater.toggle();
+                        @MainActivity.tab int fromTab = mDbHelper.getTabById(mIdRecycler); //Give the tab from where the idea belong
+                        if (fromTab == MainActivity.LATER_TAB) {
+                            mDoLater.toggle();
+                        }
 
                         RadioButton radio = null;
                         switch (mPriority) {

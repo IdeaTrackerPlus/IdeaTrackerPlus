@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
 import manparvesh.ideatrackerplus.database.DatabaseHelper;
 
@@ -22,7 +23,9 @@ import manparvesh.ideatrackerplus.database.DatabaseHelper;
 public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.MyViewHolder> {
 
     private String mIdea;
-    private int mTabNumber;
+    private final @MainActivity.tab
+    int mTabNumber;
+    private final boolean mIsInSearchMode;
 
     private View mLayout;
     private MyRecyclerView mRecyclerView;
@@ -45,9 +48,26 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         }
     }
 
-    public HorizontalAdapter(Context context, String text, int tabNumber, boolean darkTheme) {
+    public static HorizontalAdapter createHorizontalAdapter(Context context, String text, @MainActivity.tab int tabNumber, boolean darkTheme) {
+        return new HorizontalAdapter(context, text, tabNumber, darkTheme);
+    }
+
+    public static HorizontalAdapter createHorizontalAdapterForSearch(Context context, String text, boolean darkTheme) {
+        return new HorizontalAdapter(context, text, darkTheme);
+    }
+
+    private HorizontalAdapter(Context context, String text, @MainActivity.tab int tabNumber, boolean darkTheme) {
         mIdea = text;
         mTabNumber = tabNumber;
+        mIsInSearchMode = false;
+        mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
+        mDarkTheme = darkTheme;
+    }
+
+    private HorizontalAdapter(Context context, String text, boolean darkTheme) {
+        mIdea = text;
+        mIsInSearchMode = true;
+        mTabNumber = 0;
         mLayout = LayoutInflater.from(context).inflate(R.layout.horizontal_item_view, null, false);
         mDarkTheme = darkTheme;
     }
@@ -90,8 +110,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         }
 
         //SEARCH TAB
-        int tab = mTabNumber; //The tab number the idea belongs to
-        if (mTabNumber == 4) {//Search tab
+        @MainActivity.tab int tab = mTabNumber; //The tab number the idea belongs to
+        if (mIsInSearchMode) {//Search tab
             tab = helper.getTabById((int) mRecyclerView.getTag());
 
             if (position == 1) {//Idea text and tabTag
@@ -102,15 +122,15 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                     holder.tabTag.setTextColor(Color.BLACK);
                 }
                 switch (tab) {
-                    case 1:
+                    case MainActivity.IDEAS_TAB:
                         holder.tabTag.setText(R.string.first_tab);
                         break;
 
-                    case 2:
+                    case MainActivity.LATER_TAB:
                         holder.tabTag.setText(R.string.second_tab);
                         break;
 
-                    case 3:
+                    case MainActivity.DONE_TAB:
                         holder.tabTag.setText(R.string.third_tab);
                         break;
                 }
@@ -119,7 +139,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
         //Fill the textView with the right content
         switch (tab) {
-            case 1: //TAB#1 IDEA
+            case MainActivity.IDEAS_TAB:
                 switch (position) {
                     case 0: //Quick action send to DONE
                         holder.txtView.setText(R.string.done_caps);
@@ -143,7 +163,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 }
                 break;
 
-            case 2: //TAB#2 LATER
+            case MainActivity.LATER_TAB:
                 switch (position) {
                     case 0: //Quick action send to NOW
                         holder.txtView.setText(R.string.now);
@@ -167,7 +187,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
                 }
                 break;
 
-            case 3: //TAB#3 DONE
+            case MainActivity.DONE_TAB:
                 switch (position) {
                     case 0: //Quick action send to IDEAS
                         holder.txtView.setText(R.string.recover);
@@ -235,7 +255,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
         return 3;
     }
 
-    public int getTabNumber() {
+    public @MainActivity.tab
+    int getTabNumber() {
         return mTabNumber;
     }
 

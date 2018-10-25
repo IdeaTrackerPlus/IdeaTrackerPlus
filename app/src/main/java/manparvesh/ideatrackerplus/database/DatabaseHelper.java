@@ -17,6 +17,7 @@ import manparvesh.ideatrackerplus.ItemAdapter;
 import manparvesh.ideatrackerplus.MainActivity;
 import manparvesh.ideatrackerplus.R;
 import manparvesh.ideatrackerplus.SearchListAdapter;
+import manparvesh.ideatrackerplus.models.Idea;
 
 /**
  * This class takes care of the interaction with the database
@@ -113,7 +114,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         DatabaseHelper helper = DatabaseHelper.getInstance(mainActivity);
 
         //Notify all 3 tabs
-        for (int tab = 1; tab <= 3; tab++) {
+        for (@MainActivity.tab int tab = MainActivity.IDEAS_TAB; tab <= MainActivity.DONE_TAB; tab++) {
             if (adapters[tab] != null) adapters[tab].setItemList(helper.readIdeas(tab));
         }
 
@@ -142,7 +143,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         DataEntry.COLUMN_NAME_PRIORITY + INT_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_DONE + BOOL_TYPE + COMMA_SEP +
                         DataEntry.COLUMN_NAME_LATER + BOOL_TYPE + COMMA_SEP +
-                        DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE +
+                        DataEntry.COLUMN_NAME_TEMP + BOOL_TYPE + COMMA_SEP +
+                        " UNIQUE( " +
+                        DataEntry.COLUMN_NAME_TEXT + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_NOTE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_PRIORITY + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_DONE + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_LATER + COMMA_SEP +
+                        DataEntry.COLUMN_NAME_TEMP +
+                        " ) ON CONFLICT IGNORE" +
                         " )";
         getWritableDatabase().execSQL(SQL_NEW_TABLE);
         notifyAllLists();
@@ -187,22 +196,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param text
      * @param note
      * @param priority range from 1 (high) to 3 (low)
-     * @param later    if the idea should be in the "LATER" tab
+     * @param tab      if the idea should be in the "LATER" tab
      */
-    public void newEntry(String text, String note, int priority, boolean later) {
+    public void newEntry(String text, String note, int priority, @MainActivity.tab int tab) {
 
         ContentValues values = new ContentValues();
-        if (later) {
-            values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(2) + 1); // The order index is set so the item is the last in the list
+        if (tab == MainActivity.LATER_TAB) {
+            values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(MainActivity.LATER_TAB) + 1); // The order index is set so the item is the last in the list
         } else {
-            values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(1) + 1);
+            values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(MainActivity.IDEAS_TAB) + 1);
         }
         values.put(DataEntry.COLUMN_NAME_TEXT, text);
         values.put(DataEntry.COLUMN_NAME_NOTE, note);
         values.put(DataEntry.COLUMN_NAME_PRIORITY, priority);
-        values.put(DataEntry.COLUMN_NAME_LATER, later);
-        values.put(DataEntry.COLUMN_NAME_DONE, false);
         values.put(DataEntry.COLUMN_NAME_TEMP, false);
+
+        switch(tab){
+            case MainActivity.IDEAS_TAB:
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                break;
+            case MainActivity.LATER_TAB:
+                values.put(DataEntry.COLUMN_NAME_LATER, true);
+                values.put(DataEntry.COLUMN_NAME_DONE, false);
+                break;
+            case MainActivity.DONE_TAB:
+                values.put(DataEntry.COLUMN_NAME_LATER, false);
+                values.put(DataEntry.COLUMN_NAME_DONE, true);
+                break;
+            default:
+        }
 
         getWritableDatabase().insert(
                 DataEntry.TABLE_NAME,
@@ -210,6 +233,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values);
     }
 
+    public void newEntries(List<Idea> ideas) {
+        for(Idea idea: ideas) {
+            @MainActivity.tab int tab = Idea.stateToTab(idea.state);
+            newEntry(idea.title, idea.note, idea.priority, tab);
+        }
+    }
+
+    private Cursor getAllEntries() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(
+          DataEntry.TABLE_NAME,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
 
     /**
      * Find an entry cursor with its id
@@ -228,6 +270,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null,                                     // don't filter by row groups
                 null                                 // The sort order
         );
+    }
+
+    public List<Idea> getAllIdeas() {
+        Cursor cursor = null;
+        final List<Idea> ideas = new ArrayList<>();
+        try {
+            cursor = getAllEntries();
+            while (cursor.moveToNext()) {
+                String title = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_TEXT));
+                String note = cursor.getString(cursor.getColumnIndex(DataEntry.COLUMN_NAME_NOTE));
+                int priority = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_PRIORITY));
+
+                boolean later = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_LATER)) > 0;
+                boolean done = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_DONE)) > 0;
+
+                @MainActivity.tab int tab;
+                if (done) {
+                    tab = MainActivity.DONE_TAB;
+                } else if (later) {
+                    tab = MainActivity.LATER_TAB;
+                } else {
+                    tab = MainActivity.IDEAS_TAB;
+                }
+                Idea idea = new Idea(title, note, priority, tab);
+                ideas.add(idea);
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return ideas;
     }
 
     public String getTextById(int id) {
@@ -315,7 +389,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
-    public int getTabById(int id) {
+    public @MainActivity.tab
+    int getTabById(int id) {
 
         Cursor cursor = null;
         try {
@@ -326,11 +401,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     boolean done = cursor.getInt(cursor.getColumnIndex(DataEntry.COLUMN_NAME_DONE)) > 0;
 
                     if (done) {
-                        return 3;
+                        return MainActivity.DONE_TAB;
                     } else if (later) {
-                        return 2;
+                        return MainActivity.LATER_TAB;
                     }
-                    return 1;
+                    return MainActivity.IDEAS_TAB;
                 }
             }
         } finally {
@@ -338,7 +413,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        return 1;
+        return MainActivity.IDEAS_TAB;
     }
 
     /**
@@ -452,7 +527,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param to   tab number where to move the idea
      * @param id   unique id of the idea in database
      */
-    public void moveToTabWithSnack(View view, int from, int to, int id) {
+    public void moveToTabWithSnack(View view, @MainActivity.tab int from, @MainActivity.tab int to, int id) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -460,23 +535,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String destination = "";
 
         switch (to) {
-            case 1: //NOW
+            case MainActivity.IDEAS_TAB:
                 destination = res.getString(R.string.first_tab);
-                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(1) + 1);
+                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(MainActivity.IDEAS_TAB) + 1);
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
                 break;
 
-            case 2: //LATER
+            case MainActivity.LATER_TAB:
                 destination = res.getString(R.string.second_tab);
-                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(2) + 1);
+                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(MainActivity.LATER_TAB) + 1);
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, true);
                 break;
 
-            case 3: //DONE
+            case MainActivity.DONE_TAB: //DONE
                 destination = res.getString(R.string.third_tab);
-                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(3) + 1);
+                values.put(DataEntry.COLUMN_NAME_ENTRY_ID, getLastOrderIndex(MainActivity.DONE_TAB) + 1);
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
                 values.put(DataEntry.COLUMN_NAME_DONE, true);
                 break;
@@ -539,22 +614,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notifyAllLists();
     }
 
-    public void moveAllToTab(int tabNumber, ArrayList<Pair<Integer, String>> ideas) {
+    public void moveAllToTab(@MainActivity.tab int tabNumber, ArrayList<Pair<Integer, String>> ideas) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
         switch (tabNumber) {
-            case 1: //NOW
+            case MainActivity.IDEAS_TAB:
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
                 break;
 
-            case 2: //LATER
+            case MainActivity.LATER_TAB:
                 values.put(DataEntry.COLUMN_NAME_DONE, false);
                 values.put(DataEntry.COLUMN_NAME_LATER, true);
                 break;
 
-            case 3: //DONE
+            case MainActivity.DONE_TAB:
                 values.put(DataEntry.COLUMN_NAME_LATER, false);
                 values.put(DataEntry.COLUMN_NAME_DONE, true);
                 break;
@@ -577,12 +652,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Pair<Integer, String>> ideas = new ArrayList<>();
         Context c = mainActivity.getApplicationContext();
 
-        if (from.equals(c.getString(R.string.first_tab))) { //get all the ideas from NOW tab
-            ideas = readIdeas(1);
-        } else if (from.equals(c.getString(R.string.second_tab))) {//get all the ideas from LATER tab
-            ideas = readIdeas(2);
-        } else if (from.equals(c.getString(R.string.third_tab))) {//get all the ideas from DONE tab
-            ideas = readIdeas(3);
+        if (from.equals(c.getString(R.string.first_tab))) {
+            ideas = readIdeas(MainActivity.IDEAS_TAB);
+        } else if (from.equals(c.getString(R.string.second_tab))) {
+            ideas = readIdeas(MainActivity.LATER_TAB);
+        } else if (from.equals(c.getString(R.string.third_tab))) {
+            ideas = readIdeas(MainActivity.DONE_TAB);
         }
 
 
@@ -591,11 +666,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
         if (to.equals(c.getString(R.string.first_tab))) {
-            moveAllToTab(1, ideas);
+            moveAllToTab(MainActivity.IDEAS_TAB, ideas);
         } else if (to.equals(c.getString(R.string.second_tab))) {
-            moveAllToTab(2, ideas);
+            moveAllToTab(MainActivity.LATER_TAB, ideas);
         } else if (to.equals(c.getString(R.string.third_tab))) {
-            moveAllToTab(3, ideas);
+            moveAllToTab(MainActivity.DONE_TAB, ideas);
         } else if (to.equals(c.getString(R.string.trash))) {
             moveAllToTemp(ideas);
         }
@@ -634,7 +709,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param tabNumber 1 for NOW/IDEAS, 2 for LATER, 3 for DONE
      * @return a list of the ideas paired with their id in the database
      */
-    public ArrayList<Pair<Integer, String>> readIdeas(int tabNumber) {
+    public ArrayList<Pair<Integer, String>> readIdeas(@MainActivity.tab int tabNumber) {
 
         if (!DataEntry.TABLE_NAME.equals("[]")) {
 
@@ -650,17 +725,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String where = "";
             String[] values = {};
             switch (tabNumber) {
-                case 1:
+                case MainActivity.IDEAS_TAB:
                     where = "later=? and done=? and temp=?";
                     values = new String[]{"0", "0", "0"};
                     break;
 
-                case 2:
+                case MainActivity.LATER_TAB:
                     where = "later=? and temp=?";
                     values = new String[]{"1", "0"};
                     break;
 
-                case 3:
+                case MainActivity.DONE_TAB:
                     where = "done=? and temp=?";
                     values = new String[]{"1", "0"};
                     break;
@@ -750,7 +825,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param tabNumber
      * @return
      */
-    public int getLastOrderIndex(int tabNumber) {
+    public int getLastOrderIndex(@MainActivity.tab int tabNumber) {
 
         int lastOrderIndex = -1;
 
@@ -768,17 +843,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String where = "";
             String[] values = {};
             switch (tabNumber) {
-                case 1:
+                case MainActivity.IDEAS_TAB:
                     where = "later=? and done=? and temp=?";
                     values = new String[]{"0", "0", "0"};
                     break;
 
-                case 2:
+                case MainActivity.LATER_TAB:
                     where = "later=? and temp=?";
                     values = new String[]{"1", "0"};
                     break;
 
-                case 3:
+                case MainActivity.DONE_TAB:
                     where = "done=? and temp=?";
                     values = new String[]{"1", "0"};
                     break;
@@ -941,7 +1016,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public void sortByAscPriorityAt(int tabNumber) {
+    public void sortByAscPriorityAt(@MainActivity.tab int tabNumber) {
 
         if (adapters[tabNumber] != null) {
             //Get the list with right order
@@ -997,7 +1072,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void sortByAscPriority() {
-        for (int tab = 1; tab <= 3; tab++) {
+        for (@MainActivity.tab int tab = MainActivity.IDEAS_TAB; tab <= MainActivity.DONE_TAB; tab++) {
             sortByAscPriorityAt(tab);
         }
         //Send the newly ordered lists for display

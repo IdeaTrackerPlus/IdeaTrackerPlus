@@ -102,6 +102,14 @@
     <string name="next">Next</string>
     <string name="idea_moved_snack">"Idea moved to "</string>
     <string name="sort_priority">Sort by priority</string>
+    <string name="export_file">Export to file</string>
+    <string name="import_file">Import from file</string>
+    <string name="filename_title">Enter file name</string>
+    <string name="read_permission_rationale">Read Permission should be granted for import functionality to work</string>
+    <string name="write_permission_rationale">Write Permission should be granted for export functionality to work</string>
+    <string name="cant_read_file">Can not read file</string>
+    <string name="cant_write_file">Can not write file</string>
+    <string name="cant_parse_file">Can not parse file. Most probably it is not exported from Idea Tracker Plus</string>
     <string name="clear_done">Clear Done tab</string>
     <string name="done_cleared">Done tab cleared</string>
     <string name="favorite_project" translatable="false">favorite_project</string>
