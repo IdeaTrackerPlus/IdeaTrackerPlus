@@ -907,6 +907,7 @@ public class MainActivity extends AppCompatActivity implements
                 displayIdeasCount();
 
                 DatabaseHelper.notifyAllLists();
+                mDbHelper.sortByAscPriority();
 
             }
 
