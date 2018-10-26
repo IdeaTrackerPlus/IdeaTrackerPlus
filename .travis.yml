@@ -4,7 +4,7 @@ sudo: false
 
 env:
     matrix:
-        - ANDROID_TARGET=android-22 ANDROID_ABI=armeabi-v7a
+        - ANDROID_TARGET=android-25 ANDROID_ABI=armeabi-v7a
     global:
         - ADB_INSTALL_TIMEOUT=10    #Time out to 10 mins
 
@@ -22,9 +22,10 @@ android:
     components:
         - platform-tools
         - tools
-        - build-tools-25.0.0
+        - build-tools-26.0.1
         - android-23
         - android-22
+        - android-26
 
         # Additional components
         - extra-google-google_play_services
@@ -32,7 +33,7 @@ android:
         - extra-android-m2repository
 
         #system image
-        - sys-img-armeabi-v7a-android-22
+        - sys-img-armeabi-v7a-android-26
 
 licenses:
     - 'android-sdk-preview-license-.+'
@@ -42,7 +43,7 @@ licenses:
 before_script:
     - chmod +x gradlew      #Grand permissions
     - android list targets
-    - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a -c 32M    #Create AVD for given api
+    - echo no | android create avd --force -n test -t android-26 --abi armeabi-v7a -c 32M    #Create AVD for given api
     - emulator -avd test -no-skin -no-audio -no-window &    #Start emulator
 
 script:
