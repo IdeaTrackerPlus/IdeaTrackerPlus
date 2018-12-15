@@ -1662,6 +1662,11 @@ public class MainActivity extends AppCompatActivity implements
     // Get the list of the other projects, excluding the current one
     private Project[] getOtherProjects() {
 
+        if (mProjects.size() == 0){
+            Project[] otherProjects = new Project[0];
+            return otherProjects;
+        }
+
         int size = mProjects.size() - 1;
         Project[] otherProjects = new Project[size];
         Object currentProject = mProjects.remove(mSelectedProfileIndex);
@@ -1995,6 +2000,9 @@ public class MainActivity extends AppCompatActivity implements
 
                 DroppyMenuPopup droppyMenu = mDroppyBuilder.build();
                 droppyMenu.show();
+            }
+            else {
+                noProjectSnack();
             }
         }
     }
