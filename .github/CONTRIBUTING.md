@@ -14,7 +14,8 @@ You can contribute to this project by suggesting features or filing bugs by crea
 If you are interested in contributing by writing code, you can do so by fixing the bugs or implementing the features mentioned in [the issues](https://github.com/IdeaTrackerPlus/IdeaTrackerPlus/issues).  
 #### Setup
  - [Install Android Studio](https://developer.android.com/studio/install.html).
- - [Clone this repository](https://help.github.com/articles/cloning-a-repository/).
+ - [Fork this repository](https://help.github.com/articles/fork-a-repo/)
+ - [Clone your fork](https://help.github.com/articles/cloning-a-repository/).
  - Import the cloned project:
    - File -> New -> Project from Version Control -> GitHub
    - Enter your github username and password
