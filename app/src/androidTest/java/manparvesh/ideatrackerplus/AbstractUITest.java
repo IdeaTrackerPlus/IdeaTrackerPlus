@@ -23,6 +23,8 @@ class AbstractUITest {
         // Set SharedPreferences data
         preferencesEditor.putBoolean(context.getString(R.string.preference_firstStart), isIntrosActive());
         preferencesEditor.putBoolean(context.getString(R.string.first_project_pref), isIntrosActive());
+        preferencesEditor.putBoolean(context.getString(R.string.right_drawer_pref), isIntrosActive());
+
         preferencesEditor.putBoolean(context.getString(R.string.clean_data), isCleanData());
         preferencesEditor.commit();
         // Launch activity

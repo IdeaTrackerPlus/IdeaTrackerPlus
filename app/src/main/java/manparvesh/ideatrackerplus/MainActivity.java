@@ -426,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(ID_NEW_PROJECT_AND_SWITCH).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, bigTextSwitch, darkSwitch, fireStoreSwitch),
+                                doneSwitch, bigTextSwitch, darkSwitch/*, fireStoreSwitch*/),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(ID_SEE_APP_INTRO_AGAIN).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(ID_ACTIVATE_TUTORIAL_AGAIN).withSelectable(false),
@@ -1137,8 +1137,7 @@ public class MainActivity extends AppCompatActivity implements
                 })
                 .setUsageId("right_drawer") //THIS SHOULD BE UNIQUE ID
                 .show();
-
-        mTinyDB.putBoolean(getString(R.string.right_drawer_pref), false);
+        preferencesEditor.edit().putBoolean(getString(R.string.right_drawer_pref),false).commit();
     }
 
     private MyMaterialIntroView menuIdeaGuide(View fabView) {
@@ -1870,7 +1869,7 @@ public class MainActivity extends AppCompatActivity implements
                                     mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
                                     preferencesEditor.edit().putBoolean(getString(R.string.first_project_pref),true).commit();
                                     mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
-                                    mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
+                                    preferencesEditor.edit().putBoolean(getString(R.string.right_drawer_pref),true).commit();
                                     mTinyDB.putBoolean(getString(R.string.idea_menu_pref), true);
                                 }
                             });
@@ -1933,7 +1932,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onDrawerClosed(View drawerView) {
 
-        if (mTinyDB.getBoolean(getString(R.string.right_drawer_pref)) && !mNoProject && !mHandleFilter) {//Left drawer closed
+        if (preferencesEditor.getBoolean(getString(R.string.right_drawer_pref),true) && !mNoProject && !mHandleFilter) {//Left drawer closed
             rightDrawerGuide();
         } else if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject && mHandleFilter) {
             firstIdeaGuide();
