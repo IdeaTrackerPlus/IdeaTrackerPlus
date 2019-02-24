@@ -113,6 +113,9 @@
     <string name="idea_menu_pref">firstIdeaMenu</string>
     <string name="save">Save</string>
     <string name="detailed_idea">Idea details</string>
+    <string name="preference_firstStart">firstStart</string>
+    <string name="clean_data">clean_data</string>
+
 
     <string-array name="array_from">
         <item>Done</item>
