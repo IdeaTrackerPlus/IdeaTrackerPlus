@@ -7,6 +7,7 @@ env:
         - ANDROID_TARGET=android-22 ANDROID_ABI=armeabi-v7a
     global:
         - ADB_INSTALL_TIMEOUT=10    #Time out to 10 mins
+        - ANDROID_SDK_ROOT=/opt/android  # any place `travis` can write to should work
 
 before_cache:
     - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -38,7 +39,7 @@ licenses:
     - 'android-sdk-preview-license-.+'
     - 'android-sdk-license-.+'
     - 'google-gdk-license-.+'
-    - 'build-tools.+'
+    - 'build-tools;28.0.3'
 
 before_script:
     - chmod +x gradlew      #Grand permissions
@@ -57,6 +58,9 @@ script:
 
 before_install:
     - pip install --user codecov    #Install codecov
+    - - mkdir -p $ANDROID_SDK_ROOT
+    - yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "tools" "build-tools;28.0.3" "extras;android;m2repository"
+    - export PATH=${ANDROID_SDK_ROOT}/tools/bin:$PATH
 
 after_success:
     - codecov                       #Run codecov
