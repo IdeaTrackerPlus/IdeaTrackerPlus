@@ -58,7 +58,7 @@ script:
 
 before_install:
     - pip install --user codecov    #Install codecov
-    - - mkdir -p $ANDROID_SDK_ROOT
+    - mkdir -p $ANDROID_SDK_ROOT
     - yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "tools" "build-tools;28.0.3" "extras;android;m2repository"
     - export PATH=${ANDROID_SDK_ROOT}/tools/bin:$PATH
 
