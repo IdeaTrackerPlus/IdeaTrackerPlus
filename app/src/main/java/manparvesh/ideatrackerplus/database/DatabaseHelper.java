@@ -1003,7 +1003,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         //Send the newly ordered lists for display
         notifyAllLists();
     }
-
-
 }
 

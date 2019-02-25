@@ -18,6 +18,7 @@
     <string name="all_pro">All projects</string>
     <string name="new_pro">New project</string>
     <string name="dark_col">Dark Theme</string>
+    <string name="firestore_col">Cloud Storage (Google)</string>
     <string name="primary_col">Primary color</string>
     <string name="secondary_col">Secondary color</string>
     <string name="text_col">Text color</string>
@@ -55,6 +56,7 @@
     <string name="help">Help</string>
     <string name="tuto_mode">Tutorial mode is now active</string>
     <string name="dark_theme_pref" translatable="false">darkTheme</string>
+    <string name="firestore_pref" translatable="false">fireStore</string>
     <string name="show_done_pref" translatable="false">showDone</string>
     <string name="show_done_msg">Show Done tab</string>
     <string name="big_text_pref" translatable="false">bigTextSwitch</string>
@@ -111,6 +113,9 @@
     <string name="idea_menu_pref">firstIdeaMenu</string>
     <string name="save">Save</string>
     <string name="detailed_idea">Idea details</string>
+    <string name="preference_firstStart">firstStart</string>
+    <string name="clean_data">clean_data</string>
+
 
     <string-array name="array_from">
         <item>Done</item>

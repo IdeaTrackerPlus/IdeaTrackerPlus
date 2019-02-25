@@ -1,20 +1,24 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 try {
     apply from: '../../../signing.gradle'
 } catch (ex) {
 }
-
 android {
 
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
     defaultConfig {
-        applicationId "appbox.gameideas"
+        applicationId "appbox.gameideasplus"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 9
         versionName "0.1"
+        multiDexEnabled true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        vectorDrawables.useSupportLibrary = true
+
     }
     buildTypes {
         release {
@@ -25,25 +29,62 @@ android {
             debuggable true
         }
     }
+
+
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
-    compile 'com.thebluealliance:spectrum:0.5.0'
-    compile('com.mikepenz:materialdrawer:5.3.6@aar') {
+    implementation 'com.android.support:multidex:1.0.3'
+
+
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.firebase:firebase-core:16.0.7'
+
+    implementation 'com.google.firebase:firebase-firestore:18.0.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support:appcompat-v7:23.4.0'
+    implementation 'com.android.support:appcompat-v7:23.4.0'
+    implementation 'com.android.support:design:23.4.0'
+    implementation 'com.thebluealliance:spectrum:0.5.0'
+    implementation('com.mikepenz:materialdrawer:5.3.6@aar') {
         transitive = true
     }
-    compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
-    compile 'com.mikepenz:fontawesome-typeface:4.4.0.1@aar'
-    compile 'com.yarolegovich:lovely-dialog:1.0.4'
-    compile 'com.github.paolorotolo:appintro:4.0.0'
-    compile 'com.github.iammert:MaterialIntroView:1.5.2'
-    compile 'com.github.woxthebox:draglistview:1.2.8'
-    compile 'com.github.ivbaranov:materialfavoritebutton:0.1.2'
-    compile 'com.github.mancj:MaterialSearchBar:0.3.1'
-    compile 'com.shehabic.droppy:Droppy:0.5.1@aar'
-    compile files('libs/gson-2.4.jar')
+    implementation 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
+    implementation 'com.mikepenz:fontawesome-typeface:4.4.0.1@aar'
+    implementation 'com.yarolegovich:lovely-dialog:1.0.4'
+    implementation 'com.github.paolorotolo:appintro:4.0.0'
+    implementation 'com.github.iammert:MaterialIntroView:1.5.2'
+    implementation 'com.github.woxthebox:draglistview:1.2.8'
+    implementation 'com.github.ivbaranov:materialfavoritebutton:0.1.2'
+    implementation 'com.github.mancj:MaterialSearchBar:0.3.1'
+    implementation 'com.shehabic.droppy:Droppy:0.5.1@aar'
+    implementation files('libs/gson-2.4.jar')
+// AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+
+// Espresso dependencies
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-contrib:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-intents:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-accessibility:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-web:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso.idling:idling-concurrent:3.0.1'
+
+// The following Espresso dependency can be either "compile"
+// or "androidTestCompile", depending on your app's implementation
+    androidTestImplementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.1'
+    configurations {
+        all*.exclude group: 'com.google.code.gson'
+    }
+}
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '23.4.0'
+            }
+        }
+    }
 }

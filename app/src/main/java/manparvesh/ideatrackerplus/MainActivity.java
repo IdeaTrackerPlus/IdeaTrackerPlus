@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -30,6 +32,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -52,8 +55,11 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
@@ -122,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
     private static final int ID_DARK_THEME = 7;
+    private static final int ID_FIRESTORE = 8;
+
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -139,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Database
     private DatabaseHelper mDbHelper;
-
+    private FirebaseFirestore db;
     // Drawers items
     private Drawer leftDrawer = null;
     private Drawer rightDrawer = null;
@@ -147,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements
     private SwitchDrawerItem doneSwitch;
     private SwitchDrawerItem bigTextSwitch;
     private SwitchDrawerItem darkSwitch;
+    private SwitchDrawerItem fireStoreSwitch;
+
     private PrimaryDrawerItem mColorItem1;
     private PrimaryDrawerItem mColorItem2;
     private PrimaryDrawerItem mColorItem3;
@@ -178,8 +188,11 @@ public class MainActivity extends AppCompatActivity implements
     private TextView mProjectError;
     private EditText mProjectField;
 
+
     // Preferences
     private TinyDB mTinyDB;
+    private SharedPreferences preferencesEditor;
+
     private static final String PREF_KEY = "MyPrefKey";
     private int mPrimaryColor;
     private int mSecondaryColor;
@@ -189,6 +202,8 @@ public class MainActivity extends AppCompatActivity implements
     private int mSelectedProfileIndex;
     private boolean mNoProject = false;
     private boolean mDarkTheme;
+    private boolean mFireStore;
+
 
     // Color preferences
     private int defaultPrimaryColor;
@@ -208,14 +223,19 @@ public class MainActivity extends AppCompatActivity implements
         return sInstance;
     }
 
+
     // OVERRODE METHODS //
+
 
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        preferencesEditor = PreferenceManager.getDefaultSharedPreferences(this);
         mTinyDB = new TinyDB(this);
         mDarkTheme = mTinyDB.getBoolean(getString(R.string.dark_theme_pref), false);
-
+        mFireStore = mTinyDB.getBoolean(getString(R.string.firestore_pref), false);
+        FirebaseApp.initializeApp(this);
+        //db = FirebaseFirestore.getInstance();
         if (mDarkTheme) {
             setTheme(R.style.AppThemeDark_NoActionBar);
         } else {
@@ -228,7 +248,9 @@ public class MainActivity extends AppCompatActivity implements
 
         //Initialize SearchListAdapter with proper dark theme value
         SearchListAdapter.getInstance(this, mDarkTheme);
-
+        if (mFireStore) {
+            Log.d("tag123", "onCreate: firestore active");
+        }
         mDbHelper = DatabaseHelper.getInstance(this);
 
         // App intro
@@ -391,6 +413,7 @@ public class MainActivity extends AppCompatActivity implements
 
         //LEFT DRAWER
         leftDrawer = new DrawerBuilder(this)
+
                 .withToolbar(mToolbar)
                 .withActionBarDrawerToggleAnimated(true)
                 .withSelectedItem(-1)
@@ -403,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(ID_NEW_PROJECT_AND_SWITCH).withName(R.string.new_pro).withIcon(FontAwesome.Icon.faw_plus).withSelectable(false),
                         new DividerDrawerItem(),
                         new ExpandableDrawerItem().withName(R.string.settings).withIcon(FontAwesome.Icon.faw_gear).withSelectable(false).withSubItems(
-                                doneSwitch, bigTextSwitch, darkSwitch),
+                                doneSwitch, bigTextSwitch, darkSwitch/*, fireStoreSwitch*/),
                         new ExpandableDrawerItem().withName(R.string.help_feedback).withIcon(FontAwesome.Icon.faw_question_circle).withSelectable(false).withSubItems(
                                 new SecondaryDrawerItem().withName(R.string.see_app_intro).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_camera_rear).withIdentifier(ID_SEE_APP_INTRO_AGAIN).withSelectable(false),
                                 new SecondaryDrawerItem().withName(R.string.activate_tuto).withLevel(2).withIcon(GoogleMaterial.Icon.gmd_info).withIdentifier(ID_ACTIVATE_TUTORIAL_AGAIN).withSelectable(false),
@@ -604,6 +627,14 @@ public class MainActivity extends AppCompatActivity implements
 
     // Creates the swicthes displayed in the drawer
     private void setUpSwitches() {
+        fireStoreSwitch = new SwitchDrawerItem()
+                .withName(R.string.firestore_col)
+                .withLevel(2).withIdentifier(ID_FIRESTORE)
+                .withOnCheckedChangeListener(this)
+                .withChecked(mFireStore)
+                .withSelectable(false);
+
+
         darkSwitch = new SwitchDrawerItem()
                 .withName(R.string.dark_col)
                 .withLevel(2).withIdentifier(ID_DARK_THEME)
@@ -827,7 +858,7 @@ public class MainActivity extends AppCompatActivity implements
             }
 
             //If first project ever
-            if (mTinyDB.getBoolean(getString(R.string.first_project_pref))) {
+            if (preferencesEditor.getBoolean(getString(R.string.first_project_pref),true)) {
                 leftDrawer.openDrawer();
                 header.toggleSelectionList(getApplicationContext());
                 firstProjectGuide();
@@ -1000,23 +1031,18 @@ public class MainActivity extends AppCompatActivity implements
 
     // Launch the app introduction only for the first start
     private void introOnFirstStart() {
-        //  Declare a new thread to do a preference check
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
 
-                //  Create a new boolean and preference and set it to true
-                boolean firstStart = mTinyDB.getBoolean("firstStart");
 
-                //  If the activity has never started before...
-                if (firstStart) {
-                    forceIntro();
-                    mTinyDB.putBoolean("firstStart", false);
-                }
-            }
-        });
+        //  Create a new boolean and preference and set it to true
+        boolean firstStart = preferencesEditor.getBoolean(getString(R.string.preference_firstStart), true);
 
-        t.start();
+        //  If the activity has never started before...
+        if (firstStart) {
+            forceIntro();
+
+            preferencesEditor.edit().putBoolean(getString(R.string.preference_firstStart), false).commit();
+        }
+
     }
 
     // Launch the app introduction
@@ -1027,7 +1053,6 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows the tutorial for the first project creation
     private void firstProjectGuide() {
-
         new PreferencesManager(this).reset("first_project");
 
         new MyMaterialIntroView.Builder(this)
@@ -1044,7 +1069,7 @@ public class MainActivity extends AppCompatActivity implements
                 .setUsageId("first_project") //THIS SHOULD BE UNIQUE ID
                 .show();
 
-        mTinyDB.putBoolean(getString(R.string.first_project_pref), false);
+        preferencesEditor.edit().putBoolean(getString(R.string.first_project_pref),false).commit();
     }
 
     // Shows the tutorial for the first idea creation
@@ -1112,8 +1137,7 @@ public class MainActivity extends AppCompatActivity implements
                 })
                 .setUsageId("right_drawer") //THIS SHOULD BE UNIQUE ID
                 .show();
-
-        mTinyDB.putBoolean(getString(R.string.right_drawer_pref), false);
+        preferencesEditor.edit().putBoolean(getString(R.string.right_drawer_pref),false).commit();
     }
 
     private MyMaterialIntroView menuIdeaGuide(View fabView) {
@@ -1198,6 +1222,17 @@ public class MainActivity extends AppCompatActivity implements
             mColorItem3.withIconColor(mTextColor);
             rightDrawer.updateItem(mColorItem3);
         }
+
+    }
+
+    private void toggleFireStore(boolean isFirestoreActive) {
+        mTinyDB.putBoolean(getString(R.string.firestore_pref), isFirestoreActive);
+        Context context = getApplicationContext();
+        CharSequence text = "State: " + isFirestoreActive;
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
 
     }
 
@@ -1662,7 +1697,7 @@ public class MainActivity extends AppCompatActivity implements
     // Get the list of the other projects, excluding the current one
     private Project[] getOtherProjects() {
 
-        if (mProjects.size() == 0){
+        if (mProjects.size() == 0) {
             Project[] otherProjects = new Project[0];
             return otherProjects;
         }
@@ -1832,9 +1867,9 @@ public class MainActivity extends AppCompatActivity implements
                                 @Override
                                 public void onDismissed(Snackbar snackbar, int event) {
                                     mTinyDB.putBoolean(getString(R.string.handle_idea_pref), true);
-                                    mTinyDB.putBoolean(getString(R.string.first_project_pref), true);
+                                    preferencesEditor.edit().putBoolean(getString(R.string.first_project_pref),true).commit();
                                     mTinyDB.putBoolean(getString(R.string.first_idea_pref), true);
-                                    mTinyDB.putBoolean(getString(R.string.right_drawer_pref), true);
+                                    preferencesEditor.edit().putBoolean(getString(R.string.right_drawer_pref),true).commit();
                                     mTinyDB.putBoolean(getString(R.string.idea_menu_pref), true);
                                 }
                             });
@@ -1897,7 +1932,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onDrawerClosed(View drawerView) {
 
-        if (mTinyDB.getBoolean(getString(R.string.right_drawer_pref)) && !mNoProject && !mHandleFilter) {//Left drawer closed
+        if (preferencesEditor.getBoolean(getString(R.string.right_drawer_pref),true) && !mNoProject && !mHandleFilter) {//Left drawer closed
             rightDrawerGuide();
         } else if (mTinyDB.getBoolean(getString(R.string.first_idea_pref)) && !mNoProject && mHandleFilter) {
             firstIdeaGuide();
@@ -1935,6 +1970,9 @@ public class MainActivity extends AppCompatActivity implements
             case ID_DARK_THEME:
                 changeDarkTheme(isChecked);
                 break;
+
+            case ID_FIRESTORE:
+                toggleFireStore(isChecked);
         }
 
     }
@@ -2000,8 +2038,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 DroppyMenuPopup droppyMenu = mDroppyBuilder.build();
                 droppyMenu.show();
-            }
-            else {
+            } else {
                 noProjectSnack();
             }
         }
