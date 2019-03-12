@@ -61,7 +61,7 @@ public class ItemAdapter extends DragItemAdapter<Pair<Integer, String>, ItemAdap
 
         // Create the right adapter for the recycler view
         HorizontalAdapter horizontalAdapter;
-        horizontalAdapter = new HorizontalAdapter(recyclerView.getContext(), "", mTabNumber, mDarkTheme);
+        horizontalAdapter = HorizontalAdapter.createHorizontalAdapter(recyclerView.getContext(), "", mTabNumber, mDarkTheme);
 
         // Set up the manager and adapter of the recycler view
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);

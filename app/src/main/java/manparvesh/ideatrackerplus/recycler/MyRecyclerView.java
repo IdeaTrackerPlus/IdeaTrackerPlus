@@ -235,24 +235,26 @@ public class MyRecyclerView extends RecyclerView {
         } else if (isActivated && state == RecyclerView.SCROLL_STATE_IDLE) { //Finished scrolling to one of the end
 
             int first = mManager.findFirstVisibleItemPosition();
-            int myTab = mDbHelper.getTabById((int) getTag()); //Tab number the idea belongs to
+            @MainActivity.tab int myTab = mDbHelper.getTabById((int) getTag()); //Tab number the idea belongs to
 
             if ((mManager.getChildAt(0)) != null && first == 0) { //move to LEFT ACTION
                 switch (myTab) {
-                    case 1: //Tab "Ideas"
-                        muteCellToTab(3);
+                    case MainActivity.IDEAS_TAB: //Tab "Ideas"
+                        muteCellToTab(MainActivity.DONE_TAB);
                         break;
-
+                    case MainActivity.LATER_TAB:
+                    case MainActivity.DONE_TAB:
                     default: //Tab "Later" and "Done"
-                        muteCellToTab(1);
+                        muteCellToTab(MainActivity.IDEAS_TAB);
                         break;
                 }
             } else { //move to RIGHT ACTION
                 switch (myTab) {
-                    case 1: //Tab "Ideas"
-                        muteCellToTab(2);
+                    case MainActivity.IDEAS_TAB: //Tab "Ideas"
+                        muteCellToTab(MainActivity.LATER_TAB);
                         break;
-
+                    case MainActivity.LATER_TAB:
+                    case MainActivity.DONE_TAB:
                     default: //Tab "Later" and "Done"
                         muteCellToDelete();
                         break;
@@ -335,7 +337,7 @@ public class MyRecyclerView extends RecyclerView {
         collapse(v, al);
     }
 
-    public void muteCellToTab(int tabNumber) {
+    public void muteCellToTab(@MainActivity.tab int tabNumber) {
         int tagId = (int) getTag();
         mDbHelper.moveToTabWithSnack(mainActivity.findViewById(R.id.main_content), mDbHelper.getTabById(tagId), tabNumber, tagId);
 

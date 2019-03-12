@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'groovyx.android'
 
 try {
     apply from: '../../../signing.gradle'
@@ -7,12 +8,12 @@ try {
 
 android {
 
-    compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.1'
     defaultConfig {
         applicationId "appbox.gameideas"
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 9
         versionName "0.1"
     }
@@ -27,13 +28,15 @@ android {
     }
 }
 
+
+//todo take care of red error highlighting
+//todo play with ext adding versions versions
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
+    compile 'com.android.support:appcompat-v7:26.0.1'
+    compile 'com.android.support:design:26.0.1'
     compile 'com.thebluealliance:spectrum:0.5.0'
-    compile('com.mikepenz:materialdrawer:5.3.6@aar') {
+    compile('com.mikepenz:materialdrawer:6.0.4') {
         transitive = true
     }
     compile 'com.mikepenz:google-material-typeface:2.2.0.1@aar'
@@ -45,5 +48,17 @@ dependencies {
     compile 'com.github.ivbaranov:materialfavoritebutton:0.1.2'
     compile 'com.github.mancj:MaterialSearchBar:0.3.1'
     compile 'com.shehabic.droppy:Droppy:0.5.1@aar'
+    compile 'org.yaml:snakeyaml:1.19'
+    //todo remove gson??
     compile files('libs/gson-2.4.jar')
+    compile 'com.github.codekidX:storage-chooser:2.0.3'
+
+    testCompile 'org.codehaus.groovy:groovy:2.4.10:grooid'
+    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude group: 'org.codehaus.groovy'
+        exclude group: 'junit'
+    }
+    testCompile "net.bytebuddy:byte-buddy:1.7.9"
+    testCompile "org.objenesis:objenesis:2.6"
+    testCompile 'junit:junit:4.12'
 }

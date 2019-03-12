@@ -1,10 +1,12 @@
 package manparvesh.ideatrackerplus;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -12,9 +14,11 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
@@ -52,7 +56,9 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.codekidlabs.storagechooser.StorageChooser;
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
@@ -79,7 +85,11 @@ import com.shehabic.droppy.animations.DroppyFadeInAnimation;
 import com.thebluealliance.spectrum.SpectrumDialog;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
+import com.yarolegovich.lovelydialog.LovelyTextInputDialog;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -100,6 +110,11 @@ import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemClickListener;
 import manparvesh.ideatrackerplus.ideamenu.IdeaMenuItemDragListener;
 import manparvesh.ideatrackerplus.recycler.HorizontalAdapter;
 import manparvesh.ideatrackerplus.recycler.RecyclerOnClickListener;
+import manparvesh.ideatrackerplus.utils.Exporter;
+import manparvesh.ideatrackerplus.utils.Helper;
+import manparvesh.ideatrackerplus.utils.IdeaFormatter;
+import manparvesh.ideatrackerplus.utils.Importer;
+import manparvesh.ideatrackerplus.utils.YamlIdeaFormatter;
 
 public class MainActivity extends AppCompatActivity implements
         TextView.OnEditorActionListener,
@@ -114,6 +129,12 @@ public class MainActivity extends AppCompatActivity implements
         View.OnFocusChangeListener,
         IdeaActivityHost {
 
+    // tabs
+    public static final int IDEAS_TAB = 1;
+    public static final int LATER_TAB = 2;
+    public static final int DONE_TAB = 3;
+    @IntDef({IDEAS_TAB, LATER_TAB, DONE_TAB})
+    public @interface tab{}
     // IDs of the right drawer
     private static final int ID_PRIMARY_COLOR = 1;
     private static final int ID_SECONDARY_COLOR = 2;
@@ -122,6 +143,11 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
     private static final int ID_DARK_THEME = 7;
+    private static final int ID_EXPORT_TO_FILE = 8;
+    private static final int ID_IMPORT_FROM_FILE = 9;
+    @IntDef({ID_PRIMARY_COLOR, ID_SECONDARY_COLOR, ID_TEXT_COLOR, ID_CLEAR_DONE,
+        ID_SORT_BY_PRIORITY, ID_RESET_COLOR_PREFS, ID_EXPORT_TO_FILE, ID_IMPORT_FROM_FILE})
+    private @interface RightDrawerId{}
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -181,9 +207,9 @@ public class MainActivity extends AppCompatActivity implements
     // Preferences
     private TinyDB mTinyDB;
     private static final String PREF_KEY = "MyPrefKey";
-    private int mPrimaryColor;
-    private int mSecondaryColor;
-    private int mTextColor;
+    @ColorInt private  int mPrimaryColor;
+    @ColorInt private int mSecondaryColor;
+    @ColorInt private int mTextColor;
     private ArrayList<Object> mProjects;
     private List<IProfile> mProfiles;
     private int mSelectedProfileIndex;
@@ -191,13 +217,18 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mDarkTheme;
 
     // Color preferences
-    private int defaultPrimaryColor;
-    private int defaultSecondaryColor;
-    private int defaultTextColor;
+    @ColorInt private int defaultPrimaryColor;
+    @ColorInt private int defaultSecondaryColor;
+    @ColorInt private int defaultTextColor;
 
     // Voice
     private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+    private static final int READ_REQUEST_CODE = 12345;
+    private static final int WRITE_REQUEST_CODE = 12;
 
+    // Exporter/Importer
+    private Exporter mExporter;
+    private Importer mImporter;
 
     // SINGLETON //
 
@@ -230,6 +261,10 @@ public class MainActivity extends AppCompatActivity implements
         SearchListAdapter.getInstance(this, mDarkTheme);
 
         mDbHelper = DatabaseHelper.getInstance(this);
+
+        IdeaFormatter ideaFormatter= new YamlIdeaFormatter();
+        mExporter = new Exporter(mDbHelper, ideaFormatter);
+        mImporter = new Importer(mDbHelper, ideaFormatter);
 
         // App intro
         introOnFirstStart();
@@ -359,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements
         if (!mNoProject) {
             mSelectedProfileIndex = getIndexOfFavorite();
             IProfile activeProfile = mProfiles.get(mSelectedProfileIndex);
-            String activeProfileName = activeProfile.getName().getText();
+            String activeProfileName = activeProfile.getName().getText().toString();
 
             ActionBar bar;
             if ((bar = getSupportActionBar()) != null) {
@@ -475,7 +510,17 @@ public class MainActivity extends AppCompatActivity implements
                                 .withIdentifier(ID_SORT_BY_PRIORITY)
                                 .withName(R.string.sort_priority)
                                 .withIcon(FontAwesome.Icon.faw_sort_amount_desc)
-                                .withSelectable(false)
+                                .withSelectable(false),
+                        new PrimaryDrawerItem()
+                            .withIdentifier(ID_EXPORT_TO_FILE)
+                            .withName(R.string.export_file)
+                            .withIcon(FontAwesome.Icon.faw_sign_out)
+                            .withSelectable(false),
+                        new PrimaryDrawerItem()
+                            .withIdentifier(ID_IMPORT_FROM_FILE)
+                            .withName(R.string.import_file)
+                            .withIcon(FontAwesome.Icon.faw_sign_in)
+                            .withSelectable(false)
                 )
                 .withDrawerGravity(Gravity.END)
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -483,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
 
                         if (drawerItem != null && !mNoProject) {
-                            int id = (int) drawerItem.getIdentifier();
+                            @RightDrawerId int id = (int) drawerItem.getIdentifier();
                             switch (id) {
                                 case ID_PRIMARY_COLOR:
                                     new SpectrumDialog.Builder(getApplicationContext())
@@ -567,6 +612,14 @@ public class MainActivity extends AppCompatActivity implements
                                 case ID_RESET_COLOR_PREFS:
                                     resetColorsDialog();
                                     break;
+                                case ID_EXPORT_TO_FILE:
+                                    checkPermissionAndSaveFile();
+                                    rightDrawer.closeDrawer();
+                                    break;
+                                case ID_IMPORT_FROM_FILE:
+                                    checkPermissionAndLoadFile();
+                                    rightDrawer.closeDrawer();
+                                    break;
                             }
                         } else {
                             noProjectSnack();
@@ -591,6 +644,156 @@ public class MainActivity extends AppCompatActivity implements
             updateColors();
             refreshStar();
         }
+    }
+
+    private void loadFile() {
+
+        requestReadPermission();
+
+        StorageChooser chooser = getStorageBuilder(StorageChooser.FILE_PICKER).build();
+
+        chooser.show();
+
+        chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
+            @Override
+            public void onSelect(String path) {
+                try {
+                    mImporter.readFile(path);
+
+                    //refresh the fragment display
+                    mViewPager.setAdapter(null);
+                    mViewPager.setAdapter(mSectionsPagerAdapter);
+                } catch (IOException e) {
+                    // todo: catch it gracefully
+                    Toast.makeText(MainActivity.this, R.string.cant_read_file, Toast.LENGTH_SHORT).show();
+                } catch (ParseException e) {
+                    Toast.makeText(MainActivity.this, R.string.cant_parse_file, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void saveFile() {
+
+        StorageChooser chooser = getStorageBuilder(StorageChooser.DIRECTORY_CHOOSER).build();
+
+        chooser.show();
+
+        chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
+            @Override
+            public void onSelect(final String path) {
+                new LovelyTextInputDialog(MainActivity.this, Helper.getEditTextStyle(mDarkTheme))
+                    .setTopColor(mPrimaryColor)
+                    //.setTitle(R.string.text_input_title)
+                    .setMessage(R.string.filename_title)
+                    // todo lightbuld??
+                    .setIcon(R.drawable.ic_bulb)
+                    .setConfirmButton(android.R.string.ok, new LovelyTextInputDialog.OnTextInputConfirmListener() {
+                        @Override
+                        public void onTextInputConfirmed(String file) {
+                            try {
+                                mExporter.saveFile(path + "/" + file);
+                            } catch (IOException e) {
+                                // todo: catch it gracefully
+                                Toast.makeText(MainActivity.this, R.string.cant_write_file, Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            }
+                        }
+                    })
+                    .show();
+            }
+        });
+    }
+
+    /**
+     * This is setting the predefined directory to be the documents directory, depending on the android version.
+     *
+     * @param action should be type that is recognised by setType method of the StorageChooser.Builder
+     *               Examples is StorageChooser.DIRECTORY_CHOOSER or StorageChooser.FILE_PICKER
+     * @return the builder that is ready to be built
+     */
+    StorageChooser.Builder getStorageBuilder(String action) {
+        StorageChooser.Builder builder = new StorageChooser.Builder()
+            .withActivity(MainActivity.this)
+            .withFragmentManager(getFragmentManager())
+            .withMemoryBar(true)
+            .allowCustomPath(true)
+            .setType(action);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            File docsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+
+            if (docsDir.exists()) {
+                builder.skipOverview(true, docsDir.getAbsolutePath());
+            }
+        }
+
+        return builder;
+    }
+
+    private void checkPermissionAndSaveFile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boolean permissionAlreadyGranted = requestWritePermission();
+            if (permissionAlreadyGranted) {
+                saveFile();
+            }
+        } else {
+            // user has already given permissions during installation
+            saveFile();
+        }
+    }
+
+    private void checkPermissionAndLoadFile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boolean permissionAlreadyGranted = requestReadPermission();
+            if (permissionAlreadyGranted) {
+                loadFile();
+            }
+        } else {
+            // user has already given permissions during installation
+            loadFile();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case READ_REQUEST_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadFile();
+                } else {
+                    Toast.makeText(this, R.string.read_permission_rationale, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+            case WRITE_REQUEST_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    saveFile();
+                } else {
+                    Toast.makeText(this, R.string.write_permission_rationale, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
+    }
+
+    private boolean requestWritePermission() {
+        return requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_REQUEST_CODE);
+    }
+
+    private boolean requestReadPermission() {
+        return requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_REQUEST_CODE);
+    }
+
+    private boolean requestPermission(@NonNull String permission, int requestCode) {
+        boolean permissionAlreadyGranted = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[] {permission}, requestCode);
+                permissionAlreadyGranted = false;
+            }
+        }
+        return permissionAlreadyGranted;
     }
 
     // Creates the switches displayed in the drawer
@@ -640,7 +843,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows an idea creation dialog
     public void newIdeaDialog() {
 
-        mNewIdeaDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
+        mNewIdeaDialog = new LovelyCustomDialog(this, Helper.getEditTextStyle(mDarkTheme))
                 .setView(R.layout.new_idea_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_bulb)
@@ -689,7 +892,8 @@ public class MainActivity extends AppCompatActivity implements
         String text = mIdeaField.getText().toString();
         if (!text.equals("")) {
 
-            boolean later = doLater.isChecked();
+            @tab
+            int tab = doLater.isChecked() ? LATER_TAB : IDEAS_TAB;
 
             if (mRadioGroup.getCheckedRadioButtonId() != -1) {
                 View radioButton = mRadioGroup.findViewById(mRadioGroup.getCheckedRadioButtonId());
@@ -699,7 +903,7 @@ public class MainActivity extends AppCompatActivity implements
                 String note = mNoteField.getText().toString();
                 int priority = Integer.parseInt(selection);
 
-                mDbHelper.newEntry(text, note, priority, later); //add the idea to the actual database
+                mDbHelper.newEntry(text, note, priority, tab); //add the idea to the actual database
                 displayIdeasCount();
 
                 DatabaseHelper.notifyAllLists();
@@ -712,7 +916,7 @@ public class MainActivity extends AppCompatActivity implements
             if (mTinyDB.getBoolean(getString(R.string.handle_idea_pref))) {
                 //move tab where idea was created
                 int index = 0;
-                if (later) index = 1;
+                if (tab == LATER_TAB) index = 1;
 
                 tabLayout.setScrollPosition(index, 0f, true);
                 mViewPager.setCurrentItem(index);
@@ -762,7 +966,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void newProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, Helper.getEditTextStyle(mDarkTheme))
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_notepad)
@@ -847,7 +1051,7 @@ public class MainActivity extends AppCompatActivity implements
     // Show a dialog to rename the current project
     private void renameProjectDialog() {
 
-        mProjectDialog = new LovelyCustomDialog(this, mDarkTheme ? R.style.EditTextTintThemeDark : R.style.EditTextTintTheme)
+        mProjectDialog = new LovelyCustomDialog(this, Helper.getEditTextStyle(mDarkTheme))
                 .setView(R.layout.project_form)
                 .setTopColor(mPrimaryColor)
                 .setIcon(R.drawable.ic_edit)
@@ -902,7 +1106,7 @@ public class MainActivity extends AppCompatActivity implements
     // Shows a dialog to delete the current project
     private void deleteProjectDialog() {
 
-        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
+        new LovelyStandardDialog(this, Helper.getAlertDialogStyle(mDarkTheme))
                 .setTopColorRes(R.color.md_red_400)
                 .setButtonsColorRes(R.color.md_deep_orange_500)
                 .setIcon(R.drawable.ic_warning)
@@ -950,7 +1154,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // Shows a dialog to reset color preferences to default
     private void resetColorsDialog() {
-        new LovelyStandardDialog(this, mDarkTheme ? android.support.v7.appcompat.R.style.Theme_AppCompat_Dialog_Alert : 0)
+        new LovelyStandardDialog(this, Helper.getAlertDialogStyle(mDarkTheme))
                 .setTopColor(mPrimaryColor)
                 .setButtonsColorRes(R.color.md_pink_a200)
                 .setIcon(R.drawable.ic_drop)
@@ -1716,7 +1920,7 @@ public class MainActivity extends AppCompatActivity implements
             else mSelectedProfileIndex = 0;
 
             IProfile profileToSelect = mProfiles.get(mSelectedProfileIndex);
-            String tableToSelect = profileToSelect.getName().getText();
+            String tableToSelect = profileToSelect.getName().getText().toString();
             header.setActiveProfile(profileToSelect);
             mToolbar.setTitle(tableToSelect);
             mDbHelper.switchTable(tableToSelect);
