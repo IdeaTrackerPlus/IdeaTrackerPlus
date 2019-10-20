@@ -122,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
     private static final int ID_DARK_THEME = 7;
+    private static final int ID_EXPORT_IDEAS = 8;
+
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -470,6 +472,10 @@ public class MainActivity extends AppCompatActivity implements
                         new PrimaryDrawerItem().withIdentifier(ID_CLEAR_DONE)
                                 .withName(R.string.clear_done)
                                 .withIcon(FontAwesome.Icon.faw_check_circle)
+                                .withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_EXPORT_IDEAS)
+                                .withName(R.string.export_ideas)
+                                .withIcon(FontAwesome.Icon.faw_file_text_o)
                                 .withSelectable(false),
                         new PrimaryDrawerItem()
                                 .withIdentifier(ID_SORT_BY_PRIORITY)

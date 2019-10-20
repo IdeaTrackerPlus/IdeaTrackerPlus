@@ -103,6 +103,7 @@
     <string name="idea_moved_snack">"Idea moved to "</string>
     <string name="sort_priority">Sort by priority</string>
     <string name="clear_done">Clear Done tab</string>
+    <string name="export_ideas">Export Ideas tab</string>
     <string name="done_cleared">Done tab cleared</string>
     <string name="favorite_project" translatable="false">favorite_project</string>
     <string name="search_tab">Search</string>
