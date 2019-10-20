@@ -1,10 +1,12 @@
 package manparvesh.ideatrackerplus;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -12,6 +14,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.annotation.ColorInt;
@@ -21,8 +24,10 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +57,7 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.mancj.materialsearchbar.MaterialSearchBar;
@@ -80,6 +86,10 @@ import com.thebluealliance.spectrum.SpectrumDialog;
 import com.yarolegovich.lovelydialog.LovelyCustomDialog;
 import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -122,6 +132,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int ID_SORT_BY_PRIORITY = 5;
     private static final int ID_RESET_COLOR_PREFS = 6;
     private static final int ID_DARK_THEME = 7;
+    private static final int ID_EXPORT_IDEAS = 8;
+
 
     // IDs of the left drawer
     private static final int ID_RENAME_PROJECT = 1;
@@ -471,6 +483,10 @@ public class MainActivity extends AppCompatActivity implements
                                 .withName(R.string.clear_done)
                                 .withIcon(FontAwesome.Icon.faw_check_circle)
                                 .withSelectable(false),
+                        new PrimaryDrawerItem().withIdentifier(ID_EXPORT_IDEAS)
+                                .withName(R.string.export_ideas)
+                                .withIcon(FontAwesome.Icon.faw_file_text_o)
+                                .withSelectable(false),
                         new PrimaryDrawerItem()
                                 .withIdentifier(ID_SORT_BY_PRIORITY)
                                 .withName(R.string.sort_priority)
@@ -559,6 +575,12 @@ public class MainActivity extends AppCompatActivity implements
                                     rightDrawer.closeDrawer();
                                     break;
 
+                                case ID_EXPORT_IDEAS:
+                                    ActivityCompat.requestPermissions(MainActivity.this,
+                                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                            1);
+                                    break;
+
                                 case ID_SORT_BY_PRIORITY:
                                     mDbHelper.sortByAscPriority();
                                     rightDrawer.closeDrawer();
@@ -590,6 +612,66 @@ public class MainActivity extends AppCompatActivity implements
             mTextColor = defaultTextColor;
             updateColors();
             refreshStar();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                saveToTextFile();
+
+            } else {
+
+                Toast.makeText(MainActivity.this, "Permission denied to write your External storage", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
+    private void saveToTextFile() {
+
+
+        try {
+
+            DatabaseHelper helper = DatabaseHelper.getInstance(getApplicationContext());
+            ArrayList<Pair<Integer, String>> tempList = helper.readIdeas(1);
+
+            if (tempList.size() > 0){
+
+                String path = Environment.getExternalStorageDirectory().toString() + "/IdeaTracker";
+
+                File file = new File(path);
+
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+
+                File ideasFile = new File(file, "ideas" + "_" + System.currentTimeMillis() + ".txt");
+                FileOutputStream fOut = new FileOutputStream(ideasFile);
+                OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+
+
+                for (int i = 0; i < tempList.size(); i++) {
+                    myOutWriter.append(String.valueOf(tempList.get(i).second)).append("\n");
+                }
+
+                myOutWriter.close();
+                fOut.close();
+                Toast.makeText(MainActivity.this, "Saved your ideas", Toast.LENGTH_LONG).show();
+
+            }else {
+
+                Toast.makeText(MainActivity.this, "Your ideas list is empty!", Toast.LENGTH_LONG).show();
+
+            }
+
+
+
+        } catch (Exception e) {
+            Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -107,6 +107,7 @@
     <string name="next">Suivant</string>
     <string name="idea_moved_snack">"Idée déplacée vers "</string>
     <string name="clear_done">Vider l\'onglet Terminé</string>
+    <string name="export_ideas">Onglet Exporter des idées</string>
     <string name="sort_priority">Classer par priorité</string>
     <string name="done_cleared">Onglet Terminé vidé</string>
     <string name="search">Rechercher</string>
